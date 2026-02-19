@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles } from 'lucide-react';
+import { LOGO_URL } from '../constants';
 
 export const AIServices: React.FC = () => {
   const services = [
@@ -25,9 +26,9 @@ export const AIServices: React.FC = () => {
       desc: 'Collection, labelling, audit, live broadcast, subtitle generation'
     },
     {
-      title: 'Image',
-      icon: <ImageIcon className="w-6 h-6" />,
-      desc: 'Collection, labelling, classification, audit, object detection and tagging'
+      title: 'Multimodal',
+      icon: <Sparkles className="w-6 h-6" />,
+      desc: 'Cross-platform dataset merging, semantic alignment, and frontier model RLHF'
     }
   ];
 
@@ -65,6 +66,9 @@ export const AIServices: React.FC = () => {
               key={idx}
               className="min-w-[300px] flex-shrink-0 glass-card p-10 rounded-[2.5rem] border-white/40 shadow-xl hover:-translate-y-2 transition-transform duration-500 group"
             >
+              <div className="w-12 h-12 rounded-2xl bg-lifewood-green/10 flex items-center justify-center mb-6 text-lifewood-green">
+                {service.icon}
+              </div>
               <h3 className="text-3xl font-heading font-bold mb-6 text-lifewood-serpent dark:text-white">{service.title}</h3>
               <p className="text-lifewood-serpent/50 dark:text-white/40 leading-relaxed font-medium">
                 {service.desc}
@@ -78,7 +82,6 @@ export const AIServices: React.FC = () => {
           <div className="absolute -inset-4 bg-gradient-to-r from-lifewood-green/10 to-lifewood-saffron/10 rounded-[3rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative bg-[#0a0a0a] rounded-[3rem] overflow-hidden aspect-video shadow-2xl border-8 border-white dark:border-white/5">
              <div className="absolute inset-0 flex items-center justify-center">
-                {/* Simulated World Map Video Placeholder */}
                 <img 
                   src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?auto=format&fit=crop&q=80&w=2000" 
                   className="w-full h-full object-cover opacity-50 grayscale" 
@@ -92,7 +95,7 @@ export const AIServices: React.FC = () => {
              <div className="absolute bottom-10 left-10 text-white/80 font-medium text-lg">
                 Lifewood enable scalable, always on data collection
              </div>
-             <img src="https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png" className="absolute top-10 right-10 h-8 brightness-0 invert opacity-60" alt="Lifewood" />
+             <img src={LOGO_URL} className="absolute top-10 right-10 h-10 brightness-0 invert opacity-60" alt="Lifewood" />
           </div>
         </div>
 
@@ -125,7 +128,7 @@ export const AIServices: React.FC = () => {
            </div>
            <div className="aspect-[4/3] rounded-[3rem] overflow-hidden bg-gray-100 dark:bg-white/5 relative flex items-center justify-center p-20">
               <div className="absolute inset-0 bg-white/50 dark:bg-black/20 blur-xl"></div>
-              <img src="https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png" className="w-full relative z-10" alt="Lifewood" />
+              <img src={LOGO_URL} className="h-48 md:h-64 relative z-10" alt="Lifewood" />
            </div>
         </div>
 
@@ -133,7 +136,7 @@ export const AIServices: React.FC = () => {
            <div className="aspect-[4/3] rounded-[3rem] overflow-hidden bg-gray-200 dark:bg-white/10 relative group">
               <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-105" />
               <div className="absolute bottom-8 left-8 text-white text-lg font-bold drop-shadow-lg">
-                 © 2025 Lifewood Data Technology
+                 © 2026 Lifewood Data Technology
               </div>
            </div>
            <div className="aspect-[4/3] rounded-[3rem] p-12 glass-card border-none flex flex-col justify-center">
