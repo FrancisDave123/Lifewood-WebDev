@@ -28,7 +28,7 @@ export const Hero: React.FC = () => {
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source 
-            src="https://framerusercontent.com/assets/fXp3Dk7fH9O1jSjI7E7q.mp4" 
+            src="https://www.pexels.com/download/video/10922866/" 
             type="video/mp4" 
           />
           Your browser does not support the video tag.
