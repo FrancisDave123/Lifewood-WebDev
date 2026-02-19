@@ -52,25 +52,25 @@ export const CAPABILITIES: CapabilityItem[] = [
   {
     title: 'Audio',
     description: 'High-fidelity audio transcription, speaker diarization, and emotive analysis for sophisticated speech AI models.',
-    imageUrl: 'https://picsum.photos/seed/audio/800/600',
+    imageUrl: 'https://framerusercontent.com/images/kuZUhOvQEHugeoHtgKZVFUs8.png?scale-down-to=512&width=1024&height=1024',
     gradient: 'from-blue-500/20 to-lifewood-green/20'
   },
   {
     title: 'Text',
     description: 'Multi-lingual NLP datasets, sentiment analysis, and semantic tagging across hundreds of languages and dialects.',
-    imageUrl: 'https://picsum.photos/seed/text/800/600',
+    imageUrl: 'https://framerusercontent.com/images/ovEfxTUrgcgO1TrMPB68SxHjM0.png?scale-down-to=1024&width=2268&height=3402',
     gradient: 'from-lifewood-yellow/20 to-lifewood-green/20'
   },
   {
     title: 'Image',
     description: 'Precision image annotation, object detection, and segmentation for computer vision applications.',
-    imageUrl: 'https://picsum.photos/seed/image/800/600',
+    imageUrl: 'https://framerusercontent.com/images/8fY93Grrd08Utrptk3kjoPy6pA.jpg?scale-down-to=512&width=640&height=427',
     gradient: 'from-lifewood-saffron/20 to-lifewood-serpent/20'
   },
   {
     title: 'Video',
     description: 'Temporal video tracking, action recognition, and frame-by-frame annotation for dynamic visual systems.',
-    imageUrl: 'https://picsum.photos/seed/video/800/600',
+    imageUrl: 'https://framerusercontent.com/images/0QB9I1axbVfYe38G39RTGd72GXo.png?scale-down-to=1024&width=2268&height=3402',
     gradient: 'from-lifewood-green/20 to-lifewood-saffron/20'
   }
 ];

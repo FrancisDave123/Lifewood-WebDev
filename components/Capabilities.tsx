@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { CAPABILITIES } from '../constants';
-import { Mic, FileText, Image, Video, ChevronRight } from 'lucide-react';
+import { Mic, FileText, Image, Video } from 'lucide-react';
 
 const icons = {
   'Audio': Mic,
@@ -68,13 +68,9 @@ export const Capabilities: React.FC = () => {
                     </div>
                     <h4 className="text-3xl font-heading font-black tracking-tighter text-white">{cap.title}</h4>
                   </div>
-                  <p className="text-base text-white/70 leading-relaxed mb-6 opacity-0 group-hover:opacity-100 max-h-0 group-hover:max-h-32 transition-all duration-700 overflow-hidden">
+                  <p className="text-base text-white/70 leading-relaxed opacity-0 group-hover:opacity-100 max-h-0 group-hover:max-h-32 transition-all duration-700 overflow-hidden">
                     {cap.description}
                   </p>
-                  <div className="flex items-center justify-between text-white/50 group-hover:text-lifewood-yellow transition-colors font-bold text-sm tracking-widest uppercase">
-                    <span>Explore Data</span>
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                  </div>
                 </div>
               </div>
             );
