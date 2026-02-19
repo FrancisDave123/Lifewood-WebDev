@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles, X } from 'lucide-react';
 import { LOGO_URL, LOGO_DARK_URL } from '../constants';
 
 interface AIServicesProps {
@@ -8,6 +8,21 @@ interface AIServicesProps {
 }
 
 export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light' }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [embedUrl, setEmbedUrl] = useState('');
+
+  // Resolution for Error 153:
+  // We must pass the origin to YouTube for security verification in sandboxed environments.
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      const videoId = "g_JvAVL0WY4";
+      const si = "elnNvCuWEU_tuvzZ";
+      // We use the exact URL provided by you, adding autoplay and origin validation.
+      setEmbedUrl(`https://www.youtube.com/embed/${videoId}?si=${si}&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`);
+    }
+  }, []);
+
   const scrollToContact = () => {
     const el = document.getElementById('contact');
     if (el) {
@@ -46,6 +61,7 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light' }) => {
     }
   ];
 
+  const marqueeItems = [...services, ...services];
   const currentLogo = theme === 'dark' ? LOGO_DARK_URL : LOGO_URL;
 
   return (
@@ -78,44 +94,84 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light' }) => {
           </button>
         </div>
 
-        {/* Services Slider/Grid */}
-        <div className="flex overflow-x-auto pb-12 gap-6 no-scrollbar -mx-6 px-6 animate-pop-out opacity-0" style={{ animationDelay: '200ms' }}>
-          {services.map((service, idx) => (
-            <div 
-              key={idx}
-              className="min-w-[300px] flex-shrink-0 glass-card p-10 rounded-[2.5rem] border-white/40 shadow-xl hover:-translate-y-2 transition-transform duration-500 group"
-              style={{ animationDelay: `${300 + idx * 100}ms` }}
-            >
-              <div className="w-12 h-12 rounded-2xl bg-lifewood-green/10 flex items-center justify-center mb-6 text-lifewood-green">
-                {service.icon}
+        {/* Interactive Marquee Services Section */}
+        <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden py-10 animate-pop-out opacity-0" style={{ animationDelay: '200ms' }}>
+          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-lifewood-seaSalt dark:from-[#020804] to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-lifewood-seaSalt dark:from-[#020804] to-transparent z-10 pointer-events-none"></div>
+
+          <div className="flex animate-marquee hover:[animation-play-state:paused] whitespace-nowrap items-center w-max">
+            {marqueeItems.map((service, idx) => (
+              <div 
+                key={idx}
+                className="inline-block mx-4 min-w-[320px] max-w-[320px] glass-card p-10 rounded-[3rem] border-white/40 shadow-xl transition-all duration-500 group relative overflow-hidden whitespace-normal cursor-pointer hover:-translate-y-4 hover:scale-105 hover:glow-green"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-lifewood-green/0 to-lifewood-green/5 group-hover:from-lifewood-green/10 group-hover:to-lifewood-saffron/10 transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
+                
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-lifewood-green/10 flex items-center justify-center mb-6 text-lifewood-green group-hover:scale-110 group-hover:rotate-12 transition-all">
+                    {service.icon}
+                  </div>
+                  <h3 className="text-3xl font-heading font-bold mb-4 text-lifewood-serpent dark:text-white group-hover:text-lifewood-green transition-colors">{service.title}</h3>
+                  <p className="text-lifewood-serpent/60 dark:text-white/40 leading-relaxed font-medium text-sm md:text-base">
+                    {service.desc}
+                  </p>
+                </div>
+
+                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <Sparkles className="w-5 h-5 text-lifewood-saffron" />
+                </div>
               </div>
-              <h3 className="text-3xl font-heading font-bold mb-6 text-lifewood-serpent dark:text-white">{service.title}</h3>
-              <p className="text-lifewood-serpent/50 dark:text-white/40 leading-relaxed font-medium">
-                {service.desc}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Video Feature Section */}
+        {/* Video Feature Section - Embedded YouTube */}
         <div className="relative mt-20 mb-32 group animate-pop-out opacity-0" style={{ animationDelay: '400ms' }}>
-          <div className="absolute -inset-4 bg-gradient-to-r from-lifewood-green/10 to-lifewood-saffron/10 rounded-[3rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative bg-[#0a0a0a] rounded-[3rem] overflow-hidden aspect-video shadow-2xl border-8 border-white dark:border-white/5">
-             <div className="absolute inset-0 flex items-center justify-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?auto=format&fit=crop&q=80&w=2000" 
-                  className="w-full h-full object-cover opacity-50 grayscale" 
-                  alt="Global network" 
-                />
-                <div className="absolute inset-0 bg-lifewood-green/20 mix-blend-overlay"></div>
-                <button className="w-20 h-20 rounded-full bg-lifewood-green/90 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform z-10">
-                   <Play className="w-8 h-8 fill-white ml-1" />
-                </button>
-             </div>
-             <div className="absolute bottom-10 left-10 text-white/80 font-medium text-lg">
-                Lifewood enable scalable, always on data collection
-             </div>
-             <img src={LOGO_DARK_URL} className="absolute top-10 right-10 h-10 opacity-60" alt="Lifewood" />
+          <div className="absolute -inset-4 bg-gradient-to-r from-lifewood-green/10 to-lifewood-saffron/10 rounded-[3.5rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+          
+          <div className="relative bg-[#0a0a0a] rounded-[3rem] overflow-hidden aspect-video shadow-2xl border-8 border-white dark:border-white/5 group-hover:border-lifewood-green/20 transition-all duration-500">
+             {!isPlaying ? (
+               <div className="absolute inset-0 flex items-center justify-center cursor-pointer" onClick={() => setIsPlaying(true)}>
+                  <img 
+                    src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?auto=format&fit=crop&q=80&w=2000" 
+                    className="w-full h-full object-cover opacity-60 grayscale group-hover:scale-105 transition-transform duration-1000" 
+                    alt="Lifewood Vision" 
+                  />
+                  <div className="absolute inset-0 bg-lifewood-green/20 mix-blend-overlay"></div>
+                  
+                  <div className="relative z-10 flex flex-col items-center gap-6">
+                    <div className="w-24 h-24 rounded-full bg-lifewood-green text-white flex items-center justify-center shadow-[0_0_50px_rgba(4,98,65,0.5)] group-hover:scale-110 group-hover:bg-lifewood-saffron transition-all duration-500">
+                       <Play className="w-10 h-10 fill-white ml-1" />
+                    </div>
+                    <span className="text-white font-black tracking-[0.2em] uppercase text-sm drop-shadow-md">Watch Our Story</span>
+                  </div>
+                  
+                  <img src={LOGO_DARK_URL} className="absolute top-10 right-10 h-10 opacity-60" alt="Lifewood" />
+                  
+                  <div className="absolute bottom-10 left-10 text-white/90 font-bold text-xl flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-lifewood-saffron animate-pulse"></div>
+                    Lifewood: Global AI Data Engineering
+                  </div>
+               </div>
+             ) : (
+               <div className="relative w-full h-full bg-black">
+                 <iframe 
+                   className="w-full h-full"
+                   src={embedUrl} 
+                   title="YouTube video player" 
+                   frameBorder="0" 
+                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                   referrerPolicy="strict-origin-when-cross-origin"
+                   allowFullScreen
+                 ></iframe>
+                 <button 
+                   onClick={() => setIsPlaying(false)}
+                   className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/80 transition-colors z-20"
+                 >
+                   <X className="w-6 h-6" />
+                 </button>
+               </div>
+             )}
           </div>
         </div>
 
