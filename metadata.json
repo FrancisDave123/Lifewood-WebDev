@@ -1,0 +1,8 @@
+{
+  "name": "Lifewood - AI Data Solutions Reimagined",
+  "description": "A premium, glassmorphism-based redesign of the Lifewood corporate website featuring light/dark modes, smooth animations, and modern enterprise aesthetics.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
