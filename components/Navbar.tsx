@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { NAV_ITEMS, LOGO_URL } from '../constants';
+import { NAV_ITEMS, LOGO_URL, LOGO_DARK_URL } from '../constants';
 import { ThemeToggle } from './ThemeToggle';
 import { Menu, X, ChevronDown, Sparkles, Layers } from 'lucide-react';
 
@@ -22,27 +22,62 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToSection = (targetId: string) => {
+    if (targetId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const el = document.getElementById(targetId);
+    if (el) {
+      const offset = 80;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    }
+  };
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: any) => {
     e.preventDefault();
+    
+    // 1. Remove route for parent items that have sub-items (like AI Initiatives)
+    if (item.subItems) {
+      // Do nothing, just let the dropdown handle visual state
+      return;
+    }
+
     const href = item.href;
     const targetId = href.replace('#', '');
     
-    // Routing for Home
+    // 2. Special handling for Home / Logo click
     if (targetId === 'home') {
-      navigateTo('home');
+      if (currentPage === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigateTo('home');
+        // Ensure we are at the top when landing back on home
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      }
       setMobileMenuOpen(false);
       return;
     }
 
-    // Routing and allowed scroll for AI Services
+    // 3. Check if we are heading to the Services page
     if (targetId === 'services') {
       navigateTo('services');
       setMobileMenuOpen(false);
       return;
     }
 
-    // Remove the click-to-scroll feature for all other items
-    // We do nothing here except close the mobile menu if it's open
+    // 4. Logic for navigating back to Home sections from other pages
+    if (currentPage === 'services') {
+      navigateTo('home');
+      // Delay slightly to allow the home page sections to mount
+      setTimeout(() => scrollToSection(targetId), 100);
+    } else {
+      scrollToSection(targetId);
+    }
+
     setMobileMenuOpen(false);
   };
 
@@ -56,13 +91,17 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
         <div className={`mx-auto max-w-7xl rounded-full transition-all duration-500 px-6 py-3 flex items-center justify-between ${
           isScrolled ? 'glass shadow-xl translate-y-2' : 'bg-transparent'
         }`}>
-          {/* Logo */}
+          {/* Logo - Now scrolls to top */}
           <a 
             href="#home" 
             onClick={(e) => handleNavClick(e, { href: '#home' })}
             className="flex items-center gap-2 group"
           >
-            <img src={LOGO_URL} alt="Lifewood" className="h-8 md:h-10 transition-transform group-hover:scale-105" />
+            <img 
+              src={theme === 'dark' ? LOGO_DARK_URL : LOGO_URL} 
+              alt="Lifewood" 
+              className="h-8 md:h-10 transition-transform group-hover:scale-105" 
+            />
           </a>
 
           {/* Desktop Navigation */}
@@ -78,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item)}
                   className={`text-sm font-bold flex items-center gap-1.5 hover:text-lifewood-green dark:hover:text-lifewood-yellow transition-colors relative ${
-                    item.subItems ? 'cursor-default' : 'cursor-pointer'
+                    item.subItems ? 'cursor-default' : ''
                   }`}
                 >
                   {item.label}
@@ -141,7 +180,9 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
               <a
                 href={item.href}
                 onClick={(e) => handleNavClick(e, item)}
-                className="text-2xl font-black hover:text-lifewood-green transition-colors"
+                className={`text-2xl font-black hover:text-lifewood-green transition-colors ${
+                  item.subItems ? 'cursor-default' : ''
+                }`}
               >
                 {item.label}
               </a>

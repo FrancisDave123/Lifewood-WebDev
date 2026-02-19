@@ -38,6 +38,7 @@
               'spin-slow': 'spin 20s linear infinite',
               'gradient-flow': 'gradient-flow 15s ease infinite',
               'marquee': 'marquee 20s linear infinite',
+              'pop-out': 'pop-out 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
             },
             keyframes: {
               float: {
@@ -51,6 +52,10 @@
               marquee: {
                 '0%': { transform: 'translateX(0)' },
                 '100%': { transform: 'translateX(-50%)' },
+              },
+              'pop-out': {
+                '0%': { transform: 'scale(0.8) translateY(40px)', opacity: '0' },
+                '100%': { transform: 'scale(1) translateY(0)', opacity: '1' },
               }
             }
           }

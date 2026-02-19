@@ -2,6 +2,8 @@
 import { NavItem, StatItem, CapabilityItem } from './types';
 
 export const LOGO_URL = "https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png";
+// Updated with the dark-mode specific logo from the brand assets
+export const LOGO_DARK_URL = "https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png";
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '#home' },

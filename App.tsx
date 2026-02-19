@@ -44,7 +44,7 @@ const App: React.FC = () => {
       
       <main className="relative">
         {currentPage === 'home' ? (
-          <>
+          <div key="home-page-wrapper">
             <Hero />
             <div className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
               <About />
@@ -53,10 +53,10 @@ const App: React.FC = () => {
               <Innovation />
               <Capabilities />
             </div>
-          </>
+          </div>
         ) : (
-          <div className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <AIServices />
+          <div key="services-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
+            <AIServices theme={theme} />
           </div>
         )}
       </main>
@@ -65,7 +65,7 @@ const App: React.FC = () => {
         <Footer navigateTo={navigateTo} />
       </div>
 
-      {/* Background Decorative Blobs - Moved to z-0 or lower if needed, or kept for ambient depth */}
+      {/* Background Decorative Blobs */}
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lifewood-green/5 dark:bg-lifewood-green/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
       <div className="fixed bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-lifewood-saffron/5 dark:bg-lifewood-saffron/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
     </div>

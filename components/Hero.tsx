@@ -28,7 +28,7 @@ export const Hero: React.FC = () => {
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source 
-            src="https://www.pexels.com/download/video/10922866/" 
+            src="https://framerusercontent.com/assets/fXp3Dk7fH9O1jSjI7E7q.mp4" 
             type="video/mp4" 
           />
           Your browser does not support the video tag.
@@ -46,8 +46,9 @@ export const Hero: React.FC = () => {
         <div className="absolute bottom-[5%] right-[-5%] w-[60rem] h-[60rem] bg-lifewood-saffron/[0.03] dark:bg-lifewood-saffron/[0.05] rounded-full blur-[150px] animate-pulse-slow" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 text-center -mt-12 md:-mt-16">
-        {/* Modernized Floating Badge - Lower margin and adjusted position */}
+      {/* Hero Content with Pop-out animation */}
+      <div className="container mx-auto px-6 relative z-10 text-center -mt-12 md:-mt-16 animate-pop-out opacity-0">
+        {/* Modernized Floating Badge */}
         <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full glass border border-lifewood-green/10 mb-6 animate-float shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl group hover:border-lifewood-green/30 transition-all duration-500">
           <div className="relative">
             <span className="flex w-2.5 h-2.5 rounded-full bg-lifewood-green group-hover:scale-125 transition-transform"></span>
