@@ -7,8 +7,8 @@ import { Menu, X, ChevronDown, Sparkles, Layers } from 'lucide-react';
 interface NavbarProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  navigateTo: (page: 'home' | 'services') => void;
-  currentPage: 'home' | 'services';
+  navigateTo: (page: 'home' | 'services' | 'projects') => void;
+  currentPage: 'home' | 'services' | 'projects';
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, currentPage }) => {
@@ -40,39 +40,38 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: any) => {
     e.preventDefault();
     
-    // 1. Remove route for parent items that have sub-items (like AI Initiatives)
-    if (item.subItems) {
-      // Do nothing, just let the dropdown handle visual state
+    if (item.subItems && !e.currentTarget.dataset.isSub) {
       return;
     }
 
     const href = item.href;
     const targetId = href.replace('#', '');
     
-    // 2. Special handling for Home / Logo click
     if (targetId === 'home') {
       if (currentPage === 'home') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         navigateTo('home');
-        // Ensure we are at the top when landing back on home
         setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
       }
       setMobileMenuOpen(false);
       return;
     }
 
-    // 3. Check if we are heading to the Services page
     if (targetId === 'services') {
       navigateTo('services');
       setMobileMenuOpen(false);
       return;
     }
 
-    // 4. Logic for navigating back to Home sections from other pages
-    if (currentPage === 'services') {
+    if (targetId === 'project') {
+      navigateTo('projects');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (currentPage !== 'home') {
       navigateTo('home');
-      // Delay slightly to allow the home page sections to mount
       setTimeout(() => scrollToSection(targetId), 100);
     } else {
       scrollToSection(targetId);
@@ -91,7 +90,6 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
         <div className={`mx-auto max-w-7xl rounded-full transition-all duration-500 px-6 py-3 flex items-center justify-between ${
           isScrolled ? 'glass shadow-xl translate-y-2' : 'bg-transparent'
         }`}>
-          {/* Logo - Now scrolls to top */}
           <a 
             href="#home" 
             onClick={(e) => handleNavClick(e, { href: '#home' })}
@@ -104,7 +102,6 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
             />
           </a>
 
-          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-6">
             {NAV_ITEMS.map((item) => (
               <div 
@@ -127,7 +124,6 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
                   <span className={`absolute -bottom-1 left-0 h-0.5 bg-lifewood-green dark:bg-lifewood-yellow transition-all duration-300 ${activeDropdown === item.label ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </a>
 
-                {/* Dropdown Menu */}
                 {item.subItems && (
                   <div className={`absolute left-0 top-full pt-4 transition-all duration-300 ${activeDropdown === item.label ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                     <div className="glass shadow-2xl rounded-3xl p-3 min-w-[220px] ring-1 ring-white/20">
@@ -135,6 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
                         <a
                           key={sub.label}
                           href={sub.href}
+                          data-is-sub="true"
                           onClick={(e) => handleNavClick(e, sub)}
                           className="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all"
                         >
@@ -170,7 +167,6 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <div className={`lg:hidden fixed inset-0 z-40 bg-lifewood-seaSalt/95 dark:bg-[#050c08]/95 backdrop-blur-xl transition-all duration-500 ${
         mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
@@ -192,6 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
                     <a
                       key={sub.label}
                       href={sub.href}
+                      data-is-sub="true"
                       onClick={(e) => handleNavClick(e, sub)}
                       className="text-lg font-bold opacity-60 hover:opacity-100 transition-opacity"
                     >

@@ -9,9 +9,10 @@ import { Innovation } from './components/Innovation';
 import { Capabilities } from './components/Capabilities';
 import { Footer } from './components/Footer';
 import { AIServices } from './components/AIServices';
+import { AIProjects } from './components/AIProjects';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'services'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects'>('home');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
@@ -33,7 +34,7 @@ const App: React.FC = () => {
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  const navigateTo = (page: 'home' | 'services') => {
+  const navigateTo = (page: 'home' | 'services' | 'projects') => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -43,7 +44,7 @@ const App: React.FC = () => {
       <Navbar theme={theme} toggleTheme={toggleTheme} navigateTo={navigateTo} currentPage={currentPage} />
       
       <main className="relative">
-        {currentPage === 'home' ? (
+        {currentPage === 'home' && (
           <div key="home-page-wrapper">
             <Hero />
             <div className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
@@ -54,9 +55,15 @@ const App: React.FC = () => {
               <Capabilities />
             </div>
           </div>
-        ) : (
+        )}
+        {currentPage === 'services' && (
           <div key="services-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
             <AIServices theme={theme} />
+          </div>
+        )}
+        {currentPage === 'projects' && (
+          <div key="projects-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
+            <AIProjects theme={theme} />
           </div>
         )}
       </main>
