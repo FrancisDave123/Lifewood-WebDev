@@ -78,7 +78,7 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light' }) => {
     {
       id: '2.7',
       title: '2.7 Genealogy',
-      description: 'Powered by AI, Lifewood processes genealogical material at speed and scale, to conserve and illuminate family histories, national archives, corporate lists and records of all types. Lifewood has more than 18 years of experience capturing, scanning and processing genealogical data. In fact, Lifewood started with genealogy data as its core business, so that over the years we have accumulated vast knowledge in diverse types of genealogy indexing.\n\nWe have worked with all the major genealogy companies and have extensive experience in transcribing and indexing genealogical content in a wide variety of formats, including tabular, pre-printed forms and paragraph-style records.\n\nWorking across borders, with offices on every continent, our ability with multi-language projects has built an extensive capability spanning more than 50 languages and associated dialects. Now, powered by AI and the latest inter-office communication systems, we are transforming ever more efficient ways to service our clients, while keeping humanity at the centre of our activity.\n\nGenealogical material that we have experience with includes: Census, Vital - BMD, Church and Parish Registers, Passenger Lists, Naturalisation, Military Records, Legal Records, and Yearbooks.',
+      description: 'Powered by AI, Lifewood processes genealogical material at speed and scale, to conserve and illuminate family histories, national archives, corporate lists and records of all types. Lifewood has more than 18 years of experience capturing, scanning and processing genealogical data. In fact, Lifewood started with genealogy data as its core business, so that over the years we have accumulated vast knowledge in diverse types of genealogy indexing.\n\nWe have worked with all the major genealogy companies and have extensive experience in transcribing and indexing genealogical content in a wide variety of formats, including tabular, pre-printed forms and paragraph-style records.\n\nWorking across borders, with offices on every continent, our ability with multi-language projects has built an extensive capability spanning more than 50 languages and associated dialects. Now, powered by AI and the latest inter-office communication systems, we are transforming ever more efficient ways to service our clients, while keeping humanity at the centre of our activity.\n\nGenealogical material that we have experience with includes:\n\n- Census\n- Vital - BMD\n- Church and Parish Registers\n- Passenger Lists\n- Naturalisation\n- Military Records\n- Legal Records\n- Yearbooks',
       icon: <GitFork className="w-5 h-5" />
     }
   ];
@@ -171,14 +171,28 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light' }) => {
                 
                 <div 
                   className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
-                    expandedId === item.id ? 'max-h-[800px] opacity-100 mb-8' : 'max-h-0 opacity-0'
+                    expandedId === item.id ? 'max-h-[1000px] opacity-100 mb-8' : 'max-h-0 opacity-0'
                   }`}
                 >
-                  <div className="pl-14 pr-4">
-                    <div className="space-y-4 text-lifewood-serpent/60 dark:text-white/60 leading-relaxed font-medium text-lg max-w-2xl">
-                      {item.description.split('\n\n').map((para, pIdx) => (
-                        <p key={pIdx}>{para}</p>
-                      ))}
+                  <div className="pl-6 md:pl-14 pr-2 md:pr-4">
+                    <div className="space-y-4 text-lifewood-serpent/60 dark:text-white/60 leading-relaxed font-medium text-base md:text-lg max-w-full lg:max-w-2xl">
+                      {item.description.split('\n\n').map((para, pIdx) => {
+                        const lines = para.split('\n').map(l => l.trim()).filter(Boolean);
+                        const isList = lines.length > 0 && lines.every(l => l.startsWith('-'));
+
+                        if (isList) {
+                          const items = lines.map(l => l.replace(/^-\s*/, ''));
+                          return (
+                            <ul key={pIdx} className="list-disc pl-6 space-y-2">
+                              {items.map((it, i) => (
+                                <li key={i}>{it}</li>
+                              ))}
+                            </ul>
+                          );
+                        }
+
+                        return <p key={pIdx}>{para}</p>;
+                      })}
                     </div>
                   </div>
                 </div>

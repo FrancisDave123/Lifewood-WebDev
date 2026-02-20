@@ -16,7 +16,7 @@ const PARTNERS = [
   },
   { 
     name: 'Apple', 
-    logo: 'https://framerusercontent.com/images/RyIkooWlUn6nQYbljETePWzd2Ac.png?scale-down-to=1024&width=1243&height=713' 
+    logo: 'https://framerusercontent.com/images/RyIkooWlUn6nQYbljETePWzd2Ac.png?scale-down-to=1024&width=1243&height=713',
   },
   { 
     name: 'Google', 
@@ -60,7 +60,7 @@ export const Clients: React.FC = () => {
   return (
     <section 
       ref={sectionRef}
-      className="py-32 relative overflow-hidden bg-white/60 dark:bg-black/40 border-y border-lifewood-green/5"
+      className="py-12 relative overflow-hidden bg-white/60 dark:bg-black/40 border-y border-lifewood-green/5"
     >
       <div className="container mx-auto px-6 text-center mb-16">
         <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full glass border border-lifewood-green/30 mb-8 bg-lifewood-green/5 transition-all duration-1000 transform ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
@@ -74,7 +74,7 @@ export const Clients: React.FC = () => {
         </p>
       </div>
 
-      <div className="relative w-full overflow-hidden py-16">
+      <div className="relative w-full overflow-hidden py-8">
         {/* Stronger focus vignettes */}
         <div className="absolute inset-y-0 left-0 w-64 md:w-96 bg-gradient-to-r from-lifewood-seaSalt dark:from-[#020804] to-transparent z-10 pointer-events-none"></div>
         <div className="absolute inset-y-0 right-0 w-64 md:w-96 bg-gradient-to-l from-lifewood-seaSalt dark:from-[#020804] to-transparent z-10 pointer-events-none"></div>
@@ -93,26 +93,18 @@ export const Clients: React.FC = () => {
                 transitionDelay: `${(idx % PARTNERS.length) * 100}ms`
               }}
             >
-              {/* Ultra-Visible Logo Plate */}
-              <div className="relative w-[220px] h-[220px] md:w-[260px] md:h-[260px] rounded-full bg-white shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.4)] border border-black/5 flex items-center justify-center transition-all duration-700 group-hover:scale-110 group-hover:shadow-[0_25px_100px_rgba(4,98,65,0.2)]">
+              {/* Logo Container */}
+              <div className="relative w-[200px] h-[200px] md:w-[240px] md:h-[240px] flex items-center justify-center transition-all duration-700 group-hover:scale-110">
                 
                 {/* Logo Image - Forced High Visibility */}
                 <img 
                   src={partner.logo} 
                   alt={partner.name} 
-                  className="w-[150px] h-[150px] md:w-[180px] md:h-[180px] object-contain transition-all duration-700 opacity-100"
+                  className="w-[140px] h-[140px] md:w-[170px] md:h-[170px] object-contain transition-all duration-700 opacity-100"
                 />
-                
-                {/* Decorative Elements */}
-                <div className="absolute inset-6 rounded-full border-2 border-dashed border-lifewood-green/10 opacity-40 pointer-events-none group-hover:rotate-45 transition-transform duration-1000"></div>
                 
                 {/* Hover Glow */}
                 <div className="absolute -inset-4 rounded-full bg-lifewood-green/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 -z-10"></div>
-              </div>
-              
-              {/* Partner Name Label */}
-              <div className="mt-10 text-base md:text-lg font-black uppercase tracking-[0.4em] text-lifewood-serpent dark:text-white transition-all duration-300 group-hover:text-lifewood-green dark:group-hover:text-lifewood-saffron group-hover:scale-110">
-                {partner.name}
               </div>
             </div>
           ))}
