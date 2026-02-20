@@ -63,12 +63,11 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light' }) => {
         {/* Header Section */}
         <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-0.5 bg-lifewood-serpent/20"></div>
             <div className="flex gap-2">
-              <div className="w-3 h-3 rounded-full bg-lifewood-serpent"></div>
-              <div className="w-3 h-3 rounded-full bg-lifewood-serpent/20"></div>
+              <div className="w-4 h-4 rounded-full bg-lifewood-saffron"></div>
+              <div className="w-4 h-4 rounded-full border-2 border-lifewood-serpent dark:border-white"></div>
             </div>
-            <div className="w-32 h-0.5 bg-lifewood-serpent/20 border-dashed border-t"></div>
+            <div className="w-24 h-px bg-lifewood-serpent/30 dark:bg-white/30 border-dashed border-t"></div>
           </div>
           
           <h1 className="text-6xl md:text-7xl font-heading font-black mb-10 tracking-tight text-lifewood-serpent dark:text-white uppercase">

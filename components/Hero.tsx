@@ -2,7 +2,11 @@
 import React from 'react';
 import { ArrowRight, Play, Globe } from 'lucide-react';
 
-export const Hero: React.FC = () => {
+interface HeroProps {
+  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact') => void;
+}
+
+export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -78,7 +82,7 @@ export const Hero: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
           <button 
-            onClick={() => scrollToSection('contact')}
+            onClick={() => navigateTo?.('contact')}
             className="group relative px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 hover:glow-green active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
           >
             Contact Us

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lifewood Worldwide Map</title>
+
+  <style>
+    html, body, #map {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #map {
+      background: #9dc8d8;
+    }
+
+    .custom-pin {
+      background: transparent;
+      border: 0;
+    }
+
+    .pin-wrapper {
+      width: 25px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22));
+    }
+  </style>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <!-- Fullscreen Plugin CSS -->
+  <link
+    rel="stylesheet"
+    href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css"
+  />
+
+  <!-- Flag Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/flag-icons/css/flag-icons.min.css"
+  />
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Fullscreen Plugin -->
+  <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js"></script>
+
+  <script>
+    const map = L.map('map', {
+      zoomControl: true,
+      worldCopyJump: true
+    }).setView([18, 35], 2);
+
+    const mapView = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+    });
+
+    const satelliteView = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri'
+      }
+    );
+
+    const hybridLabels = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
+      {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+      }
+    );
+    const hybridView = L.layerGroup([satelliteView, hybridLabels]);
+
+    const lightGrayView = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+      }
+    );
+
+    mapView.addTo(map);
+
+    const baseLayers = {
+      'Map View': mapView,
+      'Satellite View': satelliteView,
+      'Hybrid View': hybridView,
+      'Light Gray View': lightGrayView
+    };
+    L.control.layers(baseLayers, {}).addTo(map);
+
+    map.addControl(new L.Control.Fullscreen({ position: 'topright' }));
+
+    const pinIcon = L.divIcon({
+      className: 'custom-pin',
+      html: `
+        <div class="pin-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 35" width="25" height="35">
+            <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 19.4 12.5 35 12.5 35S25 19.4 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#f97316" stroke="white" stroke-width="2"></path>
+            <circle cx="12.5" cy="12.5" r="4" fill="white"></circle>
+          </svg>
+        </div>
+      `,
+      iconSize: [25, 35],
+      iconAnchor: [12.5, 35],
+      popupAnchor: [0, -32]
+    });
+
+    const officeLocations = [
+      { name: 'Dallas, USA', lat: 32.7767, lng: -96.797 },
+      { name: 'Sao Paulo, Brazil', lat: -23.5505, lng: -46.6333 },
+      { name: 'London, UK', lat: 51.5072, lng: -0.1276 },
+      { name: 'Amsterdam, Netherlands', lat: 52.3676, lng: 4.9041 },
+      { name: 'Stockholm, Sweden', lat: 59.3293, lng: 18.0686 },
+      { name: 'Cairo, Egypt', lat: 30.0444, lng: 31.2357 },
+      { name: 'Nairobi, Kenya', lat: -1.2864, lng: 36.8172 },
+      { name: 'Johannesburg, South Africa', lat: -26.2041, lng: 28.0473 },
+      { name: 'Dubai, UAE', lat: 25.2048, lng: 55.2708 },
+      { name: 'Mumbai, India', lat: 19.076, lng: 72.8777 },
+      { name: 'Bengaluru, India', lat: 12.9716, lng: 77.5946 },
+      { name: 'Dhaka, Bangladesh', lat: 23.8103, lng: 90.4125 },
+      { name: 'Bangkok, Thailand', lat: 13.7563, lng: 100.5018 },
+      { name: 'Ho Chi Minh City, Vietnam', lat: 10.8231, lng: 106.6297 },
+      { name: 'Manila, Philippines', lat: 14.5995, lng: 120.9842 },
+      { name: 'Jakarta, Indonesia', lat: -6.2088, lng: 106.8456 },
+      { name: 'Singapore', lat: 1.3521, lng: 103.8198 },
+      { name: 'Kuala Lumpur, Malaysia', lat: 3.139, lng: 101.6869 },
+      { name: 'Tokyo, Japan', lat: 35.6762, lng: 139.6503 },
+      { name: 'Sydney, Australia', lat: -33.8688, lng: 151.2093 }
+    ];
+
+    const bounds = [];
+    officeLocations.forEach((office) => {
+      const marker = L.marker([office.lat, office.lng], { icon: pinIcon }).addTo(map);
+      marker.bindPopup(office.name);
+      bounds.push([office.lat, office.lng]);
+    });
+
+    if (bounds.length) {
+      map.fitBounds(bounds, { padding: [20, 20] });
+      map.setZoom(map.getZoom() - 1);
+    }
+  </script>
+</body>
+</html>

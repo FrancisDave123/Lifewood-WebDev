@@ -2,8 +2,10 @@
 import { NavItem, StatItem, CapabilityItem } from './types';
 
 export const LOGO_URL = "https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png";
-// Updated with the dark-mode specific logo from the brand assets
+// Dark mode logo asset
 export const LOGO_DARK_URL = "https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png";
+
+// export const LOGO_DARK_URL = "https://framerusercontent.com/images/Ca8ppNsvJIfTsWEuHr50gvkDow.png?scale-down-to=512&width=2624&height=474";
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '#home' },
@@ -15,7 +17,14 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'AI Project', href: '#project' }
     ]
   },
-  { label: 'Our Company', href: '#company' },
+  { 
+    label: 'Our Company', 
+    href: '#company',
+    subItems: [
+      { label: 'About Us', href: '#about' },
+      { label: 'Offices', href: '#offices' }
+    ]
+  },
   { label: 'What We Offer', href: '#offer' },
   { label: 'Philanthropy & Impact', href: '#impact' },
   { label: 'Careers', href: '#careers' },

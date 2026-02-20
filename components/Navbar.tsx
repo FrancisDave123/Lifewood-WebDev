@@ -7,14 +7,15 @@ import { Menu, X, ChevronDown, Sparkles, Layers } from 'lucide-react';
 interface NavbarProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  navigateTo: (page: 'home' | 'services' | 'projects') => void;
-  currentPage: 'home' | 'services' | 'projects';
+  navigateTo: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices') => void;
+  currentPage: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices';
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, currentPage }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const logoSizeClass = theme === 'dark' ? 'h-6 md:h-8' : 'h-8 md:h-10';
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -70,6 +71,24 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
       return;
     }
 
+    if (targetId === 'contact') {
+      navigateTo('contact');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'about') {
+      navigateTo('about');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'offices') {
+      navigateTo('offices');
+      setMobileMenuOpen(false);
+      return;
+    }
+
     if (currentPage !== 'home') {
       navigateTo('home');
       setTimeout(() => scrollToSection(targetId), 100);
@@ -98,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
             <img 
               src={theme === 'dark' ? LOGO_DARK_URL : LOGO_URL} 
               alt="Lifewood" 
-              className="h-8 md:h-10 transition-transform group-hover:scale-105" 
+              className={`${logoSizeClass} w-auto object-contain transition-transform group-hover:scale-105`} 
             />
           </a>
 

@@ -10,9 +10,12 @@ import { Capabilities } from './components/Capabilities';
 import { Footer } from './components/Footer';
 import { AIServices } from './components/AIServices';
 import { AIProjects } from './components/AIProjects';
+import { Contact } from './components/Contact';
+import { AboutUs } from './components/AboutUs';
+import { Offices } from './components/Offices';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices'>('home');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
@@ -34,7 +37,7 @@ const App: React.FC = () => {
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  const navigateTo = (page: 'home' | 'services' | 'projects') => {
+  const navigateTo = (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices') => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -46,7 +49,7 @@ const App: React.FC = () => {
       <main className="relative">
         {currentPage === 'home' && (
           <div key="home-page-wrapper">
-            <Hero />
+            <Hero navigateTo={navigateTo} />
             <div className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
               <About />
               <Stats />
@@ -64,6 +67,21 @@ const App: React.FC = () => {
         {currentPage === 'projects' && (
           <div key="projects-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
             <AIProjects theme={theme} />
+          </div>
+        )}
+        {currentPage === 'contact' && (
+          <div key="contact-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
+            <Contact theme={theme} navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'about' && (
+          <div key="about-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
+            <AboutUs theme={theme} navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'offices' && (
+          <div key="offices-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
+            <Offices theme={theme} />
           </div>
         )}
       </main>

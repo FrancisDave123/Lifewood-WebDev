@@ -4,10 +4,10 @@ import { LOGO_URL } from '../constants';
 import { Linkedin, Facebook, Instagram, Youtube, Mail, ArrowUpRight } from 'lucide-react';
 
 interface FooterProps {
-  navigateTo?: (page: 'home' | 'services') => void;
+  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact') => void;
 }
 
-export const Footer: React.FC<FooterProps> = () => {
+export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
@@ -25,15 +25,15 @@ export const Footer: React.FC<FooterProps> = () => {
                 We provide global Data Engineering Services to enable AI Solutions.
               </h4>
               <div className="pt-4">
-                <a 
-                  href="mailto:contact@lifewood.com" 
+                <button 
+                  onClick={() => navigateTo?.('contact')}
                   className="group inline-flex items-center gap-4 px-8 py-4 bg-lifewood-green text-white dark:bg-lifewood-yellow dark:text-lifewood-serpent rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all active:scale-95 shadow-lg"
                 >
                   Contact Us
                   <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-45 transition-transform">
                     <Mail className="w-4 h-4" />
                   </div>
-                </a>
+                </button>
               </div>
             </div>
 
