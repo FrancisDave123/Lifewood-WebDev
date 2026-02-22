@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { LOGO_DARK_URL, LOGO_URL } from '../constants';
 
 interface AboutUsProps {
   theme?: 'light' | 'dark';
@@ -8,8 +7,8 @@ interface AboutUsProps {
 }
 
 export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo }) => {
+  const ABOUT_US_BE_AMAZED_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
   const accentGlowOpacity = theme === 'dark' ? 'opacity-55' : 'opacity-40';
-  const currentLogo = theme === 'dark' ? LOGO_DARK_URL : LOGO_URL;
   const gallerySectionRef = useRef<HTMLDivElement>(null);
   const [visibleGalleryCards, setVisibleGalleryCards] = useState<Record<number, boolean>>({});
 
@@ -244,7 +243,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
             <div className="sticky top-24 z-30 flex justify-center mb-8 md:mb-10">
               <div className="text-center px-6 py-4 rounded-2xl glass border border-white/20">
                 <img
-                  src={currentLogo}
+                  src={ABOUT_US_BE_AMAZED_LOGO_URL}
                   alt="Lifewood"
                   className="h-14 md:h-16 w-auto mx-auto"
                 />

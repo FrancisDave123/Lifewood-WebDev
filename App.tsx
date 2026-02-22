@@ -30,6 +30,7 @@ import { AdminEvaluation } from './components/AdminEvaluation';
 import { AdminReports } from './components/AdminReports';
 
 const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
+const THEME_STORAGE_KEY = 'lifewood_theme';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports'>('home');
@@ -39,9 +40,10 @@ const App: React.FC = () => {
   });
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved) return saved as 'light' | 'dark';
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === 'dark') return 'dark';
+      if (saved === 'light') return 'light';
+      return 'light';
     }
     return 'light';
   });
@@ -53,7 +55,7 @@ const App: React.FC = () => {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('theme', theme);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
