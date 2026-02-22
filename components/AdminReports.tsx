@@ -11,7 +11,6 @@ import {
   LogOut,
   Menu,
   NotebookPen,
-  Settings,
   UserCircle2,
   Users
 } from 'lucide-react';
@@ -143,10 +142,6 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
           </div>
 
           <div className="flex gap-2 px-4 pb-4 lg:hidden">
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10">
-              <Settings className="h-4 w-4" />
-              Settings
-            </button>
             <button
               onClick={() => navigateTo?.('signin')}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10"
@@ -158,14 +153,9 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
 
           <div className="hidden px-4 pb-4 lg:block">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">Settings</p>
-              <button className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white">
-                <Settings className="h-4 w-4" />
-                Preferences
-              </button>
               <button
                 onClick={() => navigateTo?.('signin')}
-                className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
               >
                 <LogOut className="h-4 w-4" />
                 Sign out

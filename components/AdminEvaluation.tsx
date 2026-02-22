@@ -10,7 +10,6 @@ import {
   LogOut,
   Menu,
   NotebookPen,
-  Settings,
   Target,
   TrendingUp,
   Trash2,
@@ -276,9 +275,13 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
 
           <div className="hidden px-4 pb-4 lg:block">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">Settings</p>
-              <button className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"><Settings className="h-4 w-4" />Preferences</button>
-              <button onClick={() => navigateTo?.('signin')} className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"><LogOut className="h-4 w-4" />Sign out</button>
+              <button
+                onClick={() => navigateTo?.('signin')}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
             </div>
           </div>
         </aside>
@@ -313,12 +316,15 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
                 </div>
 
                 <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
-                  <div className="mb-4 flex flex-wrap items-center gap-2">
-                    <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search by name..." className="min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none" />
-                    {!isSelectMode && <button type="button" onClick={() => { setIsSelectMode(true); setSelectedIds([]); }} className="rounded-xl border border-lifewood-serpent/15 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent">Select</button>}
-                    {isSelectMode && <button type="button" onClick={toggleSelectAll} className="rounded-xl border border-lifewood-serpent/15 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent">{areAllFilteredSelected ? 'Unselect All' : 'Select All'}</button>}
-                    {isSelectMode && <button type="button" onClick={cancelSelection} className="rounded-xl border border-lifewood-serpent/15 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent">Cancel</button>}
-                    {isSelectMode && selectedIds.length > 0 && <button type="button" onClick={deleteSelected} className="inline-flex items-center gap-1 rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"><Trash2 className="h-3.5 w-3.5" />Delete Selected</button>}
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search by name..." className="min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none" />
+                      {!isSelectMode && <button type="button" onClick={() => { setIsSelectMode(true); setSelectedIds([]); }} className="rounded-xl border border-lifewood-serpent/15 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent">Select</button>}
+                      {isSelectMode && <button type="button" onClick={toggleSelectAll} className="rounded-xl border border-lifewood-serpent/15 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent">{areAllFilteredSelected ? 'Unselect All' : 'Select All'}</button>}
+                      {isSelectMode && <button type="button" onClick={cancelSelection} className="rounded-xl border border-lifewood-serpent/15 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent">Cancel</button>}
+                      {isSelectMode && selectedIds.length > 0 && <button type="button" onClick={deleteSelected} className="inline-flex items-center gap-1 rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"><Trash2 className="h-3.5 w-3.5" />Delete Selected</button>}
+                    </div>
+                    <button type="button" className="rounded-xl border border-lifewood-serpent/15 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent">Add</button>
                   </div>
 
                   <div className="overflow-x-auto">

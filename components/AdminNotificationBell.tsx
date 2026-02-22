@@ -5,16 +5,47 @@ import { createPortal } from 'react-dom';
 type NotificationItem = {
   id: string;
   title: string;
+  description: string;
   time: string;
   read: boolean;
 };
 
 const seedNotifications: NotificationItem[] = [
-  { id: 'n1', title: 'Evaluation queue updated for NLP team', time: '2m ago', read: false },
-  { id: 'n2', title: '2 applicants moved to interview stage', time: '18m ago', read: false },
-  { id: 'n3', title: 'Attendance sync completed for today', time: '42m ago', read: true },
-  { id: 'n4', title: 'Reports preview refreshed by admin', time: '1h ago', read: true },
-  { id: 'n5', title: 'New intern profile submitted for review', time: '2h ago', read: false }
+  {
+    id: 'n1',
+    title: 'Evaluation queue updated for NLP team',
+    description: '3 new activities were queued and assigned for reviewer validation.',
+    time: '2m ago',
+    read: false
+  },
+  {
+    id: 'n2',
+    title: '2 applicants moved to interview stage',
+    description: 'Applicant records were advanced after initial screening approval.',
+    time: '18m ago',
+    read: false
+  },
+  {
+    id: 'n3',
+    title: 'Attendance sync completed for today',
+    description: 'Attendance logs from interns and employees are now fully synchronized.',
+    time: '42m ago',
+    read: true
+  },
+  {
+    id: 'n4',
+    title: 'Reports preview refreshed by admin',
+    description: 'The monthly report preview reflects the latest productivity metrics.',
+    time: '1h ago',
+    read: true
+  },
+  {
+    id: 'n5',
+    title: 'New intern profile submitted for review',
+    description: 'A profile was submitted and is waiting for mentor approval.',
+    time: '2h ago',
+    read: false
+  }
 ];
 
 export const AdminNotificationBell: React.FC = () => {
@@ -22,6 +53,7 @@ export const AdminNotificationBell: React.FC = () => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>(seedNotifications);
+  const [searchTerm, setSearchTerm] = useState('');
   const [confirmDeleteIds, setConfirmDeleteIds] = useState<string[] | null>(null);
   const [panelStyle, setPanelStyle] = useState<{ top: number; left: number; width: number }>({
     top: 0,
@@ -40,6 +72,14 @@ export const AdminNotificationBell: React.FC = () => {
     () => notifications.filter((notification) => !notification.read).length,
     [notifications]
   );
+  const filteredNotifications = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return notifications;
+    return notifications.filter((notification) => (
+      notification.title.toLowerCase().includes(query) ||
+      notification.description.toLowerCase().includes(query)
+    ));
+  }, [notifications, searchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -51,6 +91,7 @@ export const AdminNotificationBell: React.FC = () => {
       setIsOpen(false);
       setIsSelectMode(false);
       setSelectedIds([]);
+      setSearchTerm('');
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -108,7 +149,8 @@ export const AdminNotificationBell: React.FC = () => {
     setIsSelectMode(false);
   };
 
-  const isAllSelected = notifications.length > 0 && selectedIds.length === notifications.length;
+  const visibleIds = filteredNotifications.map((notification) => notification.id);
+  const isAllSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
   const portalTarget = typeof document !== 'undefined' ? document.body : null;
 
   return (
@@ -147,6 +189,7 @@ export const AdminNotificationBell: React.FC = () => {
               setIsOpen(false);
               setIsSelectMode(false);
               setSelectedIds([]);
+              setSearchTerm('');
               setConfirmDeleteIds(null);
             }}
             className="rounded-md p-1 text-white/70 transition hover:bg-white/10 hover:text-white"
@@ -154,6 +197,16 @@ export const AdminNotificationBell: React.FC = () => {
           >
             <X className="h-3.5 w-3.5" />
           </button>
+        </div>
+
+        <div className="mb-2 px-1">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search title or description..."
+            className="w-full rounded-lg border border-white/15 bg-white/5 px-2.5 py-1.5 text-xs text-white placeholder:text-white/45 focus:border-lifewood-yellow/60 focus:outline-none"
+          />
         </div>
 
         <div className="mb-2 flex flex-wrap items-center gap-2 px-1">
@@ -169,7 +222,10 @@ export const AdminNotificationBell: React.FC = () => {
             <>
               <button
                 type="button"
-                onClick={() => setSelectedIds(isAllSelected ? [] : notifications.map((notification) => notification.id))}
+                onClick={() => setSelectedIds((prev) => {
+                  if (isAllSelected) return prev.filter((id) => !visibleIds.includes(id));
+                  return Array.from(new Set([...prev, ...visibleIds]));
+                })}
                 className="rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-[11px] font-semibold text-white/80 transition hover:bg-white/10"
               >
                 {isAllSelected ? 'Clear' : 'Select all'}
@@ -195,7 +251,7 @@ export const AdminNotificationBell: React.FC = () => {
         </div>
 
         <div className="max-h-[260px] space-y-2 overflow-y-auto pr-1">
-          {notifications.map((notification) => (
+          {filteredNotifications.map((notification) => (
             <div
               key={notification.id}
               className={`rounded-xl border p-3 ${
@@ -230,13 +286,14 @@ export const AdminNotificationBell: React.FC = () => {
                   </button>
                 </div>
               </div>
+              <p className="mt-1 text-[12px] leading-snug text-white/70">{notification.description}</p>
               <p className="mt-1 text-[11px] text-white/60">{notification.time}</p>
             </div>
           ))}
 
-          {!notifications.length && (
+          {!filteredNotifications.length && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center text-xs text-white/60">
-              No notifications.
+              No matching notifications.
             </div>
           )}
         </div>
