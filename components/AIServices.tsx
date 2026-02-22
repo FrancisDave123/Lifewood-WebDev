@@ -5,19 +5,14 @@ import { LOGO_URL, LOGO_DARK_URL } from '../constants';
 
 interface AIServicesProps {
   theme?: 'light' | 'dark';
+  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news') => void;
 }
 
-export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light' }) => {
+export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigateTo }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const scrollToContact = () => {
-    const el = document.getElementById('contact');
-    if (el) {
-      const offset = 80;
-      const elementPosition = el.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
+  const handleContactClick = () => {
+    navigateTo?.('contact');
   };
 
   const services = [
@@ -79,8 +74,8 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light' }) => {
           </p>
 
           <button 
-            onClick={scrollToContact}
-            className="group flex items-center gap-2 px-6 py-3 bg-lifewood-saffron text-lifewood-serpent rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg"
+            onClick={handleContactClick}
+            className="group relative px-8 py-3 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-sm flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(19,48,32,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             Contact Us <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
@@ -174,7 +169,7 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light' }) => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-lifewood-green to-lifewood-saffron">Data Solutions</span>
             </h2>
             <button 
-              onClick={scrollToContact}
+              onClick={handleContactClick}
               className="inline-flex items-center gap-4 px-8 py-4 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-bold group hover:scale-105 transition-all shadow-2xl"
             >
               Get started now

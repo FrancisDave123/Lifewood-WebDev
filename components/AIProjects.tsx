@@ -106,12 +106,10 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light' }) => {
 
           <button 
             onClick={scrollToContact}
-            className="group flex items-center gap-2 px-6 py-2.5 bg-lifewood-saffron text-lifewood-serpent rounded-full font-bold text-sm hover:scale-105 transition-all shadow-lg"
+            className="group relative px-8 py-3 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-sm flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(19,48,32,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             Contact Us 
-            <div className="w-6 h-6 rounded-full bg-lifewood-serpent flex items-center justify-center text-white">
-              <ArrowUpRight className="w-3 h-3" />
-            </div>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
 

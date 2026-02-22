@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { LOGO_DARK_URL, LOGO_URL } from '../constants';
 
@@ -304,13 +304,15 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
           <p className="text-lg text-lifewood-serpent/60 dark:text-white/60 mb-8 max-w-2xl mx-auto">
             Join us on our mission to revolutionize AI through ethical data solutions.
           </p>
-          <button 
-            onClick={() => navigateTo?.('contact')}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-lifewood-green text-white rounded-full font-bold hover:shadow-xl hover:shadow-lifewood-green/30 transition-all hover:scale-105"
-          >
-            Contact Us
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </button>
+          <div className="flex justify-center">
+            <button 
+              onClick={() => navigateTo?.('contact')}
+              className="group relative px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
+            >
+              Contact Us
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -15,32 +15,64 @@ export const Offices: React.FC<OfficesProps> = ({ theme = 'light' }) => {
   const headingColor = theme === 'dark' ? 'text-white' : 'text-lifewood-serpent';
 
   return (
-    <section className="pt-32 pb-20 animate-pop-out opacity-0">
+    <section className="pt-32 pb-20 relative overflow-x-hidden animate-pop-out opacity-0">
       <div className="container mx-auto px-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight mb-10 ${headingColor}`}>
+          <div className="animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex gap-2">
+                <div className="w-4 h-4 rounded-full bg-lifewood-saffron"></div>
+                <div className="w-4 h-4 rounded-full border-2 border-lifewood-serpent dark:border-white"></div>
+              </div>
+              <div className="w-24 h-px bg-lifewood-serpent/30 dark:bg-white/30 border-dashed border-t"></div>
+            </div>
+          </div>
+
+          <h1 className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight mb-10 ${headingColor} animate-pop-out opacity-0`} style={{ animationDelay: '200ms' }}>
             Largest Global Data Collection
             <br />
             Resources Distribution
           </h1>
 
-          <div className="hidden lg:flex justify-end mb-4">
-            <div className="relative w-40 h-40">
-              <div className="absolute inset-0 rounded-full border border-lifewood-serpent/25 dark:border-white/20 animate-spin-slow"></div>
-              <div
-                className="absolute inset-5 rounded-full border border-lifewood-saffron/40 animate-spin-slow"
-                style={{ animationDirection: 'reverse', animationDuration: '14s' }}
-              ></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-6 h-6 rounded-full bg-lifewood-saffron ring-4 ring-white/80 dark:ring-white/20"></div>
+          <div className="hidden lg:flex justify-end mb-4 animate-pop-out opacity-0" style={{ animationDelay: '300ms' }}>
+            <div className="relative w-48 h-64 flex flex-col items-center">
+              <div className="relative w-40 h-40">
+                {/* Outer dashed ring */}
+                <div className="absolute inset-0 rounded-full border border-dashed border-lifewood-serpent/20 dark:border-white/20"></div>
+                
+                {/* Central Dot */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative w-8 h-8 rounded-full bg-lifewood-saffron flex items-center justify-center shadow-[0_0_20px_rgba(255,179,71,0.4)]">
+                    <div className="w-3 h-3 rounded-full bg-white"></div>
+                  </div>
+                </div>
+                
+                {/* Circular Rotating Text */}
+                <div className="absolute inset-0 animate-spin-slow" style={{ animationDuration: '20s' }}>
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <defs>
+                      <path
+                        id="circlePath"
+                        d="M 50, 50 m -38, 0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
+                      />
+                    </defs>
+                    <text className="text-[8px] font-bold fill-lifewood-serpent/80 dark:fill-white/80">
+                      <textPath xlinkHref="#circlePath" textLength="238" lengthAdjust="spacing">
+                        amazed . be . amazed . be .
+                      </textPath>
+                    </text>
+                  </svg>
+                </div>
               </div>
-              <p className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-lifewood-serpent/70 dark:text-white/70 whitespace-nowrap">
-                be amazed
-              </p>
+              
+              {/* Downward Arrow Line */}
+              <div className="h-16 w-px bg-gradient-to-b from-lifewood-saffron to-transparent relative mt-2">
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 border-b border-r border-lifewood-saffron/60 rotate-45"></div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-6 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-6 items-stretch animate-pop-out opacity-0" style={{ animationDelay: '400ms' }}>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-[#9bc4d6] h-[380px] md:h-[460px] bg-[#9dc8d8]">
               <iframe
                 title="Lifewood Worldwide Map"

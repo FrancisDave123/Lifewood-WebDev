@@ -1,14 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { LOGO_URL } from '../constants';
-import { Linkedin, Facebook, Instagram, Youtube, Mail, ArrowUpRight } from 'lucide-react';
+import { Linkedin, Facebook, Instagram, Youtube, Mail, ArrowUpRight, ArrowRight, X } from 'lucide-react';
 
 interface FooterProps {
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact') => void;
+  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'privacy' | 'cookie-policy' | 'terms') => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
+  const [showCookieSettings, setShowCookieSettings] = useState(false);
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const socialLinks = [
+    { Icon: Linkedin, label: 'LinkedIn', href: 'https://www.linkedin.com/company/lifewood-data-technology-ltd.' },
+    { Icon: Facebook, label: 'Facebook', href: 'https://www.facebook.com/LifewoodPH' },
+    { Icon: Instagram, label: 'Instagram', href: 'https://www.instagram.com/lifewood_official' },
+    { Icon: Youtube, label: 'Youtube', href: 'https://www.youtube.com/@LifewoodDataTechnology' }
+  ];
 
   return (
     <footer id="contact" className="relative pt-32 pb-16 overflow-hidden">
@@ -27,12 +35,10 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
               <div className="pt-4">
                 <button 
                   onClick={() => navigateTo?.('contact')}
-                  className="group inline-flex items-center gap-4 px-8 py-4 bg-lifewood-green text-white dark:bg-lifewood-yellow dark:text-lifewood-serpent rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all active:scale-95 shadow-lg"
+                  className="group relative px-8 py-4 bg-lifewood-green text-white rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_15px_40px_rgba(4,98,65,0.25)]"
                 >
                   Contact Us
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-45 transition-transform">
-                    <Mail className="w-4 h-4" />
-                  </div>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
                 </button>
               </div>
             </div>
@@ -42,19 +48,17 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
               <div className="text-left md:text-right space-y-8">
                 <h5 className="font-black text-xs uppercase tracking-[0.4em] text-lifewood-green dark:text-lifewood-yellow mb-6">Find Us On:</h5>
                 <div className="flex flex-wrap md:justify-end gap-4">
-                  {[
-                    { Icon: Linkedin, label: 'LinkedIn' },
-                    { Icon: Facebook, label: 'Facebook' },
-                    { Icon: Instagram, label: 'Instagram' },
-                    { Icon: Youtube, label: 'Youtube' }
-                  ].map(({ Icon, label }) => (
+                  {socialLinks.map(({ Icon, label, href }) => (
                     <a 
                       key={label} 
-                      href="#" 
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label={label}
-                      className="w-14 h-14 rounded-2xl glass border-white/20 flex items-center justify-center hover:bg-lifewood-green hover:text-white transition-all duration-500 hover:shadow-xl shadow-lg hover:-translate-y-2 group"
+                      className="w-14 h-14 rounded-2xl glass border-white/20 flex items-center justify-center hover:bg-lifewood-green hover:text-white transition-all duration-500 hover:shadow-[0_0_30px_rgba(4,98,65,0.4)] shadow-lg hover:-translate-y-4 hover:rotate-[15deg] hover:scale-125 group overflow-hidden relative"
                     >
-                      <Icon className="w-6 h-6" />
+                      <div className="absolute inset-0 bg-gradient-to-tr from-lifewood-saffron/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <Icon className="w-6 h-6 relative z-10 group-hover:animate-bounce" />
                     </a>
                   ))}
                 </div>
@@ -79,14 +83,47 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
             <p className="whitespace-nowrap">© 2026 Lifewood - All Rights Reserved</p>
             
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
-              <a href="#" className="hover:text-lifewood-green transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-lifewood-green transition-colors">Cookie Policy</a>
-              <a href="#" className="hover:text-lifewood-green transition-colors">Terms and Conditions</a>
-              <a href="#" className="hover:text-lifewood-green transition-colors">Cookie Settings</a>
+              <button onClick={() => navigateTo?.('privacy')} className="hover:text-lifewood-green transition-colors uppercase">Privacy Policy</button>
+              <button onClick={() => navigateTo?.('cookie-policy')} className="hover:text-lifewood-green transition-colors uppercase">Cookie Policy</button>
+              <button onClick={() => navigateTo?.('terms')} className="hover:text-lifewood-green transition-colors uppercase">Terms and Conditions</button>
+              <button onClick={() => setShowCookieSettings(true)} className="hover:text-lifewood-green transition-colors uppercase">Cookie Settings</button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Cookie Settings Modal */}
+      {showCookieSettings && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCookieSettings(false)}></div>
+          <div className="relative glass-card rounded-[2.5rem] p-10 max-w-md w-full border-white/20 shadow-2xl animate-pop-out">
+            <button 
+              onClick={() => setShowCookieSettings(false)}
+              className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-2xl font-heading font-bold mb-6 text-lifewood-serpent dark:text-white">Cookie Settings</h3>
+            <p className="text-lifewood-serpent/70 dark:text-white/70 mb-8 leading-relaxed">
+              We use cookies to personalize content, run ads, and analyze traffic.
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowCookieSettings(false)}
+                className="flex-1 py-3 bg-lifewood-green text-white rounded-full font-bold hover:scale-105 transition-transform"
+              >
+                Accept
+              </button>
+              <button 
+                onClick={() => setShowCookieSettings(false)}
+                className="flex-1 py-3 border border-lifewood-serpent/20 dark:border-white/20 rounded-full font-bold hover:bg-black/5 transition-colors"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

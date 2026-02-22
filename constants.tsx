@@ -25,7 +25,16 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Offices', href: '#offices' }
     ]
   },
-  { label: 'What We Offer', href: '#offer' },
+  { 
+    label: 'What We Offer', 
+    href: '#offer',
+    subItems: [
+      { label: 'Type A-Data Servicing', href: '#type-a' },
+      { label: 'Type B-Horizontal LLM Data', href: '#type-b' },
+      { label: 'Type C-Vertical LLM Data', href: '#type-c' },
+      { label: 'Type D-AIGC', href: '#type-d' }
+    ]
+  },
   { label: 'Philanthropy & Impact', href: '#impact' },
   { label: 'Careers', href: '#careers' },
   { label: 'Contact Us', href: '#contact' },

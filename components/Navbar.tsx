@@ -2,20 +2,20 @@
 import React, { useState, useEffect } from 'react';
 import { NAV_ITEMS, LOGO_URL, LOGO_DARK_URL } from '../constants';
 import { ThemeToggle } from './ThemeToggle';
-import { Menu, X, ChevronDown, Sparkles, Layers } from 'lucide-react';
+import { Menu, X, ChevronDown, Sparkles, Layers, Database, Mic, Car } from 'lucide-react';
 
 interface NavbarProps {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  navigateTo: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices') => void;
-  currentPage: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices';
+  navigateTo: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms') => void;
+  currentPage: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms';
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, currentPage }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const logoSizeClass = theme === 'dark' ? 'h-6 md:h-8' : 'h-8 md:h-10';
+  const logoSizeClass = 'h-6 md:h-8';
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -88,6 +88,48 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
       setMobileMenuOpen(false);
       return;
     }
+    
+    if (targetId === 'impact') {
+      navigateTo('impact');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'careers') {
+      navigateTo('careers');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'news') {
+      navigateTo('internal-news');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'type-a') {
+      navigateTo('type-a');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'type-b') {
+      navigateTo('type-b');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'type-c') {
+      navigateTo('type-c');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (targetId === 'type-d') {
+      navigateTo('type-d');
+      setMobileMenuOpen(false);
+      return;
+    }
 
     if (currentPage !== 'home') {
       navigateTo('home');
@@ -115,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
             className="flex items-center gap-2 group"
           >
             <img 
-              src={theme === 'dark' ? LOGO_DARK_URL : LOGO_URL} 
+              src={LOGO_DARK_URL} 
               alt="Lifewood" 
               className={`${logoSizeClass} w-auto object-contain transition-transform group-hover:scale-105`} 
             />
@@ -132,7 +174,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
                 <a
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item)}
-                  className={`text-sm font-bold flex items-center gap-1.5 hover:text-lifewood-green dark:hover:text-lifewood-yellow transition-colors relative ${
+                  className={`text-sm font-bold flex items-center gap-1.5 text-black dark:text-white hover:text-lifewood-green dark:hover:text-lifewood-yellow transition-colors relative ${
                     item.subItems ? 'cursor-default' : ''
                   }`}
                 >
@@ -145,17 +187,21 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
 
                 {item.subItems && (
                   <div className={`absolute left-0 top-full pt-4 transition-all duration-300 ${activeDropdown === item.label ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-                    <div className="glass shadow-2xl rounded-3xl p-3 min-w-[220px] ring-1 ring-white/20">
+                    <div className="backdrop-blur-md bg-white/80 dark:bg-black/40 shadow-2xl rounded-3xl p-3 min-w-[220px] ring-1 ring-white/30 dark:ring-white/20">
                       {item.subItems.map((sub, idx) => (
                         <a
                           key={sub.label}
                           href={sub.href}
                           data-is-sub="true"
                           onClick={(e) => handleNavClick(e, sub)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all"
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-black dark:text-white rounded-2xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all"
                         >
                           <div className="w-8 h-8 rounded-xl bg-lifewood-green/5 flex items-center justify-center">
-                            {idx === 0 ? <Sparkles className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
+                            {sub.label.includes('Type A') ? <Database className="w-4 h-4" /> : 
+                             sub.label.includes('Type B') ? <Mic className="w-4 h-4" /> :
+                             sub.label.includes('Type C') ? <Car className="w-4 h-4" /> :
+                             sub.label.includes('Type D') ? <Sparkles className="w-4 h-4" /> :
+                             idx === 0 ? <Sparkles className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
                           </div>
                           {sub.label}
                         </a>
@@ -195,7 +241,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
               <a
                 href={item.href}
                 onClick={(e) => handleNavClick(e, item)}
-                className={`text-2xl font-black hover:text-lifewood-green transition-colors ${
+                className={`text-2xl font-black text-black dark:text-white hover:text-lifewood-green transition-colors ${
                   item.subItems ? 'cursor-default' : ''
                 }`}
               >
@@ -209,8 +255,15 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
                       href={sub.href}
                       data-is-sub="true"
                       onClick={(e) => handleNavClick(e, sub)}
-                      className="text-lg font-bold opacity-60 hover:opacity-100 transition-opacity"
+                      className="text-lg font-bold text-black dark:text-white opacity-60 hover:opacity-100 transition-opacity flex items-center gap-3"
                     >
+                      <div className="w-6 h-6 rounded-lg bg-lifewood-green/10 flex items-center justify-center">
+                        {sub.label.includes('Type A') ? <Database className="w-3 h-3" /> : 
+                         sub.label.includes('Type B') ? <Mic className="w-3 h-3" /> :
+                         sub.label.includes('Type C') ? <Car className="w-3 h-3" /> :
+                         sub.label.includes('Type D') ? <Sparkles className="w-3 h-3" /> :
+                         <Sparkles className="w-3 h-3" />}
+                      </div>
                       {sub.label}
                     </a>
                   ))}
@@ -221,9 +274,10 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
           <a 
             href="#contact"
             onClick={(e) => handleNavClick(e, { href: '#contact' })}
-            className="mt-8 px-10 py-4 bg-lifewood-green text-white rounded-full text-lg font-bold shadow-xl shadow-lifewood-green/20"
+            className="group relative mt-8 px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
           >
             Contact Us
+            <svg className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
           </a>
         </div>
       </div>
