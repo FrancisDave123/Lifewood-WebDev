@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
   BarChart3,
-  Bell,
   BookOpen,
+  ClipboardList,
   Download,
   FileSpreadsheet,
   FileText,
@@ -11,9 +11,12 @@ import {
   LogOut,
   Menu,
   NotebookPen,
-  Settings
+  Settings,
+  UserCircle2,
+  Users
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
+import { AdminNotificationBell } from './AdminNotificationBell';
 
 interface AdminReportsProps {
   navigateTo?: (
@@ -39,6 +42,9 @@ interface AdminReportsProps {
       | 'admin-analytics'
       | 'admin-evaluation'
       | 'admin-reports'
+      | 'admin-manage-interns'
+      | 'admin-manage-applicants'
+      | 'admin-manage-employees'
   ) => void;
 }
 
@@ -46,7 +52,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <section className="min-h-screen bg-lifewood-seaSalt animate-pop-out opacity-0 lg:h-screen lg:overflow-hidden">
+    <section className="min-h-screen bg-lifewood-seaSalt lg:h-screen lg:overflow-hidden">
       <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
         <aside
           className={`fixed inset-y-0 left-0 z-[130] w-[290px] border-r border-lifewood-serpent/10 bg-lifewood-serpent text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:overflow-y-auto ${
@@ -63,9 +69,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
                 ADMIN
               </span>
             </button>
-            <button className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
-              <Bell className="h-4 w-4" />
-            </button>
+            <AdminNotificationBell />
           </div>
 
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-2">
@@ -105,6 +109,36 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
             >
               <BookOpen className="h-4 w-4" />
               Reports
+            </button>
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-interns');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <Users className="h-4 w-4" />
+              Manage Interns
+            </button>
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-applicants');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Manage Applicants
+            </button>
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-employees');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <UserCircle2 className="h-4 w-4" />
+              Manage Employees
             </button>
           </div>
 
@@ -149,7 +183,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
           />
         )}
 
-        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 lg:h-screen lg:overflow-y-auto">
+        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
           <div className="mx-auto max-w-6xl space-y-5">
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
@@ -215,67 +249,92 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
               </div>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
-              <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
-                <h3 className="text-lg font-bold text-lifewood-serpent">Daily Output Preview</h3>
-                <div className="mt-3 overflow-x-auto">
-                  <table className="w-full min-w-[620px] text-left">
-                    <thead>
-                      <tr className="text-xs uppercase tracking-[0.14em] text-lifewood-serpent/55">
-                        <th className="pb-3">Date</th>
-                        <th className="pb-3">Project</th>
-                        <th className="pb-3">Planned</th>
-                        <th className="pb-3">Actual</th>
-                        <th className="pb-3">Quality</th>
-                        <th className="pb-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm">
-                      <tr className="border-t border-lifewood-serpent/10">
-                        <td className="py-3 text-lifewood-serpent">2026-02-22</td>
-                        <td className="py-3 font-semibold text-lifewood-serpent">NLP Annotation</td>
-                        <td className="py-3 text-lifewood-serpent">520</td>
-                        <td className="py-3 text-lifewood-serpent">498</td>
-                        <td className="py-3 text-lifewood-green">97.2%</td>
-                        <td className="py-3 text-lifewood-serpent">Near target</td>
-                      </tr>
-                      <tr className="border-t border-lifewood-serpent/10">
-                        <td className="py-3 text-lifewood-serpent">2026-02-22</td>
-                        <td className="py-3 font-semibold text-lifewood-serpent">Image QA</td>
-                        <td className="py-3 text-lifewood-serpent">310</td>
-                        <td className="py-3 text-lifewood-serpent">322</td>
-                        <td className="py-3 text-lifewood-green">98.4%</td>
-                        <td className="py-3 text-lifewood-serpent">Above target</td>
-                      </tr>
-                      <tr className="border-t border-lifewood-serpent/10">
-                        <td className="py-3 text-lifewood-serpent">2026-02-22</td>
-                        <td className="py-3 font-semibold text-lifewood-serpent">Speech Tagging</td>
-                        <td className="py-3 text-lifewood-serpent">190</td>
-                        <td className="py-3 text-lifewood-serpent">176</td>
-                        <td className="py-3 text-lifewood-green">95.8%</td>
-                        <td className="py-3 text-lifewood-serpent">Needs support</td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-lifewood-serpent">Generated Report Preview</h3>
+                  <p className="text-sm text-lifewood-serpent/60">
+                    Preview of the PDF output report with KPI summary, project performance, and action notes.
+                  </p>
+                </div>
+                <span className="inline-flex w-fit rounded-full bg-lifewood-green/10 px-3 py-1 text-xs font-semibold text-lifewood-green">
+                  Report Date: 2026-02-22
+                </span>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-2xl bg-lifewood-seaSalt p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-lifewood-serpent/55">Total Planned</p>
+                  <p className="mt-2 text-2xl font-black text-lifewood-serpent">1,020</p>
+                </div>
+                <div className="rounded-2xl bg-lifewood-seaSalt p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-lifewood-serpent/55">Total Actual</p>
+                  <p className="mt-2 text-2xl font-black text-lifewood-serpent">996</p>
+                </div>
+                <div className="rounded-2xl bg-lifewood-seaSalt p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-lifewood-serpent/55">Avg Quality</p>
+                  <p className="mt-2 text-2xl font-black text-lifewood-green">97.1%</p>
+                </div>
+                <div className="rounded-2xl bg-lifewood-seaSalt p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-lifewood-serpent/55">SLA Compliance</p>
+                  <p className="mt-2 text-2xl font-black text-lifewood-serpent">94%</p>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
-                <h3 className="text-lg font-bold text-lifewood-serpent">Export Scope</h3>
-                <div className="mt-3 space-y-2 text-sm">
-                  <div className="rounded-xl bg-lifewood-seaSalt p-3 text-lifewood-serpent">
-                    Workforce baseline: 31 interns, 20 employees, 95% attendance.
-                  </div>
-                  <div className="rounded-xl bg-lifewood-seaSalt p-3 text-lifewood-serpent">
-                    Project-level output: planned vs actual volumes and quality by stream.
-                  </div>
-                  <div className="rounded-xl bg-lifewood-seaSalt p-3 text-lifewood-serpent">
-                    Daily output export is for manual production planning by admins.
-                  </div>
-                  <div className="rounded-xl bg-lifewood-seaSalt p-3 text-lifewood-serpent">
-                    Export buttons are static UI only for now; backend generation can be connected later.
-                  </div>
-                </div>
+              <div className="mt-5 overflow-x-auto rounded-2xl border border-lifewood-serpent/10">
+                <table className="w-full min-w-[760px] text-left">
+                  <thead className="bg-lifewood-seaSalt/60">
+                    <tr className="text-xs uppercase tracking-[0.14em] text-lifewood-serpent/55">
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Project</th>
+                      <th className="px-4 py-3">Planned</th>
+                      <th className="px-4 py-3">Actual</th>
+                      <th className="px-4 py-3">Variance</th>
+                      <th className="px-4 py-3">Quality</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    <tr className="border-t border-lifewood-serpent/10">
+                      <td className="px-4 py-3 text-lifewood-serpent">2026-02-22</td>
+                      <td className="px-4 py-3 font-semibold text-lifewood-serpent">NLP Annotation</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">520</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">498</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">-22</td>
+                      <td className="px-4 py-3 text-lifewood-green">97.2%</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">Near target</td>
+                      <td className="px-4 py-3 text-lifewood-serpent/70">Increase staffing by 1 shift</td>
+                    </tr>
+                    <tr className="border-t border-lifewood-serpent/10">
+                      <td className="px-4 py-3 text-lifewood-serpent">2026-02-22</td>
+                      <td className="px-4 py-3 font-semibold text-lifewood-serpent">Image QA</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">310</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">322</td>
+                      <td className="px-4 py-3 text-lifewood-green">+12</td>
+                      <td className="px-4 py-3 text-lifewood-green">98.4%</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">Above target</td>
+                      <td className="px-4 py-3 text-lifewood-serpent/70">Replicate checklist in other streams</td>
+                    </tr>
+                    <tr className="border-t border-lifewood-serpent/10">
+                      <td className="px-4 py-3 text-lifewood-serpent">2026-02-22</td>
+                      <td className="px-4 py-3 font-semibold text-lifewood-serpent">Speech Tagging</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">190</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">176</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">-14</td>
+                      <td className="px-4 py-3 text-lifewood-green">95.8%</td>
+                      <td className="px-4 py-3 text-lifewood-serpent">Needs support</td>
+                      <td className="px-4 py-3 text-lifewood-serpent/70">Schedule calibration with QA lead</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 rounded-2xl bg-lifewood-seaSalt p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-lifewood-serpent/55">Summary Notes</p>
+                <p className="mt-2 text-sm text-lifewood-serpent/75">
+                  Overall output is at 97.6% of plan with strong quality performance. Priority follow-up is Speech Tagging backlog reduction and next-day staffing rebalance for NLP Annotation.
+                </p>
               </div>
             </div>
           </div>

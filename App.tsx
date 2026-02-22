@@ -28,12 +28,15 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AdminAnalytics } from './components/AdminAnalytics';
 import { AdminEvaluation } from './components/AdminEvaluation';
 import { AdminReports } from './components/AdminReports';
+import { AdminManageInterns } from './components/AdminManageInterns';
+import { AdminManageApplicants } from './components/AdminManageApplicants';
+import { AdminManageEmployees } from './components/AdminManageEmployees';
 
 const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
 const THEME_STORAGE_KEY = 'lifewood_theme';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees'>('home');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
@@ -60,12 +63,15 @@ const App: React.FC = () => {
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  const navigateTo = (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports') => {
+  const navigateTo = (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees') => {
     const isAdminPage =
       page === 'admin-dashboard' ||
       page === 'admin-analytics' ||
       page === 'admin-evaluation' ||
-      page === 'admin-reports';
+      page === 'admin-reports' ||
+      page === 'admin-manage-interns' ||
+      page === 'admin-manage-applicants' ||
+      page === 'admin-manage-employees';
 
     if (page === 'signin') {
       localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -92,7 +98,7 @@ const App: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-lifewood-seaSalt dark:bg-[#020804]">
-      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && (
+      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && currentPage !== 'admin-manage-interns' && currentPage !== 'admin-manage-applicants' && currentPage !== 'admin-manage-employees' && (
         <Navbar
           theme={theme}
           toggleTheme={toggleTheme}
@@ -215,9 +221,24 @@ const App: React.FC = () => {
             <AdminReports navigateTo={navigateTo} />
           </div>
         )}
+        {currentPage === 'admin-manage-interns' && (
+          <div key="admin-manage-interns-page-wrapper">
+            <AdminManageInterns navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'admin-manage-applicants' && (
+          <div key="admin-manage-applicants-page-wrapper">
+            <AdminManageApplicants navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'admin-manage-employees' && (
+          <div key="admin-manage-employees-page-wrapper">
+            <AdminManageEmployees navigateTo={navigateTo} />
+          </div>
+        )}
       </main>
 
-      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && (
+      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && currentPage !== 'admin-manage-interns' && currentPage !== 'admin-manage-applicants' && currentPage !== 'admin-manage-employees' && (
         <div className="relative z-20 bg-lifewood-seaSalt dark:bg-[#020804]">
           <Footer navigateTo={navigateTo} />
         </div>

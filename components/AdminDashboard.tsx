@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowUpRight,
-  Bell,
   BookOpen,
   Calendar,
   ClipboardList,
@@ -25,6 +24,7 @@ import {
   X
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
+import { AdminNotificationBell } from './AdminNotificationBell';
 
 interface AdminDashboardProps {
   navigateTo?: (
@@ -50,6 +50,9 @@ interface AdminDashboardProps {
       | 'admin-analytics'
       | 'admin-evaluation'
       | 'admin-reports'
+      | 'admin-manage-interns'
+      | 'admin-manage-applicants'
+      | 'admin-manage-employees'
   ) => void;
 }
 
@@ -299,7 +302,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   };
 
   return (
-    <section className="min-h-screen bg-lifewood-seaSalt animate-pop-out opacity-0 lg:h-screen lg:overflow-hidden">
+    <section className="min-h-screen bg-lifewood-seaSalt lg:h-screen lg:overflow-hidden">
       <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
         <aside
           className={`fixed inset-y-0 left-0 z-[130] w-[290px] border-r border-lifewood-serpent/10 bg-lifewood-serpent text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:overflow-y-auto ${
@@ -316,9 +319,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                 ADMIN
               </span>
             </button>
-            <button className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
-              <Bell className="h-4 w-4" />
-            </button>
+            <AdminNotificationBell />
           </div>
 
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-2">
@@ -358,6 +359,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
             >
               <BookOpen className="h-4 w-4" />
               Reports
+            </button>
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-interns');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <Users className="h-4 w-4" />
+              Manage Interns
+            </button>
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-applicants');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Manage Applicants
+            </button>
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-employees');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <UserCircle2 className="h-4 w-4" />
+              Manage Employees
             </button>
           </div>
 
@@ -401,7 +432,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
           />
         )}
 
-        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 lg:h-screen lg:overflow-y-auto">
+        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
           <div className="mx-auto max-w-6xl space-y-5">
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
@@ -597,7 +628,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
 
             <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
               <div
-                onClick={() => navigateTo?.('admin-analytics')}
+                onClick={() => navigateTo?.('admin-evaluation')}
                 className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
               >
                 <div className="mb-3 flex items-center justify-between">
@@ -639,7 +670,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div
-                onClick={() => navigateTo?.('admin-analytics')}
+                onClick={() => navigateTo?.('admin-manage-interns')}
                 className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
               >
                 <div className="flex items-start justify-between">
@@ -655,7 +686,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               </div>
 
               <div
-                onClick={() => navigateTo?.('admin-analytics')}
+                onClick={() => navigateTo?.('admin-manage-employees')}
                 className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
               >
                 <div className="flex items-start justify-between">
@@ -671,7 +702,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               </div>
 
               <div
-                onClick={() => navigateTo?.('admin-analytics')}
+                onClick={() => navigateTo?.('admin-manage-employees')}
                 className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
               >
                 <div className="flex items-start justify-between">
