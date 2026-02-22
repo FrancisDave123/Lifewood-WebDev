@@ -19,17 +19,17 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
   ];
 
   return (
-    <footer id="contact" className="relative pt-32 pb-16 overflow-hidden">
+    <footer id="contact" className="relative overflow-hidden bg-gradient-to-b from-lifewood-seaSalt via-lifewood-seaSalt to-lifewood-serpent/10 pt-32 pb-16">
       {/* Background Decoration */}
       <div className="absolute bottom-0 left-0 right-0 h-[600px] bg-gradient-to-t from-lifewood-green/10 to-transparent pointer-events-none"></div>
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="glass-card rounded-[4rem] p-12 md:p-20 shadow-2xl border-white/20 ring-1 ring-white/10 mb-8 transition-transform duration-500">
+        <div className="mb-8 rounded-[4rem] border border-lifewood-green/20 bg-gradient-to-br from-lifewood-serpent via-[#0c3a27] to-lifewood-green p-12 text-white shadow-2xl ring-1 ring-white/10 transition-transform duration-500 md:p-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mb-20">
             {/* Mission Section */}
             <div className="lg:col-span-6">
               <img src={LOGO_URL} alt="Lifewood" className="h-10 mb-10 hover:scale-105 transition-transform" />
-              <h4 className="text-3xl md:text-4xl font-heading font-bold mb-8 leading-tight">
+              <h4 className="mb-8 font-heading text-3xl font-bold leading-tight text-white md:text-4xl">
                 We provide global Data Engineering Services to enable AI Solutions.
               </h4>
               <div className="pt-4">
@@ -46,7 +46,7 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
             {/* Social & Back to Top */}
             <div className="lg:col-span-6 flex flex-col md:items-end gap-12">
               <div className="text-left md:text-right space-y-8">
-                <h5 className="font-black text-xs uppercase tracking-[0.4em] text-lifewood-green dark:text-lifewood-yellow mb-6">Find Us On:</h5>
+                <h5 className="mb-6 text-xs font-black uppercase tracking-[0.4em] text-lifewood-yellow">Find Us On:</h5>
                 <div className="flex flex-wrap md:justify-end gap-4">
                   {socialLinks.map(({ Icon, label, href }) => (
                     <a 
@@ -55,7 +55,7 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={label}
-                      className="w-14 h-14 rounded-2xl glass border-white/20 flex items-center justify-center hover:bg-lifewood-green hover:text-white transition-all duration-500 hover:shadow-[0_0_30px_rgba(4,98,65,0.4)] shadow-lg hover:-translate-y-4 hover:rotate-[15deg] hover:scale-125 group overflow-hidden relative"
+                      className="group relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 text-white shadow-lg transition-all duration-500 hover:-translate-y-4 hover:rotate-[15deg] hover:scale-125 hover:bg-lifewood-green hover:text-white hover:shadow-[0_0_30px_rgba(4,98,65,0.4)]"
                     >
                       <div className="absolute inset-0 bg-gradient-to-tr from-lifewood-saffron/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                       <Icon className="w-6 h-6 relative z-10 group-hover:animate-bounce" />
@@ -67,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
               <div className="pt-8">
                 <button 
                   onClick={scrollToTop}
-                  className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] opacity-40 hover:opacity-100 transition-opacity md:ml-auto"
+                  className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-white/60 transition-opacity hover:text-white md:ml-auto"
                 >
                   Back to top <ArrowUpRight className="w-4 h-4 rotate-[-45deg]" />
                 </button>
@@ -76,17 +76,17 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
           </div>
 
           {/* Divider Line */}
-          <div className="w-full h-px bg-lifewood-serpent/10 dark:bg-white/10 mb-10"></div>
+          <div className="mb-10 h-px w-full bg-white/20"></div>
 
           {/* Legal & Copyright Section - Inside the Card */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-10 opacity-60 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-center lg:text-left">
-            <p className="whitespace-nowrap">© 2026 Lifewood - All Rights Reserved</p>
+          <div className="flex flex-col items-center justify-between gap-10 text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/70 md:text-xs lg:flex-row lg:text-left">
+            <p className="whitespace-nowrap">&copy; 2026 Lifewood - All Rights Reserved</p>
             
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
-              <button onClick={() => navigateTo?.('privacy')} className="hover:text-lifewood-green transition-colors uppercase">Privacy Policy</button>
-              <button onClick={() => navigateTo?.('cookie-policy')} className="hover:text-lifewood-green transition-colors uppercase">Cookie Policy</button>
-              <button onClick={() => navigateTo?.('terms')} className="hover:text-lifewood-green transition-colors uppercase">Terms and Conditions</button>
-              <button onClick={() => setShowCookieSettings(true)} className="hover:text-lifewood-green transition-colors uppercase">Cookie Settings</button>
+              <button onClick={() => navigateTo?.('privacy')} className="uppercase transition-colors hover:text-lifewood-yellow">Privacy Policy</button>
+              <button onClick={() => navigateTo?.('cookie-policy')} className="uppercase transition-colors hover:text-lifewood-yellow">Cookie Policy</button>
+              <button onClick={() => navigateTo?.('terms')} className="uppercase transition-colors hover:text-lifewood-yellow">Terms and Conditions</button>
+              <button onClick={() => setShowCookieSettings(true)} className="uppercase transition-colors hover:text-lifewood-yellow">Cookie Settings</button>
             </div>
           </div>
         </div>
@@ -127,3 +127,4 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
     </footer>
   );
 };
+

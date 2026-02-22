@@ -1,17 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { NAV_ITEMS, LOGO_URL, LOGO_DARK_URL } from '../constants';
-import { ThemeToggle } from './ThemeToggle';
+import { NAV_ITEMS } from '../constants';
 import { Menu, X, ChevronDown, Sparkles, Layers, Database, Mic, Car } from 'lucide-react';
 
 interface NavbarProps {
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
-  navigateTo: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms') => void;
-  currentPage: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms';
+  navigateTo: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports') => void;
+  currentPage: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports';
+  isAdminAuthenticated: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, currentPage }) => {
+export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdminAuthenticated }) => {
+  const NAVBAR_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -157,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
             className="flex items-center gap-2 group"
           >
             <img 
-              src={LOGO_DARK_URL} 
+              src={NAVBAR_LOGO_URL} 
               alt="Lifewood" 
               className={`${logoSizeClass} w-auto object-contain transition-transform group-hover:scale-105`} 
             />
@@ -214,20 +213,27 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
           </div>
 
           <div className="flex items-center gap-4">
-            <ThemeToggle theme={theme} toggle={toggleTheme} />
             <button 
               className="lg:hidden p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X /> : <Menu />}
             </button>
-            <a 
-              href="#contact" 
-              onClick={(e) => handleNavClick(e, { href: '#contact' })}
-              className="hidden sm:block px-6 py-2 bg-lifewood-green text-white dark:bg-lifewood-yellow dark:text-lifewood-serpent rounded-full font-bold text-sm hover:shadow-lg hover:shadow-lifewood-green/20 transition-all active:scale-95"
-            >
-              Get Started
-            </a>
+            {isAdminAuthenticated ? (
+              <button
+                onClick={() => navigateTo('admin-dashboard')}
+                className="hidden sm:block px-6 py-2 bg-lifewood-green text-white dark:bg-lifewood-yellow dark:text-lifewood-serpent rounded-full font-bold text-sm hover:shadow-lg hover:shadow-lifewood-green/20 transition-all active:scale-95"
+              >
+                Dashboard
+              </button>
+            ) : (
+              <button
+                onClick={() => navigateTo('signin')}
+                className="hidden sm:block px-6 py-2 bg-lifewood-green text-white dark:bg-lifewood-yellow dark:text-lifewood-serpent rounded-full font-bold text-sm hover:shadow-lg hover:shadow-lifewood-green/20 transition-all active:scale-95"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -271,6 +277,15 @@ export const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, navigateTo, 
               )}
             </div>
           ))}
+          <button
+            onClick={() => {
+              navigateTo(isAdminAuthenticated ? 'admin-dashboard' : 'signin');
+              setMobileMenuOpen(false);
+            }}
+            className="mt-4 text-lg font-black text-lifewood-green dark:text-lifewood-yellow"
+          >
+            {isAdminAuthenticated ? 'Dashboard' : 'Sign In'}
+          </button>
           <a 
             href="#contact"
             onClick={(e) => handleNavClick(e, { href: '#contact' })}

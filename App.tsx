@@ -23,9 +23,20 @@ import { InternalNews } from './components/InternalNews';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { CookiePolicy } from './components/CookiePolicy';
 import { TermsConditions } from './components/TermsConditions';
+import { SignIn } from './components/SignIn';
+import { AdminDashboard } from './components/AdminDashboard';
+import { AdminAnalytics } from './components/AdminAnalytics';
+import { AdminEvaluation } from './components/AdminEvaluation';
+import { AdminReports } from './components/AdminReports';
+
+const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports'>('home');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+  });
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
@@ -47,14 +58,47 @@ const App: React.FC = () => {
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  const navigateTo = (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms') => {
-    setCurrentPage(page);
+  const navigateTo = (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports') => {
+    const isAdminPage =
+      page === 'admin-dashboard' ||
+      page === 'admin-analytics' ||
+      page === 'admin-evaluation' ||
+      page === 'admin-reports';
+
+    if (page === 'signin') {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      setIsAdminAuthenticated(false);
+      setCurrentPage('signin');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (isAdminPage) {
+      const hasAuth = localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+      if (!hasAuth) {
+        setIsAdminAuthenticated(false);
+        setCurrentPage('signin');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      setIsAdminAuthenticated(true);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentPage(page);
   };
 
   return (
     <div className="relative min-h-screen bg-lifewood-seaSalt dark:bg-[#020804]">
-      <Navbar theme={theme} toggleTheme={toggleTheme} navigateTo={navigateTo} currentPage={currentPage} />
+      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && (
+        <Navbar
+          theme={theme}
+          toggleTheme={toggleTheme}
+          navigateTo={navigateTo}
+          currentPage={currentPage}
+          isAdminAuthenticated={isAdminAuthenticated}
+        />
+      )}
       
       <main className="relative">
         {currentPage === 'home' && (
@@ -144,11 +188,38 @@ const App: React.FC = () => {
             <TypeD navigateTo={navigateTo} />
           </div>
         )}
+        {currentPage === 'signin' && (
+          <div key="signin-page-wrapper">
+            <SignIn navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'admin-dashboard' && (
+          <div key="admin-dashboard-page-wrapper">
+            <AdminDashboard navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'admin-analytics' && (
+          <div key="admin-analytics-page-wrapper">
+            <AdminAnalytics navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'admin-evaluation' && (
+          <div key="admin-evaluation-page-wrapper">
+            <AdminEvaluation navigateTo={navigateTo} />
+          </div>
+        )}
+        {currentPage === 'admin-reports' && (
+          <div key="admin-reports-page-wrapper">
+            <AdminReports navigateTo={navigateTo} />
+          </div>
+        )}
       </main>
 
-      <div className="relative z-20 bg-lifewood-seaSalt dark:bg-[#020804]">
-        <Footer navigateTo={navigateTo} />
-      </div>
+      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && (
+        <div className="relative z-20 bg-lifewood-seaSalt dark:bg-[#020804]">
+          <Footer navigateTo={navigateTo} />
+        </div>
+      )}
 
       {/* Background Decorative Blobs */}
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lifewood-green/5 dark:bg-lifewood-green/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
