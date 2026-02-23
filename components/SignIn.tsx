@@ -9,6 +9,7 @@ interface SignInProps {
 export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
   const AUTH_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
   const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
+  const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
   const TEST_ADMIN_EMAIL = 'admin@lifewood.test';
   const TEST_ADMIN_PASSWORD = 'Lifewood123!';
 
@@ -38,6 +39,7 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
 
       setAuthError('');
       localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+      localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email.trim().toLowerCase());
       navigateTo?.('admin-dashboard');
     }
   };

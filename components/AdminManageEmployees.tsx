@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   BookOpen,
   Calendar,
@@ -16,6 +17,9 @@ import {
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
+import { AdminProfileModal } from './AdminProfileModal';
+import { useAdminProfile } from './adminProfile';
+import { MANAGE_EMPLOYEES_STORAGE_KEY } from './adminPeopleStorage';
 
 interface AdminManageEmployeesProps {
   navigateTo?: (
@@ -56,6 +60,16 @@ type EmployeeRecord = {
   id: string;
   employeeId: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  gender?: string;
+  age?: number;
+  school?: string;
+  phoneNumber?: string;
+  position?: string;
+  currentAddress?: string;
+  country?: string;
   role: string;
   team: string;
   certifications: string;
@@ -68,11 +82,36 @@ type EmployeeRecord = {
   attendanceExceptions: EmployeeAttendanceException[];
 };
 
-const employeeRecords: EmployeeRecord[] = [
+const splitPersonName = (fullName: string) => {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return { firstName: '', lastName: '' };
+  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+  return { firstName: parts.slice(0, -1).join(' '), lastName: parts[parts.length - 1] };
+};
+
+const normalizeOptionalText = (value?: string) => {
+  const text = value?.trim();
+  if (!text) return '';
+  const normalized = text.toLowerCase();
+  if (normalized === 'n/a' || normalized === 'na' || normalized === 'not provided') return '';
+  return text;
+};
+
+export const defaultEmployeeRecords: EmployeeRecord[] = [
   {
     id: 'emp-arianne',
     employeeId: 'EMP-204',
     name: 'Arianne Cruz',
+    firstName: 'Arianne',
+    lastName: 'Cruz',
+    email: 'arianne.cruz@lifewood.example',
+    gender: 'Female',
+    age: 28,
+    school: 'Ateneo de Davao University',
+    phoneNumber: '+63 917 555 2040',
+    position: 'Senior QA Lead',
+    currentAddress: 'Agdao, Davao City',
+    country: 'Philippines',
     role: 'Senior QA Lead',
     team: 'Image QA',
     certifications: 'ISO 9001, HIPAA',
@@ -91,6 +130,16 @@ const employeeRecords: EmployeeRecord[] = [
     id: 'emp-marco',
     employeeId: 'EMP-193',
     name: 'Marco Navarro',
+    firstName: 'Marco',
+    lastName: 'Navarro',
+    email: 'marco.navarro@lifewood.example',
+    gender: 'Male',
+    age: 31,
+    school: 'University of Mindanao',
+    phoneNumber: '+63 998 445 1933',
+    position: 'Operations Supervisor',
+    currentAddress: 'Catalunan Pequeno, Davao City',
+    country: 'Philippines',
     role: 'Operations Supervisor',
     team: 'Speech Programs',
     certifications: 'GDPR, SOC 2',
@@ -112,6 +161,16 @@ const employeeRecords: EmployeeRecord[] = [
     id: 'emp-rica',
     employeeId: 'EMP-176',
     name: 'Rica Salazar',
+    firstName: 'Rica',
+    lastName: 'Salazar',
+    email: 'rica.salazar@lifewood.example',
+    gender: 'Female',
+    age: 29,
+    school: 'Holy Cross of Davao College',
+    phoneNumber: '+63 905 661 1760',
+    position: 'People Operations',
+    currentAddress: 'Buhangin, Davao City',
+    country: 'Philippines',
     role: 'People Operations',
     team: 'Workforce Admin',
     certifications: 'Labor Compliance',
@@ -130,13 +189,24 @@ const employeeRecords: EmployeeRecord[] = [
 
 export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { profile, setProfile, adminGmail } = useAdminProfile();
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [employees, setEmployees] = useState(employeeRecords);
+  const [employees, setEmployees] = useState<EmployeeRecord[]>(() => {
+    const saved = localStorage.getItem(MANAGE_EMPLOYEES_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved) as EmployeeRecord[];
+      } catch {}
+    }
+    return defaultEmployeeRecords;
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalEmployee, setModalEmployee] = useState<EmployeeRecord | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date(2026, 1, 1));
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
+  const [confirmSuspend, setConfirmSuspend] = useState<{ id: string; name: string; action: 'suspend' | 'reinstate' } | null>(null);
 
   const filteredEmployees = useMemo(
     () => employees.filter((employee) => employee.name.toLowerCase().includes(searchTerm.toLowerCase())),
@@ -192,6 +262,25 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
     cancelSelection();
   };
 
+  const confirmSuspendAction = () => {
+    if (!confirmSuspend) return;
+    const nextStatus =
+      confirmSuspend.action === 'suspend' ? 'Suspended until further notice' : 'Active';
+    setEmployees((prev) =>
+      prev.map((entry) => (entry.id === confirmSuspend.id ? { ...entry, status: nextStatus } : entry))
+    );
+    setModalEmployee((prev) => (prev?.id === confirmSuspend.id ? null : prev));
+    setConfirmSuspend(null);
+  };
+
+  const closeSuspendModal = () => {
+    setConfirmSuspend(null);
+  };
+
+  useEffect(() => {
+    localStorage.setItem(MANAGE_EMPLOYEES_STORAGE_KEY, JSON.stringify(employees));
+  }, [employees]);
+
   const monthLabel = useMemo(
     () => calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     [calendarMonth]
@@ -221,8 +310,19 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
     return `${y}-${m}-${d}`;
   };
 
+  const handleEditProfile = () => {
+    setIsProfileOpen(true);
+  };
+
+  const suspendEmployee = (employee: EmployeeRecord) => {
+    const isSuspended = employee.status.toLowerCase().includes('suspend');
+    setConfirmSuspend({ id: employee.id, name: employee.name, action: isSuspended ? 'reinstate' : 'suspend' });
+  };
+
+  const modalEmployeeName = modalEmployee ? splitPersonName(modalEmployee.name) : { firstName: '', lastName: '' };
+
   return (
-    <section className="min-h-screen bg-lifewood-seaSalt lg:h-screen lg:overflow-hidden">
+    <section className="min-h-screen bg-transparent lg:h-screen lg:overflow-hidden">
       <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
         <aside
           className={`fixed inset-y-0 left-0 z-[130] w-[290px] border-r border-lifewood-serpent/10 bg-lifewood-serpent text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:overflow-y-auto ${
@@ -240,6 +340,38 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
               </span>
             </button>
             <AdminNotificationBell />
+          </div>
+
+          <div className="px-4 pt-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  {profile.avatarDataUrl ? (
+                    <img
+                      src={profile.avatarDataUrl}
+                      alt="Admin avatar"
+                      className="h-12 w-12 rounded-full border border-white/20 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+                      <UserCircle2 className="h-7 w-7" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {profile.firstName} {profile.lastName}
+                    </p>
+                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleEditProfile}
+                  className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-2">
@@ -347,8 +479,8 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
           />
         )}
 
-        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
-          <div className="mx-auto max-w-6xl space-y-5">
+        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
+          <div className="relative z-10 mx-auto max-w-6xl space-y-5">
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
                 type="button"
@@ -442,19 +574,13 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
                     <button
                       type="button"
                       onClick={deleteSelected}
-                      className="inline-flex items-center gap-1 rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"
+                      className="inline-flex items-center gap-1 rounded-xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-700"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      Delete Selected
+                      Fire Selected
                     </button>
                   )}
                 </div>
-                <button
-                  type="button"
-                  className="rounded-xl border border-lifewood-serpent/15 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent"
-                >
-                  Add
-                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[1080px] table-auto text-left">
@@ -502,16 +628,26 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
                         <td className="px-4 py-4 text-lifewood-serpent">{employee.workload}</td>
                         <td className="px-4 py-4 text-lifewood-serpent">{employee.attendance}</td>
                         <td className="px-4 py-4 text-lifewood-serpent">{employee.currentFocus}</td>
-                        <td className="px-4 py-4"><span className="rounded-full bg-lifewood-green/10 px-2.5 py-1 text-xs font-semibold text-lifewood-green">{employee.status}</span></td>
+                        <td className="px-4 py-4">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              employee.status.toLowerCase().includes('suspend')
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-lifewood-green/10 text-lifewood-green'
+                            }`}
+                          >
+                            {employee.status}
+                          </span>
+                        </td>
                         {isSelectMode && (
                           <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                             <button
                               type="button"
                               onClick={() => deleteOne(employee.id, employee.name)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-red-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-600"
+                              className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-rose-700"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
-                              Delete
+                              Fire
                             </button>
                           </td>
                         )}
@@ -524,9 +660,31 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
           </div>
         </main>
       </div>
-      {modalEmployee && (
-        <div className="fixed inset-0 z-[180] flex items-center justify-center bg-black/45 p-4">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-lifewood-serpent/10 bg-white p-5 animate-pop-out opacity-0">
+
+      <AdminProfileModal
+        open={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        profile={profile}
+        adminGmail={adminGmail}
+        onSave={setProfile}
+      />
+
+      <AnimatePresence>
+        {modalEmployee && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[180] flex items-center justify-center bg-black/45 p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.97 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-lifewood-serpent/10 bg-white p-5"
+            >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-lg font-bold text-lifewood-serpent">Employee Details: {modalEmployee.name}</h3>
               <button
@@ -540,6 +698,19 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
             <p className="mt-1 text-sm text-lifewood-serpent/65">
               Role progression, project and supervisor history, and attendance summary.
             </p>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">First Name:</span> {normalizeOptionalText(modalEmployee.firstName) || normalizeOptionalText(modalEmployeeName.firstName) || 'Juan'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Last Name:</span> {normalizeOptionalText(modalEmployee.lastName) || normalizeOptionalText(modalEmployeeName.lastName) || 'Dela Cruz'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Email:</span> {normalizeOptionalText(modalEmployee.email) || 'employee@example.com'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Gender:</span> {normalizeOptionalText(modalEmployee.gender) || 'Not specified'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Age:</span> {typeof modalEmployee.age === 'number' ? modalEmployee.age : 25}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">School:</span> {normalizeOptionalText(modalEmployee.school) || 'Sample University'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Phone Number:</span> {normalizeOptionalText(modalEmployee.phoneNumber) || '+63 900 000 0000'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Position:</span> {normalizeOptionalText(modalEmployee.position) || normalizeOptionalText(modalEmployee.role) || 'Operations Associate'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Country:</span> {normalizeOptionalText(modalEmployee.country) || 'Philippines'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent sm:col-span-2"><span className="font-semibold">Current Address:</span> {normalizeOptionalText(modalEmployee.currentAddress) || 'Davao City'}</div>
+            </div>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4">
@@ -622,17 +793,51 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
                 })}
               </div>
             </div>
-          </div>
-        </div>
-      )}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-[190] flex items-center justify-center bg-black/45 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-lifewood-serpent/10 bg-white p-5 animate-pop-out opacity-0">
-            <h4 className="text-lg font-bold text-lifewood-serpent">Confirm Delete</h4>
+
+            <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
+              <p className="text-sm font-semibold text-lifewood-serpent">Employee Actions</p>
+              <p className="mt-1 text-xs text-lifewood-serpent/60">
+                Suspend this employee and mark the status accordingly.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => suspendEmployee(modalEmployee)}
+                  className={`rounded-xl px-3 py-2 text-xs font-semibold text-white ${
+                    modalEmployee.status.toLowerCase().includes('suspend')
+                      ? 'bg-lifewood-green hover:bg-lifewood-green/90'
+                      : 'bg-red-700 hover:bg-red-800'
+                  }`}
+                >
+                  {modalEmployee.status.toLowerCase().includes('suspend') ? 'Reinstate' : 'Suspend'}
+                </button>
+              </div>
+            </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            className="fixed inset-0 z-[190] flex items-center justify-center bg-black/45 p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.97 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full max-w-md rounded-2xl border border-lifewood-serpent/10 bg-white p-5"
+            >
+            <h4 className="text-lg font-bold text-lifewood-serpent">Confirm Fire</h4>
             <p className="mt-2 text-sm text-lifewood-serpent/70">
               {confirmDelete.mode === 'single'
-                ? `Are you sure you want to delete ${confirmDelete.name}?`
-                : `Are you sure you want to delete ${selectedIds.length} selected employee(s)?`}
+                ? `Are you sure you want to fire this employee (${confirmDelete.name})?`
+                : `Are you sure you want to fire ${selectedIds.length} selected employee(s)?`}
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <button
@@ -645,16 +850,65 @@ export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navi
               <button
                 type="button"
                 onClick={confirmDeleteAction}
-                className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"
+                className="rounded-xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-700"
               >
-                Delete
+                Fire
               </button>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {confirmSuspend && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            className="fixed inset-0 z-[195] flex items-center justify-center bg-black/45 p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.97 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full max-w-md rounded-2xl border border-lifewood-serpent/10 bg-white p-5"
+            >
+            <h4 className="text-lg font-bold text-lifewood-serpent">
+              {confirmSuspend.action === 'suspend' ? 'Confirm Suspend' : 'Confirm Reinstate'}
+            </h4>
+            <p className="mt-2 text-sm text-lifewood-serpent/70">
+              Are you sure you want to {confirmSuspend.action} {confirmSuspend.name}?
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeSuspendModal}
+                className="rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-xs font-semibold text-lifewood-serpent"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmSuspendAction}
+                className={`rounded-xl px-3 py-2 text-xs font-semibold text-white ${
+                  confirmSuspend.action === 'suspend'
+                    ? 'bg-red-700 hover:bg-red-800'
+                    : 'bg-lifewood-green hover:bg-lifewood-green/90'
+                }`}
+              >
+                {confirmSuspend.action === 'suspend' ? 'Suspend' : 'Reinstate'}
+              </button>
+            </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
 
 export default AdminManageEmployees;
+
+

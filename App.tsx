@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { About } from './components/About';
@@ -34,6 +34,16 @@ import { AdminManageEmployees } from './components/AdminManageEmployees';
 
 const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
 const THEME_STORAGE_KEY = 'lifewood_theme';
+const ADMIN_BG_VIDEO_URL = 'https://www.pexels.com/download/video/34645742/';
+const ADMIN_PAGES = new Set([
+  'admin-dashboard',
+  'admin-analytics',
+  'admin-evaluation',
+  'admin-reports',
+  'admin-manage-interns',
+  'admin-manage-applicants',
+  'admin-manage-employees'
+]);
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees'>('home');
@@ -50,6 +60,8 @@ const App: React.FC = () => {
     }
     return 'light';
   });
+  const adminBackgroundVideoRef = useRef<HTMLVideoElement | null>(null);
+  const isAdminPage = ADMIN_PAGES.has(currentPage);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -64,14 +76,7 @@ const App: React.FC = () => {
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   const navigateTo = (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees') => {
-    const isAdminPage =
-      page === 'admin-dashboard' ||
-      page === 'admin-analytics' ||
-      page === 'admin-evaluation' ||
-      page === 'admin-reports' ||
-      page === 'admin-manage-interns' ||
-      page === 'admin-manage-applicants' ||
-      page === 'admin-manage-employees';
+    const isAdminPage = ADMIN_PAGES.has(page);
 
     if (page === 'signin') {
       localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -96,9 +101,19 @@ const App: React.FC = () => {
     setCurrentPage(page);
   };
 
+  const handleAdminVideoLoop = () => {
+    const video = adminBackgroundVideoRef.current;
+    if (!video || !video.duration) return;
+
+    if (video.currentTime >= video.duration - 0.06) {
+      video.currentTime = 0.01;
+      void video.play();
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-lifewood-seaSalt dark:bg-[#020804]">
-      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && currentPage !== 'admin-manage-interns' && currentPage !== 'admin-manage-applicants' && currentPage !== 'admin-manage-employees' && (
+      {currentPage !== 'signin' && !isAdminPage && (
         <Navbar
           theme={theme}
           toggleTheme={toggleTheme}
@@ -109,6 +124,32 @@ const App: React.FC = () => {
       )}
       
       <main className="relative">
+        {isAdminPage && (
+          <div className="pointer-events-none fixed inset-0 z-0">
+            <video
+              ref={adminBackgroundVideoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+              aria-hidden="true"
+              onTimeUpdate={handleAdminVideoLoop}
+              onEnded={() => {
+                const video = adminBackgroundVideoRef.current;
+                if (!video) return;
+                video.currentTime = 0.01;
+                void video.play();
+              }}
+              className="h-full w-full object-cover opacity-55"
+            >
+              <source src={ADMIN_BG_VIDEO_URL} type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-b from-white/48 via-white/42 to-lifewood-seaSalt/45"></div>
+          </div>
+        )}
+
         {currentPage === 'home' && (
           <div key="home-page-wrapper">
             <Hero navigateTo={navigateTo} />
@@ -202,43 +243,43 @@ const App: React.FC = () => {
           </div>
         )}
         {currentPage === 'admin-dashboard' && (
-          <div key="admin-dashboard-page-wrapper">
+          <div key="admin-dashboard-page-wrapper" className="relative z-20">
             <AdminDashboard navigateTo={navigateTo} />
           </div>
         )}
         {currentPage === 'admin-analytics' && (
-          <div key="admin-analytics-page-wrapper">
+          <div key="admin-analytics-page-wrapper" className="relative z-20">
             <AdminAnalytics navigateTo={navigateTo} />
           </div>
         )}
         {currentPage === 'admin-evaluation' && (
-          <div key="admin-evaluation-page-wrapper">
+          <div key="admin-evaluation-page-wrapper" className="relative z-20">
             <AdminEvaluation navigateTo={navigateTo} />
           </div>
         )}
         {currentPage === 'admin-reports' && (
-          <div key="admin-reports-page-wrapper">
+          <div key="admin-reports-page-wrapper" className="relative z-20">
             <AdminReports navigateTo={navigateTo} />
           </div>
         )}
         {currentPage === 'admin-manage-interns' && (
-          <div key="admin-manage-interns-page-wrapper">
+          <div key="admin-manage-interns-page-wrapper" className="relative z-20">
             <AdminManageInterns navigateTo={navigateTo} />
           </div>
         )}
         {currentPage === 'admin-manage-applicants' && (
-          <div key="admin-manage-applicants-page-wrapper">
+          <div key="admin-manage-applicants-page-wrapper" className="relative z-20">
             <AdminManageApplicants navigateTo={navigateTo} />
           </div>
         )}
         {currentPage === 'admin-manage-employees' && (
-          <div key="admin-manage-employees-page-wrapper">
+          <div key="admin-manage-employees-page-wrapper" className="relative z-20">
             <AdminManageEmployees navigateTo={navigateTo} />
           </div>
         )}
       </main>
 
-      {currentPage !== 'signin' && currentPage !== 'admin-dashboard' && currentPage !== 'admin-analytics' && currentPage !== 'admin-evaluation' && currentPage !== 'admin-reports' && currentPage !== 'admin-manage-interns' && currentPage !== 'admin-manage-applicants' && currentPage !== 'admin-manage-employees' && (
+      {currentPage !== 'signin' && !isAdminPage && (
         <div className="relative z-20 bg-lifewood-seaSalt dark:bg-[#020804]">
           <Footer navigateTo={navigateTo} />
         </div>

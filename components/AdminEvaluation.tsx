@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
+import { AdminProfileModal } from './AdminProfileModal';
+import { useAdminProfile } from './adminProfile';
 
 interface AdminEvaluationProps {
   navigateTo?: (
@@ -111,6 +113,8 @@ const initialQueueActivities: QueueActivity[] = [
 
 export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { profile, setProfile, adminGmail } = useAdminProfile();
   const [isQueueView, setIsQueueView] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [queueItems, setQueueItems] = useState<QueueActivity[]>(initialQueueActivities);
@@ -247,8 +251,13 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
     setQueueTransitionStyle(null);
   };
 
+  const handleEditProfile = () => {
+    setIsSidebarOpen(false);
+    setIsProfileOpen(true);
+  };
+
   return (
-    <section className="min-h-screen bg-lifewood-seaSalt lg:h-screen lg:overflow-hidden">
+    <section className="min-h-screen bg-transparent lg:h-screen lg:overflow-hidden">
       <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
         <aside
           className={`fixed inset-y-0 left-0 z-[130] w-[290px] border-r border-lifewood-serpent/10 bg-lifewood-serpent text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:overflow-y-auto ${
@@ -261,6 +270,38 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
               <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-bold tracking-[0.2em] text-lifewood-yellow">ADMIN</span>
             </button>
             <AdminNotificationBell />
+          </div>
+
+          <div className="px-4 pt-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  {profile.avatarDataUrl ? (
+                    <img
+                      src={profile.avatarDataUrl}
+                      alt="Admin avatar"
+                      className="h-12 w-12 rounded-full border border-white/20 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+                      <UserCircle2 className="h-7 w-7" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {profile.firstName} {profile.lastName}
+                    </p>
+                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleEditProfile}
+                  className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-2">
@@ -288,10 +329,10 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
 
         {isSidebarOpen && <button type="button" aria-label="Close sidebar" onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 z-[120] bg-black/45 backdrop-blur-[1px] lg:hidden" />}
 
-        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
+        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
           <div
             ref={contentRef}
-            className={`mx-auto max-w-6xl space-y-5 transition-opacity duration-150 ${
+            className={`relative z-10 mx-auto max-w-6xl space-y-5 transition-opacity duration-150 ${
               isQueueTransitioning && queueTransitionDirection === 'enter'
                 ? 'opacity-0 pointer-events-none select-none'
                 : 'opacity-100'
@@ -431,6 +472,14 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
         </main>
       </div>
 
+      <AdminProfileModal
+        open={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        profile={profile}
+        adminGmail={adminGmail}
+        onSave={setProfile}
+      />
+
       {activityModal && (
         <div className="fixed inset-0 z-[180] flex items-center justify-center bg-black/45 p-4">
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-lifewood-serpent/10 bg-white p-5 animate-pop-out opacity-0">
@@ -493,3 +542,5 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
 };
 
 export default AdminEvaluation;
+
+

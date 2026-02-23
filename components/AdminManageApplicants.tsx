@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   BookOpen,
   Calendar,
@@ -14,6 +15,15 @@ import {
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
+import { AdminProfileModal } from './AdminProfileModal';
+import { useAdminProfile } from './adminProfile';
+import { defaultInternRecords } from './AdminManageInterns';
+import { defaultEmployeeRecords } from './AdminManageEmployees';
+import {
+  MANAGE_APPLICANTS_STORAGE_KEY,
+  MANAGE_EMPLOYEES_STORAGE_KEY,
+  MANAGE_INTERNS_STORAGE_KEY
+} from './adminPeopleStorage';
 
 interface AdminManageApplicantsProps {
   navigateTo?: (
@@ -65,6 +75,9 @@ type ApplicantRecord = {
   availability: string;
   stage: string;
 };
+
+type InternRecord = (typeof defaultInternRecords)[number];
+type EmployeeRecord = (typeof defaultEmployeeRecords)[number];
 
 const applicantRecords: ApplicantRecord[] = [
   {
@@ -131,12 +144,23 @@ const applicantRecords: ApplicantRecord[] = [
 
 export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { profile, setProfile, adminGmail } = useAdminProfile();
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [applicants, setApplicants] = useState(applicantRecords);
+  const [applicants, setApplicants] = useState<ApplicantRecord[]>(() => {
+    const saved = localStorage.getItem(MANAGE_APPLICANTS_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved) as ApplicantRecord[];
+      } catch {}
+    }
+    return applicantRecords;
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalApplicant, setModalApplicant] = useState<ApplicantRecord | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
+  const [assignmentNotice, setAssignmentNotice] = useState('');
 
   const filteredApplicants = useMemo(
     () => applicants.filter((applicant) => `${applicant.firstName} ${applicant.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())),
@@ -192,8 +216,154 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     cancelSelection();
   };
 
+  useEffect(() => {
+    localStorage.setItem(MANAGE_APPLICANTS_STORAGE_KEY, JSON.stringify(applicants));
+  }, [applicants]);
+
+  const handleEditProfile = () => {
+    setIsProfileOpen(true);
+  };
+
+  const toTrack = (positionApplied: string) => {
+    const text = positionApplied.toLowerCase();
+    if (text.includes('audio') || text.includes('speech')) return 'Speech Tagging';
+    if (text.includes('image')) return 'Image QA';
+    if (text.includes('nlp') || text.includes('text')) return 'Text Annotation';
+    return 'General Operations';
+  };
+
+  const toTeam = (positionApplied: string) => {
+    const text = positionApplied.toLowerCase();
+    if (text.includes('audio') || text.includes('speech')) return 'Speech Programs';
+    if (text.includes('image')) return 'Image QA';
+    if (text.includes('nlp') || text.includes('text')) return 'NLP Annotation';
+    return 'Operations';
+  };
+
+  const getEmployeeNumericId = (applicantId: string) => {
+    const seed = applicantId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return `${(seed % 900) + 100}`.padStart(3, '0');
+  };
+
+  const readStoredInterns = (): InternRecord[] => {
+    const saved = localStorage.getItem(MANAGE_INTERNS_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved) as InternRecord[];
+      } catch {}
+    }
+    return [...defaultInternRecords];
+  };
+
+  const readStoredEmployees = (): EmployeeRecord[] => {
+    const saved = localStorage.getItem(MANAGE_EMPLOYEES_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved) as EmployeeRecord[];
+      } catch {}
+    }
+    return [...defaultEmployeeRecords];
+  };
+
+  const removeApplicantFromPipeline = (applicantId: string) => {
+    setApplicants((prev) => prev.filter((entry) => entry.id !== applicantId));
+    setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== applicantId));
+    setModalApplicant((prev) => (prev?.id === applicantId ? null : prev));
+  };
+
+  const addAsIntern = (applicant: ApplicantRecord) => {
+    const existingInterns = readStoredInterns();
+    const internId = `intern-${applicant.id}`;
+
+    if (existingInterns.some((entry) => entry.id === internId)) {
+      setAssignmentNotice(`${applicant.firstName} ${applicant.lastName} is already in Manage Interns.`);
+      return;
+    }
+
+    const internCandidate: InternRecord = {
+      id: internId,
+      name: `${applicant.firstName} ${applicant.lastName}`,
+      firstName: applicant.firstName,
+      lastName: applicant.lastName,
+      email: applicant.emailAddress,
+      gender: applicant.gender,
+      age: applicant.age,
+      school: 'Sample University',
+      phoneNumber: applicant.phoneNumber,
+      position: applicant.positionApplied,
+      currentAddress: applicant.currentAddress,
+      country: applicant.country,
+      batch: 'Batch 09',
+      track: toTrack(applicant.positionApplied),
+      currentProject: `${applicant.positionApplied} Onboarding`,
+      mentor: 'TBD',
+      attendanceRate: '100%',
+      quality: 'Pending review',
+      status: 'Newly Added',
+      notes: `Promoted from applicants (${applicant.appliedDate})`,
+      trackHistory: [toTrack(applicant.positionApplied), 'Orientation & Compliance'],
+      projectHistory: [
+        {
+          project: `${applicant.positionApplied} Onboarding`,
+          mentor: 'TBD',
+          period: 'Starting'
+        }
+      ],
+      attendanceExceptions: []
+    };
+
+    localStorage.setItem(MANAGE_INTERNS_STORAGE_KEY, JSON.stringify([...existingInterns, internCandidate]));
+    removeApplicantFromPipeline(applicant.id);
+  };
+
+  const addAsEmployee = (applicant: ApplicantRecord) => {
+    const existingEmployees = readStoredEmployees();
+    const employeeRecordId = `emp-${applicant.id}`;
+
+    if (existingEmployees.some((entry) => entry.id === employeeRecordId)) {
+      setAssignmentNotice(`${applicant.firstName} ${applicant.lastName} is already in Manage Employees.`);
+      return;
+    }
+
+    const normalizedRole = applicant.positionApplied.replace(/\bIntern\b/i, 'Associate');
+    const employeeCandidate: EmployeeRecord = {
+      id: employeeRecordId,
+      employeeId: `EMP-${getEmployeeNumericId(applicant.id)}`,
+      name: `${applicant.firstName} ${applicant.lastName}`,
+      firstName: applicant.firstName,
+      lastName: applicant.lastName,
+      email: applicant.emailAddress,
+      gender: applicant.gender,
+      age: applicant.age,
+      school: 'Sample University',
+      phoneNumber: applicant.phoneNumber,
+      position: normalizedRole,
+      currentAddress: applicant.currentAddress,
+      country: applicant.country,
+      role: normalizedRole,
+      team: toTeam(applicant.positionApplied),
+      certifications: 'Pending onboarding',
+      workload: '0%',
+      attendance: 'Pending check-in',
+      currentFocus: 'Onboarding and initial training',
+      status: 'New hire',
+      roleHistory: [normalizedRole],
+      projectHistory: [
+        {
+          project: 'Workforce Onboarding Program',
+          supervisor: 'TBD',
+          period: 'Starting'
+        }
+      ],
+      attendanceExceptions: []
+    };
+
+    localStorage.setItem(MANAGE_EMPLOYEES_STORAGE_KEY, JSON.stringify([...existingEmployees, employeeCandidate]));
+    removeApplicantFromPipeline(applicant.id);
+  };
+
   return (
-    <section className="min-h-screen bg-lifewood-seaSalt lg:h-screen lg:overflow-hidden">
+    <section className="min-h-screen bg-transparent lg:h-screen lg:overflow-hidden">
       <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
         <aside
           className={`fixed inset-y-0 left-0 z-[130] w-[290px] border-r border-lifewood-serpent/10 bg-lifewood-serpent text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:overflow-y-auto ${
@@ -211,6 +381,38 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
               </span>
             </button>
             <AdminNotificationBell />
+          </div>
+
+          <div className="px-4 pt-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  {profile.avatarDataUrl ? (
+                    <img
+                      src={profile.avatarDataUrl}
+                      alt="Admin avatar"
+                      className="h-12 w-12 rounded-full border border-white/20 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+                      <UserCircle2 className="h-7 w-7" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {profile.firstName} {profile.lastName}
+                    </p>
+                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleEditProfile}
+                  className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-2">
@@ -318,8 +520,8 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
           />
         )}
 
-        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
-          <div className="mx-auto max-w-6xl space-y-5">
+        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
+          <div className="relative z-10 mx-auto max-w-6xl space-y-5">
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
                 type="button"
@@ -442,7 +644,10 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                     {filteredApplicants.map((applicant) => (
                       <tr
                         key={applicant.id}
-                        onClick={() => setModalApplicant(applicant)}
+                        onClick={() => {
+                          setAssignmentNotice('');
+                          setModalApplicant(applicant);
+                        }}
                         className="cursor-pointer border-t border-lifewood-serpent/10 transition odd:bg-white even:bg-lifewood-seaSalt/35 hover:bg-lifewood-seaSalt/60"
                       >
                         {isSelectMode && (
@@ -485,9 +690,31 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
           </div>
         </main>
       </div>
-      {modalApplicant && (
-        <div className="fixed inset-0 z-[180] flex items-center justify-center bg-black/45 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-lifewood-serpent/10 bg-white p-5 animate-pop-out opacity-0">
+
+      <AdminProfileModal
+        open={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        profile={profile}
+        adminGmail={adminGmail}
+        onSave={setProfile}
+      />
+
+      <AnimatePresence>
+        {modalApplicant && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[180] flex items-center justify-center bg-black/45 p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.97 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-lifewood-serpent/10 bg-white p-5"
+            >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-lg font-bold text-lifewood-serpent">Applicant Details: {modalApplicant.firstName} {modalApplicant.lastName}</h3>
               <button
@@ -539,12 +766,50 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-[190] flex items-center justify-center bg-black/45 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-lifewood-serpent/10 bg-white p-5 animate-pop-out opacity-0">
+
+            <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
+              <p className="text-sm font-semibold text-lifewood-serpent">Promote Applicant</p>
+              <p className="mt-1 text-xs text-lifewood-serpent/60">
+                Add this applicant directly to the corresponding management table.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => addAsIntern(modalApplicant)}
+                  className="rounded-xl bg-lifewood-green px-3 py-2 text-xs font-bold text-white hover:bg-lifewood-green/90"
+                >
+                  Add as Intern
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addAsEmployee(modalApplicant)}
+                  className="rounded-xl border border-lifewood-serpent/20 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent hover:bg-lifewood-seaSalt/80"
+                >
+                  Add as Employee
+                </button>
+              </div>
+              {assignmentNotice && <p className="mt-2 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
+            </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            className="fixed inset-0 z-[190] flex items-center justify-center bg-black/45 p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.97 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full max-w-md rounded-2xl border border-lifewood-serpent/10 bg-white p-5"
+            >
             <h4 className="text-lg font-bold text-lifewood-serpent">Confirm Delete</h4>
             <p className="mt-2 text-sm text-lifewood-serpent/70">
               {confirmDelete.mode === 'single'
@@ -567,11 +832,14 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                 Delete
               </button>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
 
 export default AdminManageApplicants;
+
+

@@ -17,7 +17,7 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
   const [isLoading, setIsLoading] = useState(false);
 
   // Get email and phone from environment variables
-  const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'info@lifewood.com';
+  const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'hr@lifewood.com';
   const contactPhone = import.meta.env.VITE_CONTACT_PHONE || '+1 (555) 123-4567';
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

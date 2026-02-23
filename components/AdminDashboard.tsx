@@ -58,6 +58,8 @@ interface AdminDashboardProps {
 const days = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 const MAX_GOALS = 10;
 const MAX_GOAL_CHARS = 100;
+const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
+const DEFAULT_ADMIN_GMAIL = 'admin@lifewood.test';
 
 interface ProfileData {
   firstName: string;
@@ -89,6 +91,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   const [goalTitle, setGoalTitle] = useState('');
   const [adminGoals, setAdminGoals] = useState<Array<{ id: string; title: string }>>([]);
   const [goalDeleteIntent, setGoalDeleteIntent] = useState<GoalDeleteIntent>(null);
+  const [adminGmail, setAdminGmail] = useState(DEFAULT_ADMIN_GMAIL);
   const [profile, setProfile] = useState<ProfileData>({
     firstName: 'Admin',
     lastName: 'Admin',
@@ -162,6 +165,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   };
 
   useEffect(() => {
+    const savedAdminEmail = localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY)?.trim().toLowerCase();
+    if (savedAdminEmail) {
+      setAdminGmail(savedAdminEmail);
+    }
+
     const savedEvents = localStorage.getItem('admin_dashboard_events');
     const savedGoals = localStorage.getItem('admin_dashboard_goals');
     const savedProfile = localStorage.getItem('admin_dashboard_profile');
@@ -301,7 +309,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   };
 
   return (
-    <section className="min-h-screen bg-lifewood-seaSalt lg:h-screen lg:overflow-hidden">
+    <section className="min-h-screen bg-transparent lg:h-screen lg:overflow-hidden">
       <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
         <aside
           className={`fixed inset-y-0 left-0 z-[130] w-[290px] border-r border-lifewood-serpent/10 bg-lifewood-serpent text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:overflow-y-auto ${
@@ -319,6 +327,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               </span>
             </button>
             <AdminNotificationBell />
+          </div>
+
+          <div className="px-4 pt-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  {profile.avatarDataUrl ? (
+                    <img
+                      src={profile.avatarDataUrl}
+                      alt="Admin avatar"
+                      className="h-12 w-12 rounded-full border border-white/20 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+                      <UserCircle2 className="h-7 w-7" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {profile.firstName} {profile.lastName}
+                    </p>
+                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsProfileOpen(true)}
+                  className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-2">
@@ -422,8 +462,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
           />
         )}
 
-        <main className="flex-1 bg-gradient-to-b from-white to-lifewood-seaSalt/70 p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
-          <div className="mx-auto max-w-6xl space-y-5">
+        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
+          <div className="relative z-10 mx-auto max-w-6xl space-y-5">
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
                 type="button"
@@ -721,37 +761,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               </div>
             </div>
 
-            <div className="grid items-start gap-4 xl:grid-cols-[1fr_1.3fr]">
-              <div className="self-start rounded-3xl border border-lifewood-serpent/10 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(19,48,32,0.12)]">
-                <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-                  <div className="flex items-center gap-3">
-                    {profile.avatarDataUrl ? (
-                      <img
-                        src={profile.avatarDataUrl}
-                        alt="Admin avatar"
-                        className="h-12 w-12 rounded-full border border-lifewood-serpent/15 object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lifewood-serpent text-white">
-                        <UserCircle2 className="h-7 w-7" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-lifewood-serpent">
-                        {profile.firstName} {profile.lastName}
-                      </p>
-                      <p className="text-xs text-lifewood-serpent/60">{profile.role || 'Internal Access'}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsProfileOpen(true)}
-                    className="rounded-xl border border-lifewood-serpent/10 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent transition hover:border-lifewood-green/50 hover:text-lifewood-green"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-
+            <div className="grid items-start gap-4">
               <div className="relative rounded-3xl border border-lifewood-serpent/10 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(19,48,32,0.12)]">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-lg font-bold text-lifewood-serpent">Weekly Goals</h3>
@@ -933,6 +943,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               </div>
 
               <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-white/70">Gmail</label>
+                  <p className="mt-1 break-all rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/90">
+                    {adminGmail}
+                  </p>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-semibold text-white/70">First Name *</label>
@@ -1027,3 +1043,4 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
 };
 
 export default AdminDashboard;
+
