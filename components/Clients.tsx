@@ -4,31 +4,52 @@ import React, { useState, useEffect, useRef } from 'react';
 const PARTNERS = [
   { 
     name: 'Ancestry', 
-    logo: 'https://framerusercontent.com/images/Yq2A1QFJLXgGQ3b7NZPthsD9RBk.png?scale-down-to=1024&width=1920&height=1080' 
+    logo: 'https://framerusercontent.com/images/Yq2A1QFJLXgGQ3b7NZPthsD9RBk.png?scale-down-to=1024&width=1920&height=1080',
+    displayWidth: 613.3333,
+    aspectRatio: '1920 / 1080',
+    fit: 'cover' as const,
   },
   { 
     name: 'Family Search', 
-    logo: 'https://framerusercontent.com/images/2rRd2Mk1HzeDgPbL0e8wwkUPo.png?scale-down-to=1024&width=1920&height=1080' 
+    logo: 'https://framerusercontent.com/images/2rRd2Mk1HzeDgPbL0e8wwkUPo.png?scale-down-to=1024&width=1920&height=1080',
+    displayWidth: 577.7778,
+    aspectRatio: '1920 / 1080',
+    fit: 'cover' as const,
   },
   { 
     name: 'Microsoft', 
-    logo: 'https://framerusercontent.com/images/5mxPuoDvu4IebUtQtNowrZOfWSg.png?scale-down-to=1024&width=1920&height=1080' 
+    logo: 'https://framerusercontent.com/images/5mxPuoDvu4IebUtQtNowrZOfWSg.png?scale-down-to=1024&width=1920&height=1080',
+    displayWidth: 744.8889,
+    aspectRatio: '1920 / 1080',
+    fit: 'cover' as const,
   },
   { 
     name: 'Apple', 
     logo: 'https://framerusercontent.com/images/RyIkooWlUn6nQYbljETePWzd2Ac.png?scale-down-to=1024&width=1243&height=713',
+    displayWidth: 592,
+    aspectRatio: '1243 / 713',
+    fit: 'cover' as const,
   },
   { 
     name: 'Google', 
-    logo: 'https://framerusercontent.com/images/cjJDncfOy71yWizT3ZRdsZB4W0.png?scale-down-to=1024&width=1920&height=1080' 
+    logo: 'https://framerusercontent.com/images/cjJDncfOy71yWizT3ZRdsZB4W0.png?scale-down-to=1024&width=1920&height=1080',
+    displayWidth: 596,
+    aspectRatio: '1920 / 1080',
+    fit: 'cover' as const,
   },
   { 
     name: 'Moore Foundation', 
-    logo: 'https://framerusercontent.com/images/HWbvpkExIBUbdXEGILLSX4PTcEE.png?scale-down-to=512&width=1920&height=551' 
+    logo: 'https://framerusercontent.com/images/HWbvpkExIBUbdXEGILLSX4PTcEE.png?scale-down-to=512&width=1920&height=551',
+    displayWidth: 502,
+    aspectRatio: '1920 / 551',
+    fit: 'contain' as const,
   },
   { 
     name: 'BYU Pathway Worldwide', 
-    logo: 'https://framerusercontent.com/images/m37jhLfPRl449iXOe8op7cY68c.png?scale-down-to=1024&width=1920&height=1080' 
+    logo: 'https://framerusercontent.com/images/m37jhLfPRl449iXOe8op7cY68c.png?scale-down-to=1024&width=1920&height=1080',
+    displayWidth: 606.2222,
+    aspectRatio: '1920 / 1080',
+    fit: 'cover' as const,
   },
 ];
 
@@ -60,9 +81,9 @@ export const Clients: React.FC = () => {
   return (
     <section 
       ref={sectionRef}
-      className="py-12 relative overflow-hidden bg-white/60 dark:bg-black/40 border-y border-lifewood-green/5"
+      className="py-0 relative overflow-hidden bg-transparent"
     >
-      <div className="container mx-auto px-6 text-center mb-16">
+      <div className="container mx-auto px-6 text-center mb-8">
         <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full glass border border-lifewood-green/30 mb-8 bg-lifewood-green/5 transition-all duration-1000 transform ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
           <span className="text-sm font-black uppercase tracking-[0.4em] text-lifewood-green dark:text-lifewood-saffron">Trusted By Global Leaders</span>
         </div>
@@ -74,17 +95,13 @@ export const Clients: React.FC = () => {
         </p>
       </div>
 
-      <div className="relative w-full overflow-hidden py-8">
-        {/* Stronger focus vignettes */}
-        <div className="absolute inset-y-0 left-0 w-64 md:w-96 bg-gradient-to-r from-lifewood-seaSalt dark:from-[#020804] to-transparent z-10 pointer-events-none"></div>
-        <div className="absolute inset-y-0 right-0 w-64 md:w-96 bg-gradient-to-l from-lifewood-seaSalt dark:from-[#020804] to-transparent z-10 pointer-events-none"></div>
-
+      <div className="relative w-full overflow-hidden py-0">
         {/* Marquee Container */}
-        <div className="flex animate-marquee whitespace-nowrap items-center w-max">
+        <div className="flex animate-marquee whitespace-nowrap items-center w-max" style={{ animationDuration: '28s' }}>
           {marqueeItems.map((partner, idx) => (
             <div 
               key={`${partner.name}-${idx}`} 
-              className={`group relative flex flex-col items-center justify-center mx-16 md:mx-28 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform ${
+              className={`group relative flex flex-col items-center justify-center mx-6 md:mx-8 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform ${
                 isInView 
                   ? 'scale-100 opacity-100 rotate-0' 
                   : 'scale-0 opacity-0 rotate-12'
@@ -94,13 +111,20 @@ export const Clients: React.FC = () => {
               }}
             >
               {/* Logo Container */}
-              <div className="relative w-[200px] h-[200px] md:w-[240px] md:h-[240px] flex items-center justify-center transition-all duration-700 group-hover:scale-110">
+              <div
+                className="relative flex items-center justify-center transition-all duration-700 group-hover:scale-105"
+                style={{
+                  width: `clamp(260px, 68vw, ${partner.displayWidth}px)`,
+                  aspectRatio: partner.aspectRatio,
+                }}
+              >
                 
                 {/* Logo Image - Forced High Visibility */}
                 <img 
                   src={partner.logo} 
                   alt={partner.name} 
-                  className="w-[140px] h-[140px] md:w-[170px] md:h-[170px] object-contain transition-all duration-700 opacity-100"
+                  className="w-full h-full transition-all duration-700 opacity-100"
+                  style={{ objectFit: partner.fit }}
                 />
                 
                 {/* Hover Glow */}
@@ -110,11 +134,6 @@ export const Clients: React.FC = () => {
           ))}
         </div>
       </div>
-      
-      {/* Dynamic background accent lines */}
-      <div className="absolute top-1/2 left-0 w-full h-[2px] -translate-y-1/2 bg-gradient-to-r from-transparent via-lifewood-green/20 to-transparent -z-10 pointer-events-none"></div>
-      <div className="absolute top-[15%] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-lifewood-green/5 to-transparent pointer-events-none"></div>
-      <div className="absolute bottom-[15%] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-lifewood-green/5 to-transparent pointer-events-none"></div>
     </section>
   );
 };
