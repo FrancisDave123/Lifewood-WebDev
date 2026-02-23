@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, X } from 'lucide-react';
 
 interface AboutUsProps {
   theme?: 'light' | 'dark';
@@ -9,29 +9,13 @@ interface AboutUsProps {
 export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo }) => {
   const ABOUT_US_BE_AMAZED_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
   const accentGlowOpacity = theme === 'dark' ? 'opacity-55' : 'opacity-40';
-  const gallerySectionRef = useRef<HTMLDivElement>(null);
-  const [visibleGalleryCards, setVisibleGalleryCards] = useState<Record<number, boolean>>({});
-
-  useEffect(() => {
-    const cards = gallerySectionRef.current?.querySelectorAll<HTMLElement>('[data-gallery-idx]');
-    if (!cards?.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const idx = Number((entry.target as HTMLElement).dataset.galleryIdx);
-          if (Number.isNaN(idx)) return;
-
-          setVisibleGalleryCards((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }));
-        });
-      },
-      { threshold: 0.25, rootMargin: '0px 0px -10% 0px' }
-    );
-
-    cards.forEach((card) => observer.observe(card));
-    return () => observer.disconnect();
-  }, []);
+  const carouselSceneRef = useRef<HTMLDivElement>(null);
+  const dragStateRef = useRef({ isDragging: false, startX: 0, startRotation: 0, moved: false });
+  const wheelBoostRef = useRef(0);
+  const suppressClickRef = useRef(false);
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  const [carouselRotation, setCarouselRotation] = useState(0);
+  const [activeGalleryImageIndex, setActiveGalleryImageIndex] = useState<number | null>(null);
 
   const coreValues = [
     {
@@ -59,32 +43,121 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
   const galleryLeftImages = [
     {
       src: 'https://framerusercontent.com/images/4hASBG5DwObUZ6HSxm1j5gic.jpeg?scale-down-to=1024&width=853&height=1280',
-      cardClass: 'h-[280px] md:h-[420px]'
+      cardClass: 'w-[180px] h-[240px] md:w-[230px] md:h-[310px]'
     },
     {
       src: 'https://framerusercontent.com/images/iCuv1hnq9hAalYZSbiXDKScy31M.jpg?scale-down-to=512&width=2560&height=1707',
-      cardClass: 'h-[220px] md:h-[320px]'
+      cardClass: 'w-[180px] h-[240px] md:w-[230px] md:h-[310px]'
     },
     {
       src: 'https://framerusercontent.com/images/cMKEugcBZTYApEhuh47taqgdc8Q.jpg?scale-down-to=512&width=612&height=422',
-      cardClass: 'h-[180px] md:h-[250px]'
+      cardClass: 'w-[180px] h-[240px] md:w-[230px] md:h-[310px]'
     }
   ];
 
   const galleryRightImages = [
     {
       src: 'https://framerusercontent.com/images/VDjJLyomenB1LFHPI6jBfB068.png?scale-down-to=1024&width=2268&height=3402',
-      cardClass: 'h-[320px] md:h-[520px]'
+      cardClass: 'w-[180px] h-[240px] md:w-[230px] md:h-[310px]'
     },
     {
       src: 'https://framerusercontent.com/images/KNYITojpSxAW0RVdzBr8gV0gxg.jpg?scale-down-to=512&width=3000&height=3000',
-      cardClass: 'h-[250px] md:h-[360px]'
+      cardClass: 'w-[180px] h-[240px] md:w-[230px] md:h-[310px]'
     },
     {
       src: 'https://framerusercontent.com/images/5W3fKf5FwyglyFVBHEXLuqopg.png?scale-down-to=1024&width=1536&height=1024',
-      cardClass: 'h-[210px] md:h-[300px]'
+      cardClass: 'w-[180px] h-[240px] md:w-[230px] md:h-[310px]'
     }
   ];
+  const beAmazedGalleryImages = [...galleryLeftImages, ...galleryRightImages];
+  const carouselImages = beAmazedGalleryImages;
+  const carouselCardCount = carouselImages.length;
+  const carouselRadius = 280;
+
+  useEffect(() => {
+    let frameId = 0;
+    const animate = () => {
+      if (!dragStateRef.current.isDragging && activeGalleryImageIndex === null) {
+        const baseSpeed = isCarouselHovered ? 0 : 0.22;
+        const wheelBoost = wheelBoostRef.current;
+        if (baseSpeed !== 0 || Math.abs(wheelBoost) > 0.001) {
+          setCarouselRotation((prev) => (prev + baseSpeed + wheelBoost) % 360);
+        }
+      }
+
+      wheelBoostRef.current *= 0.9;
+      if (Math.abs(wheelBoostRef.current) < 0.001) wheelBoostRef.current = 0;
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    frameId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [isCarouselHovered, activeGalleryImageIndex]);
+
+  useEffect(() => {
+    if (activeGalleryImageIndex === null) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveGalleryImageIndex(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeGalleryImageIndex]);
+
+  const handleGalleryPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const scene = carouselSceneRef.current;
+    if (!scene) return;
+    dragStateRef.current.isDragging = true;
+    dragStateRef.current.startX = event.clientX;
+    dragStateRef.current.startRotation = carouselRotation;
+    dragStateRef.current.moved = false;
+    suppressClickRef.current = false;
+    scene.setPointerCapture(event.pointerId);
+  };
+
+  const handleGalleryPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStateRef.current.isDragging) return;
+
+    const deltaX = event.clientX - dragStateRef.current.startX;
+    if (Math.abs(deltaX) > 6) {
+      dragStateRef.current.moved = true;
+      suppressClickRef.current = true;
+    }
+
+    const deltaRotation = deltaX * 0.22;
+    const nextRotation = dragStateRef.current.startRotation + deltaRotation;
+    setCarouselRotation(((nextRotation % 360) + 360) % 360);
+  };
+
+  const handleGalleryPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStateRef.current.isDragging) return;
+    dragStateRef.current.isDragging = false;
+    if (dragStateRef.current.moved) {
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
+    }
+
+    dragStateRef.current.moved = false;
+    const scene = carouselSceneRef.current;
+    if (scene?.hasPointerCapture(event.pointerId)) {
+      scene.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleCarouselWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (!isCarouselHovered || dragStateRef.current.isDragging || activeGalleryImageIndex !== null) return;
+    const direction = event.deltaY === 0 ? 0 : Math.sign(event.deltaY);
+    if (direction === 0) return;
+
+    const intensity = Math.min(Math.abs(event.deltaY), 120);
+    const addedBoost = direction * intensity * 0.004;
+    const nextBoost = wheelBoostRef.current + addedBoost;
+    wheelBoostRef.current = Math.max(-4, Math.min(4, nextBoost));
+  };
 
   return (
     <div className="pt-32 pb-20 relative overflow-x-hidden animate-pop-out opacity-0">
@@ -238,7 +311,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
           </div>
         </div>
         {/* Project Showcase */}
-        <div ref={gallerySectionRef} className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '500ms' }}>
+        <div className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '500ms' }}>
           <div className="relative">
             <div className="sticky top-24 z-30 flex justify-center mb-8 md:mb-10">
               <div className="text-center px-6 py-4 rounded-2xl glass border border-white/20">
@@ -253,47 +326,87 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 pt-12 md:pt-16">
-              <div className="space-y-8 md:space-y-12 md:pt-24">
-                {galleryLeftImages.map((image, idx) => (
-                  <div
-                    key={`left-${idx}`}
-                    data-gallery-idx={idx * 2}
-                    tabIndex={0}
-                    className={`group relative rounded-3xl overflow-hidden shadow-xl border border-white/20 ${image.cardClass} transform-gpu transition-all duration-700 ${
-                      visibleGalleryCards[idx * 2] ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
-                    } focus-visible:opacity-100 focus-visible:translate-y-0 focus-visible:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lifewood-green/60`}
-                  >
-                    <img
-                      src={image.src}
-                      alt={`Lifewood gallery left ${idx + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="relative pt-8 md:pt-12">
+              <div
+                ref={carouselSceneRef}
+                className="relative mx-auto h-[560px] md:h-[700px] max-w-6xl rounded-[2.5rem] border border-white/20 glass-alt overflow-hidden cursor-grab active:cursor-grabbing select-none [perspective:1400px]"
+                onMouseEnter={() => setIsCarouselHovered(true)}
+                onMouseLeave={() => setIsCarouselHovered(false)}
+                onPointerDown={handleGalleryPointerDown}
+                onPointerMove={handleGalleryPointerMove}
+                onPointerUp={handleGalleryPointerEnd}
+                onPointerCancel={handleGalleryPointerEnd}
+                onWheel={handleCarouselWheel}
+              >
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(4,98,65,0.18),transparent_58%)]"></div>
+                <div className="absolute inset-0 [transform-style:preserve-3d]" style={{ transform: `rotateY(${carouselRotation}deg)` }}>
+                  {carouselImages.map((image, idx) => {
+                    const angle = idx * (360 / carouselCardCount);
+                    const absoluteAngle = angle + carouselRotation;
+                    const frontDepth = (Math.cos((absoluteAngle * Math.PI) / 180) + 1) / 2;
+                    const zIndex = 100 + Math.round(frontDepth * 250);
 
-              <div className="space-y-8 md:space-y-12 md:pt-12">
-                {galleryRightImages.map((image, idx) => (
-                  <div
-                    key={`right-${idx}`}
-                    data-gallery-idx={idx * 2 + 1}
-                    tabIndex={0}
-                    className={`group relative rounded-3xl overflow-hidden shadow-xl border border-white/20 ${image.cardClass} transform-gpu transition-all duration-700 ${
-                      visibleGalleryCards[idx * 2 + 1] ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
-                    } focus-visible:opacity-100 focus-visible:translate-y-0 focus-visible:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lifewood-green/60`}
-                  >
-                    <img
-                      src={image.src}
-                      alt={`Lifewood gallery right ${idx + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                    />
-                  </div>
-                ))}
+                    return (
+                      <button
+                        type="button"
+                        key={`carousel-image-${idx}`}
+                        className={`group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[1.9rem] overflow-hidden border border-white/25 shadow-[0_20px_55px_-18px_rgba(0,0,0,0.5)] ${image.cardClass} transition-[box-shadow,opacity,filter] duration-500 hover:shadow-[0_35px_75px_-20px_rgba(4,98,65,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lifewood-green/70`}
+                        style={{
+                          transform: `translate(-50%, -50%) rotateX(-8deg) rotateY(${angle}deg) translateZ(${carouselRadius}px)`,
+                          zIndex,
+                          opacity: 0.22 + frontDepth * 0.86,
+                          filter: `saturate(${0.65 + frontDepth * 0.55})`,
+                          pointerEvents: frontDepth > 0.16 ? 'auto' : 'none',
+                        }}
+                        onClick={() => {
+                          if (suppressClickRef.current) return;
+                          setActiveGalleryImageIndex(idx);
+                        }}
+                      >
+                        <img
+                          src={image.src}
+                          alt={`Lifewood gallery image ${idx + 1}`}
+                          className="w-full h-full object-cover pointer-events-none transition-transform duration-700 group-hover:scale-[1.08]"
+                          draggable={false}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-80 pointer-events-none"></div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs md:text-sm uppercase tracking-[0.18em] font-semibold text-lifewood-serpent/70 dark:text-white/80 bg-white/45 dark:bg-black/30 border border-white/30 backdrop-blur-lg">
+                  <span className="inline-block [animation:bounce_1.3s_infinite,pulse_2.2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+                    DRAG TO ROTATE
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {activeGalleryImageIndex !== null && (
+          <div
+            className="fixed inset-0 z-[120] bg-black/85 backdrop-blur-md px-4 py-8 md:p-10 flex items-center justify-center"
+            onClick={() => setActiveGalleryImageIndex(null)}
+          >
+            <button
+              type="button"
+              className="absolute top-5 right-5 md:top-8 md:right-8 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-white flex items-center justify-center transition-colors"
+              onClick={() => setActiveGalleryImageIndex(null)}
+              aria-label="Close gallery preview"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <img
+              src={beAmazedGalleryImages[activeGalleryImageIndex].src}
+              alt={`Lifewood gallery preview ${activeGalleryImageIndex + 1}`}
+              className="max-h-[86vh] w-auto max-w-[92vw] object-contain rounded-3xl border border-white/20 shadow-[0_30px_100px_-20px_rgba(0,0,0,0.7)]"
+              onClick={(event) => event.stopPropagation()}
+            />
+          </div>
+        )}
         {/* CTA Section */}
         <div className="p-12 rounded-3xl glass-alt border border-white/20 text-center shadow-2xl relative overflow-hidden animate-pop-out opacity-0" style={{ animationDelay: '600ms' }}>
           <div className="absolute inset-0 bg-gradient-to-br from-lifewood-green/10 via-transparent to-lifewood-saffron/10 pointer-events-none"></div>

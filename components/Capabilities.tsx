@@ -46,19 +46,19 @@ export const Capabilities: React.FC = () => {
             return (
               <div 
                 key={cap.title}
-                className="group relative h-[550px] rounded-[3.5rem] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_50px_100px_-20px_rgba(4,98,65,0.2)] transition-all duration-700 hover:-translate-y-4 animate-float"
+                className="group relative h-[550px] rounded-[3.5rem] overflow-hidden [clip-path:inset(0_round_3.5rem)] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_50px_100px_-20px_rgba(4,98,65,0.2)] transition-all duration-700 hover:-translate-y-4 transform-gpu [transform:translateZ(0)] [backface-visibility:hidden]"
                 style={{ animationDelay: `${idx * 0.4}s` }}
               >
                 {/* Background Image */}
                 <img 
                   src={cap.imageUrl} 
                   alt={cap.title} 
-                  className="absolute inset-0 w-full h-full object-cover grayscale brightness-75 transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-125 group-hover:brightness-100" 
+                  className="absolute inset-0 w-full h-full object-cover rounded-[3.5rem] grayscale brightness-75 transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-125 group-hover:brightness-100 transform-gpu [transform:translateZ(0)] [backface-visibility:hidden]" 
                 />
                 
                 {/* Dynamic Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${cap.gradient} opacity-40 group-hover:opacity-60 transition-opacity duration-700`}></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
+                <div className={`absolute inset-0 rounded-[3.5rem] bg-gradient-to-br ${cap.gradient} opacity-40 group-hover:opacity-60 transition-opacity duration-700`}></div>
+                <div className="absolute inset-0 rounded-[3.5rem] bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
                 
                 {/* Content - Elevated Floating Look */}
                 <div className="absolute inset-x-6 bottom-6 glass p-8 rounded-[2.5rem] border-white/20 backdrop-blur-2xl translate-y-4 group-hover:translate-y-0 transition-all duration-700 shadow-2xl ring-1 ring-white/10">

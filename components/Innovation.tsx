@@ -29,13 +29,13 @@ export const Innovation: React.FC = () => {
 
         <div className="grid lg:grid-cols-12 gap-8 items-start">
           {/* Global Scale Card */}
-          <div className="lg:col-span-5 relative group rounded-[3rem] overflow-hidden shadow-2xl animate-float aspect-[1280/853]">
+          <div className="lg:col-span-5 relative group rounded-[3rem] overflow-hidden [clip-path:inset(0_round_3rem)] shadow-2xl aspect-[1280/853] transform-gpu [transform:translateZ(0)] [backface-visibility:hidden]">
             <img 
               src="https://framerusercontent.com/images/EfuuWuqk2ibqcvZK8Q4ZM59MgsQ.jpeg?scale-down-to=512&width=1280&height=853" 
               alt="Global scale" 
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2s]" 
+              className="absolute inset-0 w-full h-full object-cover rounded-[3rem] transform-gpu [transform:translateZ(0)] [backface-visibility:hidden] group-hover:scale-105 transition-transform duration-[2s]" 
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
+            <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-t from-black/80 via-black/10 to-transparent"></div>
             <div className="absolute bottom-10 left-10 text-white z-10">
               <div className="text-5xl md:text-6xl font-heading font-black mb-3">Global <span className="text-lifewood-yellow tracking-tighter">+</span></div>
               <p className="text-lg md:text-xl font-medium opacity-80 max-w-xs leading-snug">AI Data Projects Engineered for Infinite Scale</p>
@@ -47,13 +47,13 @@ export const Innovation: React.FC = () => {
 
           <div className="lg:col-span-7 flex flex-col gap-8 h-full">
              {/* Precision-Driven Infrastructure Card - Updated with user image */}
-             <div className="relative flex-1 min-h-[400px] group rounded-[3rem] overflow-hidden shadow-2xl glass-card border-none hover:ring-1 ring-lifewood-green/30 transition-all duration-500 animate-float" style={{ animationDelay: '1s' }}>
+             <div className="relative flex-1 min-h-[400px] group rounded-[3rem] overflow-hidden [clip-path:inset(0_round_3rem)] shadow-2xl glass-card border-none hover:ring-1 ring-lifewood-green/30 transition-all duration-500 transform-gpu [transform:translateZ(0)] [backface-visibility:hidden]" style={{ animationDelay: '1s' }}>
                 <img 
                   src="https://framerusercontent.com/images/sNxmbNlbSdjE4PpCqPIEhhq1z8w.png?scale-down-to=1024&width=3362&height=1892" 
                   alt="Precision-Driven Infrastructure" 
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2s] opacity-60 dark:opacity-40" 
+                  className="absolute inset-0 w-full h-full object-cover rounded-[3rem] transform-gpu [transform:translateZ(0)] [backface-visibility:hidden] group-hover:scale-105 transition-transform duration-[2s] opacity-60 dark:opacity-40" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-lifewood-serpent/90 via-transparent to-transparent md:bg-gradient-to-r md:from-lifewood-serpent/80 md:via-lifewood-serpent/20 md:to-transparent"></div>
+                <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-t from-lifewood-serpent/90 via-transparent to-transparent md:bg-gradient-to-r md:from-lifewood-serpent/80 md:via-lifewood-serpent/20 md:to-transparent"></div>
                 <div className="relative h-full flex flex-col justify-end p-10 md:p-12 z-10">
                   <div className="max-w-xl">
                     <div className="w-14 h-14 rounded-2xl bg-lifewood-green/20 backdrop-blur-md flex items-center justify-center mb-6 border border-white/10">
@@ -67,7 +67,7 @@ export const Innovation: React.FC = () => {
                 </div>
              </div>
              
-             <div className="h-40 glass-card rounded-[2.5rem] p-8 md:p-10 flex items-center justify-between group hover:glow-green transition-all animate-float" style={{ animationDelay: '2s' }}>
+             <div className="h-40 glass-card rounded-[2.5rem] p-8 md:p-10 flex items-center justify-between group hover:glow-green transition-all">
                 <div>
                   <div className="text-xs font-bold uppercase tracking-[0.2em] opacity-40 mb-1">Our Philosophy</div>
                   <div className="text-xl md:text-2xl font-bold italic">"Turning complexity into clarity."</div>
