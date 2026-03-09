@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, Play, Globe } from 'lucide-react';
 
 interface HeroProps {
@@ -7,20 +7,22 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      const offset = 80;
-      const elementPosition = el.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-  };
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  const openVideoModal = () => setIsVideoOpen(true);
+  const closeVideoModal = () => setIsVideoOpen(false);
+
+  useEffect(() => {
+    document.body.style.overflow = isVideoOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isVideoOpen]);
 
   return (
     <section 
       id="home" 
-      className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#020804] transition-colors duration-700 z-0 pt-20 md:pt-24"
+      className={`sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#020804] transition-colors duration-700 ${isVideoOpen ? 'z-[10000]' : 'z-0'} pt-20 md:pt-24`}
     >
       {/* Video Background Layer */}
       <div className="absolute inset-0 z-0">
@@ -81,15 +83,15 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
-          <button 
+          <button
             onClick={() => navigateTo?.('contact')}
             className="group relative px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 hover:glow-green active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
           >
             Contact Us
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
           </button>
-          <button 
-            onClick={() => scrollToSection('company')}
+          <button
+            onClick={openVideoModal}
             className="flex items-center gap-3 px-8 py-4 font-bold text-base group glass border-lifewood-serpent/5 dark:border-white/10 rounded-full hover:bg-lifewood-serpent/[0.02] dark:hover:bg-white/[0.05] transition-all hover:shadow-xl"
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-lifewood-serpent/20 shadow-lg group-hover:scale-110 transition-all border border-lifewood-green/20 group-hover:border-lifewood-green">
@@ -99,6 +101,43 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
           </button>
         </div>
       </div>
+
+      {isVideoOpen && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={closeVideoModal}
+            aria-hidden="true"
+          />
+          <div className="absolute top-5 right-5 z-[10001]">
+            <button
+              type="button"
+              onClick={closeVideoModal}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/10 text-white transition hover:bg-white/20"
+              aria-label="Close video modal"
+            >
+              X
+            </button>
+          </div>
+          <div className="relative z-[10000] w-full max-w-4xl">
+            <div className="relative rounded-3xl border border-white/20 bg-black/90 shadow-[0_25px_120px_rgba(0,0,0,0.7)] overflow-hidden" style={{ paddingTop: '56.25%' }}>
+              <iframe
+                className="absolute inset-0 h-full w-full"
+                src="https://www.youtube.com/embed/WocWafisMUI?si=CSgU6okjp4PdNpse"
+                title="Lifewood Learn More video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Modern Accent Elements */}
       <div className="absolute top-[20%] left-[8%] hidden xl:block animate-float-slow opacity-20 dark:opacity-30 pointer-events-none">
