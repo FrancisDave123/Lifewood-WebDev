@@ -30,35 +30,10 @@ import {
   mergeLegacyAttendanceRecords
 } from './attendanceStatus';
 import { MANAGE_EMPLOYEES_STORAGE_KEY } from './adminPeopleStorage';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminManageEmployeesProps {
-  navigateTo?: (
-    page:
-      | 'home'
-      | 'services'
-      | 'projects'
-      | 'contact'
-      | 'about'
-      | 'offices'
-      | 'impact'
-      | 'careers'
-      | 'type-a'
-      | 'type-b'
-      | 'type-c'
-      | 'type-d'
-      | 'internal-news'
-      | 'privacy'
-      | 'cookie-policy'
-      | 'terms'
-      | 'signin'
-      | 'admin-dashboard'
-      | 'admin-analytics'
-      | 'admin-evaluation'
-      | 'admin-reports'
-      | 'admin-manage-interns'
-      | 'admin-manage-applicants'
-      | 'admin-manage-employees'
-  ) => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 type EmployeeRecord = {

@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { NAV_ITEMS } from '../constants';
 import { Menu, X, ChevronDown, Sparkles, Layers, Database, Mic, Car } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface NavbarProps {
-  navigateTo: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees') => void;
-  currentPage: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees';
+  navigateTo: (page: PageRoute) => void;
+  currentPage: PageRoute;
   isAdminAuthenticated: boolean;
 }
 
@@ -59,25 +60,25 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
     }
 
     if (targetId === 'services') {
-      navigateTo('services');
+      navigateTo('ai-services');
       setMobileMenuOpen(false);
       return;
     }
 
     if (targetId === 'project') {
-      navigateTo('projects');
+      navigateTo('ai-projects');
       setMobileMenuOpen(false);
       return;
     }
 
     if (targetId === 'contact') {
-      navigateTo('contact');
+      navigateTo('contact-us');
       setMobileMenuOpen(false);
       return;
     }
 
     if (targetId === 'about') {
-      navigateTo('about');
+      navigateTo('about-us');
       setMobileMenuOpen(false);
       return;
     }
@@ -89,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
     }
     
     if (targetId === 'impact') {
-      navigateTo('impact');
+      navigateTo('philanthropy-impact');
       setMobileMenuOpen(false);
       return;
     }
@@ -106,26 +107,26 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
       return;
     }
 
-    if (targetId === 'type-a') {
-      navigateTo('type-a');
+    if (targetId === 'type-a-data-servicing') {
+      navigateTo('type-a-data-servicing');
       setMobileMenuOpen(false);
       return;
     }
 
-    if (targetId === 'type-b') {
-      navigateTo('type-b');
+    if (targetId === 'type-b-horizontal-llm-data') {
+      navigateTo('type-b-horizontal-llm-data');
       setMobileMenuOpen(false);
       return;
     }
 
-    if (targetId === 'type-c') {
-      navigateTo('type-c');
+    if (targetId === 'type-c-vertical-llm-data') {
+      navigateTo('type-c-vertical-llm-data');
       setMobileMenuOpen(false);
       return;
     }
 
-    if (targetId === 'type-d') {
-      navigateTo('type-d');
+    if (targetId === 'type-d-aigc') {
+      navigateTo('type-d-aigc');
       setMobileMenuOpen(false);
       return;
     }

@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Mic, Globe, Languages, Database, Sparkles, ChevronLeft, Zap, Shield, Target } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface TypeBProps {
   theme?: 'light' | 'dark';
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'type-a' | 'type-b' | 'type-c') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 const features = [
@@ -38,7 +39,7 @@ const features = [
 export const TypeB: React.FC<TypeBProps> = ({ theme = 'light', navigateTo }) => {
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const scrollToContact = () => navigateTo?.('contact');
+  const scrollToContact = () => navigateTo?.('contact-us');
 
   return (
     <div className="min-h-screen pt-24 pb-20 overflow-x-hidden">

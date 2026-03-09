@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Sparkles, X } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface AboutUsProps {
   theme?: 'light' | 'dark';
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'about') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo }) => {
@@ -418,7 +419,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
           </p>
           <div className="flex justify-center">
             <button 
-              onClick={() => navigateTo?.('contact')}
+              onClick={() => navigateTo?.('contact-us')}
               className="group relative px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
             >
               Contact Us

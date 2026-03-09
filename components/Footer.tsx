@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { LOGO_URL } from '../constants';
 import { Linkedin, Facebook, Instagram, Youtube, Mail, ArrowUpRight, ArrowRight, X } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface FooterProps {
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'privacy' | 'cookie-policy' | 'terms') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
@@ -34,7 +35,7 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
               </h4>
               <div className="pt-4">
                 <button 
-                  onClick={() => navigateTo?.('contact')}
+                  onClick={() => navigateTo?.('contact-us')}
                   className="group relative px-8 py-4 bg-lifewood-green text-white rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_15px_40px_rgba(4,98,65,0.25)]"
                 >
                   Contact Us
@@ -83,9 +84,9 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
             <p className="whitespace-nowrap">&copy; 2026 Lifewood - All Rights Reserved</p>
             
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
-              <button onClick={() => navigateTo?.('privacy')} className="uppercase transition-colors hover:text-lifewood-yellow">Privacy Policy</button>
+              <button onClick={() => navigateTo?.('privacy-policy')} className="uppercase transition-colors hover:text-lifewood-yellow">Privacy Policy</button>
               <button onClick={() => navigateTo?.('cookie-policy')} className="uppercase transition-colors hover:text-lifewood-yellow">Cookie Policy</button>
-              <button onClick={() => navigateTo?.('terms')} className="uppercase transition-colors hover:text-lifewood-yellow">Terms and Conditions</button>
+              <button onClick={() => navigateTo?.('terms-and-conditions')} className="uppercase transition-colors hover:text-lifewood-yellow">Terms and Conditions</button>
               <button onClick={() => setShowCookieSettings(true)} className="uppercase transition-colors hover:text-lifewood-yellow">Cookie Settings</button>
             </div>
           </div>

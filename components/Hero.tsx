@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Play, Globe } from 'lucide-react';
+import { ArrowRight, Play, Globe, X as CloseIcon } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface HeroProps {
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
@@ -84,7 +85,7 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
           <button
-            onClick={() => navigateTo?.('contact')}
+            onClick={() => navigateTo?.('contact-us')}
             className="group relative px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 hover:glow-green active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
           >
             Contact Us
@@ -103,28 +104,25 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
       </div>
 
       {isVideoOpen && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6"
-          role="dialog"
-          aria-modal="true"
-        >
+        <div className="fixed inset-0 z-[15000] flex items-center justify-center px-4 py-6" role="dialog" aria-modal="true">
           <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
             onClick={closeVideoModal}
             aria-hidden="true"
           />
-          <div className="absolute top-5 right-5 z-[10001]">
-            <button
-              type="button"
-              onClick={closeVideoModal}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/10 text-white transition hover:bg-white/20"
-              aria-label="Close video modal"
+          <button
+            type="button"
+            onClick={closeVideoModal}
+            aria-label="Close video modal"
+            className="absolute top-4 right-4 z-[15003] h-12 w-12 rounded-full bg-white/95 text-lifewood-serpent shadow-[0_20px_40px_rgba(0,0,0,0.45)] transition hover:bg-white/100 border border-lifewood-serpent/30 flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lifewood-green"
+          >
+            <CloseIcon className="h-5 w-5" />
+          </button>
+          <div className="relative z-[15002] w-full max-w-5xl">
+            <div
+              className="relative rounded-3xl border border-white/20 bg-black/90 shadow-[0_25px_120px_rgba(0,0,0,0.75)] overflow-hidden"
+              style={{ paddingTop: '56.25%' }}
             >
-              X
-            </button>
-          </div>
-          <div className="relative z-[10000] w-full max-w-4xl">
-            <div className="relative rounded-3xl border border-white/20 bg-black/90 shadow-[0_25px_120px_rgba(0,0,0,0.7)] overflow-hidden" style={{ paddingTop: '56.25%' }}>
               <iframe
                 className="absolute inset-0 h-full w-full"
                 src="https://www.youtube.com/embed/WocWafisMUI?si=CSgU6okjp4PdNpse"

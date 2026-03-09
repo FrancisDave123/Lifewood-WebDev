@@ -27,10 +27,10 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'What We Offer', 
     href: '#offer',
     subItems: [
-      { label: 'Type A-Data Servicing', href: '#type-a' },
-      { label: 'Type B-Horizontal LLM Data', href: '#type-b' },
-      { label: 'Type C-Vertical LLM Data', href: '#type-c' },
-      { label: 'Type D-AIGC', href: '#type-d' }
+      { label: 'Type A-Data Servicing', href: '#type-a-data-servicing' },
+      { label: 'Type B-Horizontal LLM Data', href: '#type-b-horizontal-llm-data' },
+      { label: 'Type C-Vertical LLM Data', href: '#type-c-vertical-llm-data' },
+      { label: 'Type D-AIGC', href: '#type-d-aigc' }
     ]
   },
   { label: 'Philanthropy & Impact', href: '#impact' },

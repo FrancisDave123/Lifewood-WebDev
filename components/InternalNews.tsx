@@ -1,14 +1,15 @@
 
 import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface InternalNewsProps {
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const InternalNews: React.FC<InternalNewsProps> = ({ navigateTo }) => {
   const handleContactClick = () => {
-    navigateTo?.('contact');
+    navigateTo?.('contact-us');
   };
 
   return (

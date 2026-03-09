@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Linkedin, Facebook, Instagram, Youtube, Send, CheckCircle } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface ContactProps {
   theme?: 'light' | 'dark';
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo }) => {
@@ -273,13 +274,13 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={() => navigateTo?.('services')}
+              onClick={() => navigateTo?.('ai-services')}
               className="px-8 py-3 bg-lifewood-green text-white rounded-full font-bold hover:shadow-xl hover:shadow-lifewood-green/30 transition-all hover:scale-105"
             >
               View Services
             </button>
             <button 
-              onClick={() => navigateTo?.('projects')}
+              onClick={() => navigateTo?.('ai-projects')}
               className="px-8 py-3 border-2 border-lifewood-serpent dark:border-white text-lifewood-serpent dark:text-white rounded-full font-bold hover:bg-lifewood-serpent/5 dark:hover:bg-white/5 transition-all hover:scale-105"
             >
               Explore Projects

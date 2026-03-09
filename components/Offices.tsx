@@ -28,7 +28,7 @@ export const Offices: React.FC<OfficesProps> = ({ theme = 'light' }) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-10 mb-10 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex flex-col gap-10 mb-10 lg:flex-row lg:items-center lg:justify-between">
             <h1 className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor} animate-pop-out opacity-0`} style={{ animationDelay: '200ms' }}>
               Largest Global Data Collection
               <br />

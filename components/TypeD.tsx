@@ -1,13 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface TypeDProps {
-  navigateTo?: (page: string) => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
-  const scrollToContact = () => navigateTo?.('contact');
+  const scrollToContact = () => navigateTo?.('contact-us');
 
   return (
     <div id="type-d" className="relative min-h-screen bg-lifewood-seaSalt dark:bg-[#020804] overflow-hidden">

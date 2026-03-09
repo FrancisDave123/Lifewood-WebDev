@@ -2,17 +2,18 @@
 import React, { useState } from 'react';
 import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles, X, Folder, Layers, Share2, MousePointer2, ShieldCheck, Database, Search, Target } from 'lucide-react';
 import { LOGO_URL, LOGO_DARK_URL } from '../constants';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface AIServicesProps {
   theme?: 'light' | 'dark';
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigateTo }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleContactClick = () => {
-    navigateTo?.('contact');
+    navigateTo?.('contact-us');
   };
 
   const services = [

@@ -1,8 +1,9 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface CareersProps {
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const Careers: React.FC<CareersProps> = () => {

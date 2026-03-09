@@ -18,35 +18,10 @@ import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminAnalyticsProps {
-  navigateTo?: (
-    page:
-      | 'home'
-      | 'services'
-      | 'projects'
-      | 'contact'
-      | 'about'
-      | 'offices'
-      | 'impact'
-      | 'careers'
-      | 'type-a'
-      | 'type-b'
-      | 'type-c'
-      | 'type-d'
-      | 'internal-news'
-      | 'privacy'
-      | 'cookie-policy'
-      | 'terms'
-      | 'signin'
-      | 'admin-dashboard'
-      | 'admin-analytics'
-      | 'admin-evaluation'
-      | 'admin-reports'
-      | 'admin-manage-interns'
-      | 'admin-manage-applicants'
-      | 'admin-manage-employees'
-  ) => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 const monthlyOutput = [52, 58, 61, 67, 73, 78, 84];

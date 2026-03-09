@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import type { PageRoute } from '../routes/routeTypes';
 
 interface SignInProps {
-  navigateTo?: (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard') => void;
+  navigateTo?: (page: PageRoute) => void;
 }
 
 export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {

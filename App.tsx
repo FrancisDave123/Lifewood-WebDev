@@ -1,67 +1,24 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { About } from './components/About';
-import { Stats } from './components/Stats';
-import { Clients } from './components/Clients';
-import { Innovation } from './components/Innovation';
-import { Capabilities } from './components/Capabilities';
-import { Footer } from './components/Footer';
-import { AIServices } from './components/AIServices';
-import { AIProjects } from './components/AIProjects';
-import { Contact } from './components/Contact';
-import { AboutUs } from './components/AboutUs';
-import { Offices } from './components/Offices';
-import { TypeA } from './components/TypeA';
-import { TypeB } from './components/TypeB';
-import { TypeC } from './components/TypeC';
-import { TypeD } from './components/TypeD';
-import { PhilanthropyImpact } from './components/PhilanthropyImpact';
-import { Careers } from './components/Careers';
-import { InternalNews } from './components/InternalNews';
-import { PrivacyPolicy } from './components/PrivacyPolicy';
-import { CookiePolicy } from './components/CookiePolicy';
-import { TermsConditions } from './components/TermsConditions';
-import { SignIn } from './components/SignIn';
-import { AdminDashboard } from './components/AdminDashboard';
-import { AdminAnalytics } from './components/AdminAnalytics';
-import { AdminEvaluation } from './components/AdminEvaluation';
-import { AdminReports } from './components/AdminReports';
-import { AdminManageInterns } from './components/AdminManageInterns';
-import { AdminManageApplicants } from './components/AdminManageApplicants';
-import { AdminManageEmployees } from './components/AdminManageEmployees';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { AppRoutes } from './routes/AppRoutes';
 
 const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
 const THEME_STORAGE_KEY = 'lifewood_theme';
-const ADMIN_BG_VIDEO_URL = 'https://www.pexels.com/download/video/34645742/';
-const ADMIN_PAGES = new Set([
-  'admin-dashboard',
-  'admin-analytics',
-  'admin-evaluation',
-  'admin-reports',
-  'admin-manage-interns',
-  'admin-manage-applicants',
-  'admin-manage-employees'
-]);
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees'>('home');
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
   });
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
       if (saved === 'dark') return 'dark';
       if (saved === 'light') return 'light';
-      return 'light';
     }
     return 'light';
   });
-  const adminBackgroundVideoRef = useRef<HTMLVideoElement | null>(null);
-  const isAdminPage = ADMIN_PAGES.has(currentPage);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -73,222 +30,14 @@ const App: React.FC = () => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
-
-  const navigateTo = (page: 'home' | 'services' | 'projects' | 'contact' | 'about' | 'offices' | 'impact' | 'careers' | 'type-a' | 'type-b' | 'type-c' | 'type-d' | 'internal-news' | 'privacy' | 'cookie-policy' | 'terms' | 'signin' | 'admin-dashboard' | 'admin-analytics' | 'admin-evaluation' | 'admin-reports' | 'admin-manage-interns' | 'admin-manage-applicants' | 'admin-manage-employees') => {
-    const isAdminPage = ADMIN_PAGES.has(page);
-
-    if (page === 'signin') {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
-      setIsAdminAuthenticated(false);
-      setCurrentPage('signin');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    if (isAdminPage) {
-      const hasAuth = localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
-      if (!hasAuth) {
-        setIsAdminAuthenticated(false);
-        setCurrentPage('signin');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-      setIsAdminAuthenticated(true);
-    }
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setCurrentPage(page);
-  };
-
-  const handleAdminVideoLoop = () => {
-    const video = adminBackgroundVideoRef.current;
-    if (!video || !video.duration) return;
-
-    if (video.currentTime >= video.duration - 0.06) {
-      video.currentTime = 0.01;
-      void video.play();
-    }
-  };
-
   return (
-    <div className="relative min-h-screen bg-lifewood-seaSalt dark:bg-[#020804]">
-      {currentPage !== 'signin' && !isAdminPage && (
-        <Navbar
-          theme={theme}
-          toggleTheme={toggleTheme}
-          navigateTo={navigateTo}
-          currentPage={currentPage}
-          isAdminAuthenticated={isAdminAuthenticated}
-        />
-      )}
-      
-      <main className="relative">
-        {isAdminPage && (
-          <div className="pointer-events-none fixed inset-0 z-0">
-            <video
-              ref={adminBackgroundVideoRef}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              aria-hidden="true"
-              onTimeUpdate={handleAdminVideoLoop}
-              onEnded={() => {
-                const video = adminBackgroundVideoRef.current;
-                if (!video) return;
-                video.currentTime = 0.01;
-                void video.play();
-              }}
-              className="h-full w-full object-cover opacity-55"
-            >
-              <source src={ADMIN_BG_VIDEO_URL} type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-b from-white/48 via-white/42 to-lifewood-seaSalt/45"></div>
-          </div>
-        )}
-
-        {currentPage === 'home' && (
-          <div key="home-page-wrapper">
-            <Hero navigateTo={navigateTo} />
-            <div className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-              <About />
-              <Stats />
-              <Clients />
-              <Innovation />
-              <Capabilities />
-            </div>
-          </div>
-        )}
-        {currentPage === 'services' && (
-          <div key="services-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <AIServices theme={theme} navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'projects' && (
-          <div key="projects-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <AIProjects theme={theme} />
-          </div>
-        )}
-        {currentPage === 'contact' && (
-          <div key="contact-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <Contact theme={theme} navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'about' && (
-          <div key="about-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <AboutUs theme={theme} navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'offices' && (
-          <div key="offices-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <Offices theme={theme} />
-          </div>
-        )}
-        {currentPage === 'impact' && (
-          <div key="impact-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <PhilanthropyImpact />
-          </div>
-        )}
-        {currentPage === 'careers' && (
-          <div key="careers-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <Careers navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'internal-news' && (
-          <div key="internal-news-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <InternalNews navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'privacy' && (
-          <div key="privacy-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <PrivacyPolicy navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'cookie-policy' && (
-          <div key="cookie-policy-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <CookiePolicy navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'terms' && (
-          <div key="terms-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <TermsConditions navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'type-a' && (
-          <div key="type-a-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <TypeA theme={theme} navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'type-b' && (
-          <div key="type-b-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <TypeB theme={theme} navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'type-c' && (
-          <div key="type-c-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <TypeC theme={theme} navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'type-d' && (
-          <div key="type-d-page-wrapper" className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-            <TypeD navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'signin' && (
-          <div key="signin-page-wrapper">
-            <SignIn navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'admin-dashboard' && (
-          <div key="admin-dashboard-page-wrapper" className="relative z-20">
-            <AdminDashboard navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'admin-analytics' && (
-          <div key="admin-analytics-page-wrapper" className="relative z-20">
-            <AdminAnalytics navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'admin-evaluation' && (
-          <div key="admin-evaluation-page-wrapper" className="relative z-20">
-            <AdminEvaluation navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'admin-reports' && (
-          <div key="admin-reports-page-wrapper" className="relative z-20">
-            <AdminReports navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'admin-manage-interns' && (
-          <div key="admin-manage-interns-page-wrapper" className="relative z-20">
-            <AdminManageInterns navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'admin-manage-applicants' && (
-          <div key="admin-manage-applicants-page-wrapper" className="relative z-20">
-            <AdminManageApplicants navigateTo={navigateTo} />
-          </div>
-        )}
-        {currentPage === 'admin-manage-employees' && (
-          <div key="admin-manage-employees-page-wrapper" className="relative z-20">
-            <AdminManageEmployees navigateTo={navigateTo} />
-          </div>
-        )}
-      </main>
-
-      {currentPage !== 'signin' && !isAdminPage && (
-        <div className="relative z-20 bg-lifewood-seaSalt dark:bg-[#020804]">
-          <Footer navigateTo={navigateTo} />
-        </div>
-      )}
-
-      {/* Background Decorative Blobs */}
-      <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lifewood-green/5 dark:bg-lifewood-green/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
-      <div className="fixed bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-lifewood-saffron/5 dark:bg-lifewood-saffron/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
-    </div>
+    <BrowserRouter>
+      <AppRoutes
+        theme={theme}
+        isAdminAuthenticated={isAdminAuthenticated}
+        setIsAdminAuthenticated={setIsAdminAuthenticated}
+      />
+    </BrowserRouter>
   );
 };
 
