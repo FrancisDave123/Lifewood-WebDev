@@ -10,7 +10,6 @@ import {
   LogOut,
   Menu,
   NotebookPen,
-  Target,
   TrendingUp,
   Trash2,
   UserCircle2,
@@ -415,28 +414,20 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
                     <button className="inline-flex items-center gap-2 rounded-xl border border-lifewood-serpent/10 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent">Current Cycle<ChevronDown className="h-4 w-4" /></button>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Total Interns</p><p className="mt-2 text-3xl font-black text-lifewood-serpent">31</p><p className="text-xs text-lifewood-serpent/60">Matches dashboard baseline</p></div>
-                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Total Employees</p><p className="mt-2 text-3xl font-black text-lifewood-serpent">20</p><p className="text-xs text-lifewood-serpent/60">Internal employee count</p></div>
-                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Attendance Rate</p><p className="mt-2 text-3xl font-black text-lifewood-serpent">95%</p><p className="text-xs text-lifewood-serpent/60">Shared with analytics</p></div>
-                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-4 text-white"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Evaluations Completed</p><p className="mt-2 text-3xl font-black text-lifewood-yellow">29 / 31</p><p className="text-xs text-white/70">93.5% cycle completion</p></div>
+                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Average Score</p><p className="mt-2 text-3xl font-black text-lifewood-serpent">97.8</p><p className="text-xs text-lifewood-serpent/60">Across completed assessments</p></div>
+                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Evaluated</p><p className="mt-2 text-3xl font-black text-lifewood-serpent">29</p><p className="text-xs text-lifewood-serpent/60">Assessed in current cycle</p></div>
+                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Pending Review</p><p className="mt-2 text-3xl font-black text-lifewood-serpent">2</p><p className="text-xs text-lifewood-serpent/60">Awaiting final reviewer action</p></div>
+                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-4 text-white"><p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Highest Score</p><p className="mt-2 text-3xl font-black text-lifewood-yellow">98.7</p><p className="text-xs text-white/70">Top score this cycle</p></div>
                   </div>
                 </div>
 
-                <div className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
+                <div className="grid gap-4">
                   <div ref={queueCardRef} onClick={startQueueEnterTransition} className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]">
                     <div className="mb-4 flex items-center justify-between"><h3 className="text-lg font-bold text-lifewood-serpent">Evaluation Queue</h3><Calendar className="h-5 w-5 text-lifewood-green" /></div>
                     <div className="space-y-2 text-sm">
                       <div className="rounded-xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-3"><p className="font-semibold text-lifewood-serpent">John Dominic Mumar Jr. - NLP Annotation</p><p className="text-xs text-lifewood-serpent/60">Pending final reviewer calibration</p></div>
                       <div className="rounded-xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-3"><p className="font-semibold text-lifewood-serpent">Gerard Luis Soriano - QA Validation</p><p className="text-xs text-lifewood-serpent/60">Awaiting supervisor sign-off</p></div>
                       <div className="rounded-xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-3"><p className="font-semibold text-lifewood-serpent">DJ Jholmer Damayo - Audio Tagging</p><p className="text-xs text-lifewood-serpent/60">Self-assessment submitted</p></div>
-                    </div>
-                  </div>
-                  <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
-                    <div className="mb-4 flex items-center justify-between"><h3 className="text-lg font-bold text-lifewood-serpent">Rubric Summary</h3><Target className="h-5 w-5 text-lifewood-green" /></div>
-                    <div className="space-y-3">
-                      <div><div className="mb-1 flex items-center justify-between text-xs font-semibold text-lifewood-serpent/70"><span>Quality Accuracy</span><span>96%</span></div><div className="h-2 rounded-full bg-lifewood-serpent/10"><div className="h-2 w-[96%] rounded-full bg-lifewood-green"></div></div></div>
-                      <div><div className="mb-1 flex items-center justify-between text-xs font-semibold text-lifewood-serpent/70"><span>Productivity</span><span>92%</span></div><div className="h-2 rounded-full bg-lifewood-serpent/10"><div className="h-2 w-[92%] rounded-full bg-lifewood-yellow"></div></div></div>
-                      <div><div className="mb-1 flex items-center justify-between text-xs font-semibold text-lifewood-serpent/70"><span>Compliance</span><span>98%</span></div><div className="h-2 rounded-full bg-lifewood-serpent/10"><div className="h-2 w-[98%] rounded-full bg-lifewood-saffron"></div></div></div>
                     </div>
                   </div>
                 </div>

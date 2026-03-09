@@ -19,6 +19,16 @@ import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
+import {
+  AttendanceRecord,
+  AttendanceStatus,
+  ATTENDANCE_STATUS_LEGEND,
+  ATTENDANCE_STATUS_OPTIONS,
+  getAttendanceCellClass,
+  getAttendanceLabel,
+  LegacyAttendanceException,
+  mergeLegacyAttendanceRecords
+} from './attendanceStatus';
 import { defaultEmployeeRecords } from './AdminManageEmployees';
 import { MANAGE_EMPLOYEES_STORAGE_KEY, MANAGE_INTERNS_STORAGE_KEY } from './adminPeopleStorage';
 
@@ -52,11 +62,6 @@ interface AdminManageInternsProps {
   ) => void;
 }
 
-type AttendanceException = {
-  date: string;
-  reason: string;
-};
-
 type InternRecord = {
   id: string;
   name: string;
@@ -80,10 +85,11 @@ type InternRecord = {
   notes: string;
   trackHistory: string[];
   projectHistory: Array<{ project: string; mentor: string; period: string }>;
-  attendanceExceptions: AttendanceException[];
+  attendanceRecords: AttendanceRecord[];
 };
 
 type EmployeeRecord = (typeof defaultEmployeeRecords)[number];
+type StoredEmployeeRecord = EmployeeRecord & { attendanceExceptions?: LegacyAttendanceException[] };
 
 const splitPersonName = (fullName: string) => {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -127,9 +133,9 @@ export const defaultInternRecords: InternRecord[] = [
       { project: 'Insurance Claims PII Redaction', mentor: 'A. Cruz', period: 'Nov 2025 - Dec 2025' },
       { project: 'Clinical NER Training Set', mentor: 'A. Cruz', period: 'Jan 2026 - Feb 2026' }
     ],
-    attendanceExceptions: [
-      { date: '2026-02-07', reason: 'Medical appointment' },
-      { date: '2026-02-19', reason: 'Family emergency leave' }
+    attendanceRecords: [
+      { date: '2026-02-07', status: 'absent', reason: 'Medical appointment' },
+      { date: '2026-02-19', status: 'absent', reason: 'Family emergency leave' }
     ]
   },
   {
@@ -158,10 +164,10 @@ export const defaultInternRecords: InternRecord[] = [
       { project: 'Voice Agent Tag Cleanup', mentor: 'M. Navarro', period: 'Nov 2025 - Jan 2026' },
       { project: 'Call Intent Classification', mentor: 'M. Navarro', period: 'Jan 2026 - Present' }
     ],
-    attendanceExceptions: [
-      { date: '2026-02-03', reason: 'Late transport disruption' },
-      { date: '2026-02-14', reason: 'Flu symptoms (advised rest)' },
-      { date: '2026-02-23', reason: 'Approved personal leave' }
+    attendanceRecords: [
+      { date: '2026-02-03', status: 'late', reason: 'Late transport disruption' },
+      { date: '2026-02-14', status: 'absent', reason: 'Flu symptoms (advised rest)' },
+      { date: '2026-02-23', status: 'absent', reason: 'Approved personal leave' }
     ]
   },
   {
@@ -190,28 +196,46 @@ export const defaultInternRecords: InternRecord[] = [
       { project: 'Invoice OCR QA', mentor: 'R. Salazar', period: 'Oct 2025 - Dec 2025' },
       { project: 'Document Verification', mentor: 'R. Salazar', period: 'Jan 2026 - Present' }
     ],
-    attendanceExceptions: [{ date: '2026-02-12', reason: 'Approved half-day leave' }]
+    attendanceRecords: [{ date: '2026-02-12', status: 'early-out', reason: 'Approved half-day leave' }]
   }
 ];
+
+type StoredInternRecord = InternRecord & { attendanceExceptions?: LegacyAttendanceException[] };
+
+const hydrateInternRecord = (record: StoredInternRecord): InternRecord => ({
+  ...record,
+  attendanceRecords: mergeLegacyAttendanceRecords(record.attendanceRecords, record.attendanceExceptions)
+});
+
+const readInternRecordsFromStorage = (): InternRecord[] => {
+  if (typeof window === 'undefined') {
+    return defaultInternRecords.map((record) => hydrateInternRecord(record));
+  }
+  const saved = localStorage.getItem(MANAGE_INTERNS_STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved) as StoredInternRecord[];
+      return parsed.map(hydrateInternRecord);
+    } catch {}
+  }
+  return defaultInternRecords.map((record) => hydrateInternRecord(record));
+};
 
 export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { profile, setProfile, adminGmail } = useAdminProfile();
+  const canEditCalendar =
+    adminGmail.toLowerCase().includes('admin') || profile.role.toLowerCase().includes('admin');
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [interns, setInterns] = useState<InternRecord[]>(() => {
-    const saved = localStorage.getItem(MANAGE_INTERNS_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved) as InternRecord[];
-      } catch {}
-    }
-    return defaultInternRecords;
-  });
+  const [interns, setInterns] = useState<InternRecord[]>(() => readInternRecordsFromStorage());
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalIntern, setModalIntern] = useState<InternRecord | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date(2026, 1, 1));
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
+  const [calendarEditorStatus, setCalendarEditorStatus] = useState<AttendanceStatus>('present');
+  const [calendarEditorReason, setCalendarEditorReason] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
   const [confirmSuspend, setConfirmSuspend] = useState<{ id: string; name: string; action: 'suspend' | 'reinstate' } | null>(null);
 
@@ -288,6 +312,12 @@ export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigate
     localStorage.setItem(MANAGE_INTERNS_STORAGE_KEY, JSON.stringify(interns));
   }, [interns]);
 
+  useEffect(() => {
+    setSelectedCalendarDate(null);
+    setCalendarEditorStatus('present');
+    setCalendarEditorReason('');
+  }, [modalIntern]);
+
   const monthLabel = useMemo(
     () => calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     [calendarMonth]
@@ -317,6 +347,57 @@ export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigate
     return `${y}-${m}-${d}`;
   };
 
+  const formatCalendarDateLabel = (iso: string) => {
+    const [year, month, day] = iso.split('-').map((value) => Number(value));
+    const parsedDate = new Date(year, month - 1, day);
+    if (Number.isNaN(parsedDate.getTime())) return iso;
+    return parsedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  };
+
+  const handleCalendarDaySelect = (date: Date) => {
+    if (!canEditCalendar || !modalIntern) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    if (compareDate.getTime() > today.getTime()) return;
+    const iso = toIsoDate(date);
+    const existingRecord = modalIntern.attendanceRecords.find((entry) => entry.date === iso);
+    setSelectedCalendarDate(iso);
+    setCalendarEditorStatus(existingRecord?.status ?? 'present');
+    setCalendarEditorReason(existingRecord?.reason ?? '');
+  };
+
+  const handleCalendarSave = () => {
+    if (!modalIntern || !selectedCalendarDate) return;
+    const normalizedReason =
+      calendarEditorStatus === 'present' ? undefined : calendarEditorReason.trim() || undefined;
+    const targetId = modalIntern.id;
+    const nextRecords = (modalIntern.attendanceRecords || [])
+      .filter((entry) => entry.date !== selectedCalendarDate);
+    if (calendarEditorStatus !== 'present') {
+      nextRecords.push({
+        date: selectedCalendarDate,
+        status: calendarEditorStatus,
+        reason: normalizedReason
+      });
+    }
+    nextRecords.sort((a, b) => a.date.localeCompare(b.date));
+
+    setInterns((prev) =>
+      prev.map((intern) => (intern.id === targetId ? { ...intern, attendanceRecords: nextRecords } : intern))
+    );
+    setModalIntern((prev) =>
+      prev && prev.id === targetId ? { ...prev, attendanceRecords: nextRecords } : prev
+    );
+    setCalendarEditorReason(normalizedReason ?? '');
+  };
+
+  const handleCalendarReset = () => {
+    setSelectedCalendarDate(null);
+    setCalendarEditorStatus('present');
+    setCalendarEditorReason('');
+  };
+
   const handleEditProfile = () => {
     setIsProfileOpen(true);
   };
@@ -343,13 +424,26 @@ export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigate
   };
 
   const readStoredEmployees = (): EmployeeRecord[] => {
+    if (typeof window === 'undefined') {
+      return defaultEmployeeRecords.map((record) => ({
+        ...record,
+        attendanceRecords: mergeLegacyAttendanceRecords(record.attendanceRecords)
+      }));
+    }
     const saved = localStorage.getItem(MANAGE_EMPLOYEES_STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved) as EmployeeRecord[];
+        const parsed = JSON.parse(saved) as StoredEmployeeRecord[];
+        return parsed.map((record) => ({
+          ...record,
+          attendanceRecords: mergeLegacyAttendanceRecords(record.attendanceRecords, record.attendanceExceptions)
+        }));
       } catch {}
     }
-    return [...defaultEmployeeRecords];
+    return defaultEmployeeRecords.map((record) => ({
+      ...record,
+      attendanceRecords: mergeLegacyAttendanceRecords(record.attendanceRecords)
+    }));
   };
 
   const promoteToEmployee = (intern: InternRecord) => {
@@ -393,8 +487,9 @@ export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigate
           period: 'Starting'
         }
       ],
-      attendanceExceptions: intern.attendanceExceptions.map((entry) => ({
+      attendanceRecords: intern.attendanceRecords.map((entry) => ({
         date: entry.date,
+        status: entry.status,
         reason: entry.reason
       }))
     };
@@ -840,7 +935,9 @@ export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigate
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <p className="text-center text-xs font-bold uppercase tracking-[0.14em] text-lifewood-serpent/55">{monthLabel}</p>
+                    <p className="text-center text-xs font-bold uppercase tracking-[0.14em] text-lifewood-serpent/55">
+                      {monthLabel}
+                    </p>
                     <button
                       type="button"
                       onClick={() => shiftCalendarMonth(1)}
@@ -849,48 +946,133 @@ export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigate
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-lifewood-serpent/70">
-                    <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-lifewood-green/70"></span>Present</span>
-                    <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-red-400/80"></span>Absent</span>
-                  </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-lifewood-serpent/70">
+                  {ATTENDANCE_STATUS_LEGEND.map((legend) => (
+                    <span className="inline-flex items-center gap-1" key={legend.value}>
+                      <span className={`h-3 w-3 rounded ${legend.legendClass}`}></span>
+                      {legend.label}
+                    </span>
+                  ))}
                 </div>
-              <div className="mb-2 grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-lifewood-serpent/55">
-                {['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].map((day) => (
-                  <span key={day}>{day}</span>
-                ))}
+                <p className="mt-1 text-[10px] text-lifewood-serpent/60">Only today and past dates can be edited.</p>
               </div>
-              <div className="grid grid-cols-7 gap-2 text-center">
-                {calendarCells.map((date, idx) => {
-                  if (!date) {
-                    return <div key={`empty-${idx}`} className="h-8 rounded-lg bg-transparent" />;
-                  }
-                  const iso = toIsoDate(date);
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const compareDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                  const isFuture = compareDate.getTime() > today.getTime();
-                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                  const absentEntry = modalIntern.attendanceExceptions.find((entry) => entry.date === iso);
-                  const isAbsent = Boolean(absentEntry);
-                  const dayClass = isWeekend
-                    ? 'bg-lifewood-serpent/10 text-lifewood-serpent/50'
-                    : isAbsent
-                      ? 'bg-red-400/80 text-white'
-                      : isFuture
+                <div className="mb-2 grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-lifewood-serpent/55">
+                  {['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].map((day) => (
+                    <span key={day}>{day}</span>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-2 text-center">
+                  {calendarCells.map((date, idx) => {
+                    if (!date) {
+                      return <div key={`empty-${idx}`} className="h-8 rounded-lg bg-transparent" />;
+                    }
+                    const iso = toIsoDate(date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const compareDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                    const isFuture = compareDate.getTime() > today.getTime();
+                    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                    const attendanceRecord = modalIntern.attendanceRecords.find((entry) => entry.date === iso);
+                    const baseClass = attendanceRecord
+                      ? getAttendanceCellClass(attendanceRecord.status)
+                      : isWeekend || isFuture
                         ? 'bg-lifewood-serpent/10 text-lifewood-serpent/50'
-                        : 'bg-lifewood-green/70 text-white';
-                  return (
-                    <div
-                      key={`modal-day-${iso}`}
-                      title={isWeekend ? 'No work day' : isAbsent ? `Absent: ${absentEntry?.reason}` : isFuture ? 'No record yet' : 'Present'}
-                      className={`rounded-lg px-2 py-2 text-xs font-semibold ${dayClass}`}
-                    >
-                      {date.getDate()}
+                        : getAttendanceCellClass('present');
+                    const selectedClass = selectedCalendarDate === iso ? ' ring-2 ring-lifewood-green/70 ring-offset-1 ring-offset-white/60' : '';
+                    const titleLabel = attendanceRecord
+                      ? `${getAttendanceLabel(attendanceRecord.status)}${attendanceRecord.reason ? `: ${attendanceRecord.reason}` : ''}`
+                      : isWeekend
+                        ? 'Weekend'
+                        : isFuture
+                          ? 'No record yet'
+                          : 'Present';
+                    return (
+                      <div
+                        key={`modal-day-${iso}`}
+                        title={titleLabel}
+                        onClick={canEditCalendar ? () => handleCalendarDaySelect(date) : undefined}
+                        className={`rounded-lg px-2 py-2 text-xs font-semibold ${baseClass} ${canEditCalendar && !isFuture ? 'cursor-pointer' : ''}${isFuture ? 'cursor-not-allowed' : ''}${selectedClass}`}
+                      >
+                        {date.getDate()}
+                      </div>
+                    );
+                  })}
+                </div>
+                {canEditCalendar && (
+                  <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-white/80 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-lifewood-serpent/55">Attendance edits</p>
+                        <p className="text-[10px] text-lifewood-serpent/60">Only admins can adjust the calendar entries.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCalendarReset}
+                        className="rounded-xl border border-lifewood-serpent/15 px-3 py-1 text-xs font-semibold text-lifewood-serpent"
+                      >
+                        Clear selection
+                      </button>
                     </div>
-                  );
-                })}
+                    {selectedCalendarDate ? (
+                      <div className="mt-3 space-y-3">
+                        <p className="text-sm font-semibold text-lifewood-serpent">
+                          Editing {formatCalendarDateLabel(selectedCalendarDate)}
+                        </p>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <label className="text-xs font-semibold text-lifewood-serpent/60">
+                            Status
+                            <select
+                              value={calendarEditorStatus}
+                              onChange={(event) => setCalendarEditorStatus(event.target.value as AttendanceStatus)}
+                              className="mt-2 w-full rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                            >
+                              {ATTENDANCE_STATUS_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="text-xs font-semibold text-lifewood-serpent/60">
+                            Reason
+                            <input
+                              type="text"
+                              value={calendarEditorReason}
+                              onChange={(event) => setCalendarEditorReason(event.target.value)}
+                              placeholder="Optional note (e.g. left early, medical)"
+                              disabled={calendarEditorStatus === 'present'}
+                              className="mt-2 w-full rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-xs text-lifewood-serpent/70 focus:border-lifewood-green focus:outline-none disabled:text-lifewood-serpent/40"
+                            />
+                            <span className="text-[10px] text-lifewood-serpent/60">
+                              Provide a note when the status is not Present.
+                            </span>
+                          </label>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={handleCalendarSave}
+                            className="rounded-xl bg-lifewood-green px-3 py-2 text-xs font-bold text-white hover:bg-lifewood-green/90 disabled:bg-lifewood-green/60"
+                          >
+                            Save to calendar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCalendarReset}
+                            className="rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-xs font-semibold text-lifewood-serpent"
+                          >
+                            Cancel edits
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-xs text-lifewood-serpent/60">
+                        Select a date to edit the attendance status or clear the selection.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
 
             <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
               <p className="text-sm font-semibold text-lifewood-serpent">Intern Actions</p>

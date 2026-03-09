@@ -309,7 +309,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
           period: 'Starting'
         }
       ],
-      attendanceExceptions: []
+      attendanceRecords: []
     };
 
     localStorage.setItem(MANAGE_INTERNS_STORAGE_KEY, JSON.stringify([...existingInterns, internCandidate]));
@@ -355,7 +355,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
           period: 'Starting'
         }
       ],
-      attendanceExceptions: []
+      attendanceRecords: []
     };
 
     localStorage.setItem(MANAGE_EMPLOYEES_STORAGE_KEY, JSON.stringify([...existingEmployees, employeeCandidate]));
