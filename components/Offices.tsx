@@ -28,46 +28,48 @@ export const Offices: React.FC<OfficesProps> = ({ theme = 'light' }) => {
             </div>
           </div>
 
-          <h1 className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight mb-10 ${headingColor} animate-pop-out opacity-0`} style={{ animationDelay: '200ms' }}>
-            Largest Global Data Collection
-            <br />
-            Resources Distribution
-          </h1>
+          <div className="flex flex-col gap-10 mb-10 lg:flex-row lg:items-start lg:justify-between">
+            <h1 className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor} animate-pop-out opacity-0`} style={{ animationDelay: '200ms' }}>
+              Largest Global Data Collection
+              <br />
+              Resources Distribution
+            </h1>
 
-          <div className="hidden lg:flex justify-end mb-4 animate-pop-out opacity-0" style={{ animationDelay: '300ms' }}>
-            <div className="relative w-48 h-64 flex flex-col items-center">
-              <div className="relative w-40 h-40">
-                {/* Outer dashed ring */}
-                <div className="absolute inset-0 rounded-full border border-dashed border-lifewood-serpent/20 dark:border-white/20"></div>
-                
-                {/* Central Dot */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative w-8 h-8 rounded-full bg-lifewood-saffron flex items-center justify-center shadow-[0_0_20px_rgba(255,179,71,0.4)]">
-                    <div className="w-3 h-3 rounded-full bg-white"></div>
+            <div className="hidden lg:flex justify-end mb-0 animate-pop-out opacity-0" style={{ animationDelay: '300ms' }}>
+              <div className="relative w-48 h-64 flex flex-col items-center">
+                <div className="relative w-40 h-40">
+                  {/* Outer dashed ring */}
+                  <div className="absolute inset-0 rounded-full border border-dashed border-lifewood-serpent/20 dark:border-white/20"></div>
+
+                  {/* Central Dot */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative w-8 h-8 rounded-full bg-lifewood-saffron flex items-center justify-center shadow-[0_0_20px_rgba(255,179,71,0.4)]">
+                      <div className="w-3 h-3 rounded-full bg-white"></div>
+                    </div>
+                  </div>
+
+                  {/* Circular Rotating Text */}
+                  <div className="absolute inset-0 animate-spin-slow" style={{ animationDuration: '20s' }}>
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <defs>
+                        <path
+                          id="circlePath"
+                          d="M 50, 50 m -38, 0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
+                        />
+                      </defs>
+                      <text className="text-[8px] font-bold fill-lifewood-serpent/80 dark:fill-white/80">
+                        <textPath xlinkHref="#circlePath" textLength="238" lengthAdjust="spacing">
+                          amazed . be . amazed . be .
+                        </textPath>
+                      </text>
+                    </svg>
                   </div>
                 </div>
-                
-                {/* Circular Rotating Text */}
-                <div className="absolute inset-0 animate-spin-slow" style={{ animationDuration: '20s' }}>
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <defs>
-                      <path
-                        id="circlePath"
-                        d="M 50, 50 m -38, 0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
-                      />
-                    </defs>
-                    <text className="text-[8px] font-bold fill-lifewood-serpent/80 dark:fill-white/80">
-                      <textPath xlinkHref="#circlePath" textLength="238" lengthAdjust="spacing">
-                        amazed . be . amazed . be .
-                      </textPath>
-                    </text>
-                  </svg>
+
+                {/* Downward Arrow Line */}
+                <div className="h-16 w-px bg-gradient-to-b from-lifewood-saffron to-transparent relative mt-2">
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 border-b border-r border-lifewood-saffron/60 rotate-45"></div>
                 </div>
-              </div>
-              
-              {/* Downward Arrow Line */}
-              <div className="h-16 w-px bg-gradient-to-b from-lifewood-saffron to-transparent relative mt-2">
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 border-b border-r border-lifewood-saffron/60 rotate-45"></div>
               </div>
             </div>
           </div>
