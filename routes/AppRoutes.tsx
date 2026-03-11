@@ -25,6 +25,7 @@ import { CookiePolicy } from '../components/CookiePolicy';
 import { TermsConditions } from '../components/TermsConditions';
 import { SignIn } from '../components/SignIn';
 import { JoinUs } from '../components/JoinUs';
+import { JoinUsAs } from '../components/JoinUsAs';
 import { AdminDashboard } from '../components/AdminDashboard';
 import { AdminAnalytics } from '../components/AdminAnalytics';
 import { AdminEvaluation } from '../components/AdminEvaluation';
@@ -32,9 +33,12 @@ import { AdminReports } from '../components/AdminReports';
 import { AdminManageInterns } from '../components/AdminManageInterns';
 import { AdminManageApplicants } from '../components/AdminManageApplicants';
 import { AdminManageEmployees } from '../components/AdminManageEmployees';
+import { AdminAccessDenied } from '../components/AdminAccessDenied';
+import { RoleDashboard } from '../components/RoleDashboard';
 import { PageRoute } from './routeTypes';
 
 const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
+const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
 const ADMIN_BG_VIDEO_URL = 'https://www.pexels.com/download/video/34645742/';
 
 const PAGE_PATHS: Record<PageRoute, string> = {
@@ -47,6 +51,9 @@ const PAGE_PATHS: Record<PageRoute, string> = {
   'philanthropy-impact': '/philanthropy-impact',
   careers: '/careers',
   'join-us': '/join-us',
+  'join-us-as': '/join-us-as',
+  'join-us-as-employee': '/join-us-as-employee',
+  'join-us-as-intern': '/join-us-as-intern',
   'type-a-data-servicing': '/type-a-data-servicing',
   'type-b-horizontal-llm-data': '/type-b-horizontal-llm-data',
   'type-c-vertical-llm-data': '/type-c-vertical-llm-data',
@@ -63,7 +70,11 @@ const PAGE_PATHS: Record<PageRoute, string> = {
   'admin-reports': '/admin-reports',
   'admin-manage-interns': '/admin-manage-interns',
   'admin-manage-applicants': '/admin-manage-applicants',
-  'admin-manage-employees': '/admin-manage-employees'
+  'admin-manage-employees': '/admin-manage-employees',
+  'admin-access-denied': '/admin-access-denied',
+  'intern-dashboard': '/intern-dashboard',
+  'employee-dashboard': '/employee-dashboard',
+  'applicant-dashboard': '/applicant-dashboard'
 };
 
 const PATH_TO_PAGE = Object.entries(PAGE_PATHS).reduce<Record<string, PageRoute>>((acc, [page, path]) => {
@@ -135,6 +146,10 @@ interface AppRoutesProps {
   theme: 'light' | 'dark';
   isAdminAuthenticated: boolean;
   setIsAdminAuthenticated: Dispatch<SetStateAction<boolean>>;
+  authRoleId: number | null;
+  setAuthRoleId: Dispatch<SetStateAction<number | null>>;
+  authRoleName: string | null;
+  setAuthRoleName: Dispatch<SetStateAction<string | null>>;
 }
 
 type NavigateTo = (page: PageRoute) => void;
@@ -154,13 +169,28 @@ const HomeContent: React.FC<{ navigateTo: NavigateTo }> = ({ navigateTo }) => (
   </>
 );
 
-export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticated, setIsAdminAuthenticated }) => {
+export const AppRoutes: React.FC<AppRoutesProps> = ({
+  theme,
+  isAdminAuthenticated,
+  setIsAdminAuthenticated,
+  authRoleId,
+  setAuthRoleId,
+  authRoleName,
+  setAuthRoleName
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const currentPage = getPageFromPath(location.pathname);
   const isAdminPage = ADMIN_PAGES.has(currentPage);
-  const showChrome = currentPage !== 'signin' && currentPage !== 'forgot-password' && !isAdminPage;
+  const isAuthPage = currentPage === 'signin' || currentPage === 'forgot-password';
+  const showChrome =
+    !isAuthPage &&
+    !isAdminPage &&
+    currentPage !== 'admin-access-denied' &&
+    currentPage !== 'intern-dashboard' &&
+    currentPage !== 'employee-dashboard' &&
+    currentPage !== 'applicant-dashboard';
 
   const navigateTo = useCallback<NavigateTo>((page) => {
     const destination = PAGE_PATHS[page];
@@ -170,8 +200,15 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
     if (page === 'signin') {
       if (hasWindow) {
         localStorage.removeItem(AUTH_STORAGE_KEY);
+        localStorage.removeItem(ADMIN_EMAIL_STORAGE_KEY);
+        localStorage.removeItem('lifewood_role_id');
+        localStorage.removeItem('lifewood_role_name');
+        localStorage.removeItem('admin_dashboard_profile');
       }
+      void fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => undefined);
       setIsAdminAuthenticated(false);
+      setAuthRoleId(null);
+      setAuthRoleName(null);
       navigate(destination);
       if (hasWindow) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -189,6 +226,11 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
         }
         return;
       }
+      const isAdmin = (authRoleId ?? Number(localStorage.getItem('lifewood_role_id'))) === 1;
+      if (!isAdmin) {
+        navigate(PAGE_PATHS['admin-access-denied']);
+        return;
+      }
       setIsAdminAuthenticated(true);
     }
 
@@ -196,13 +238,42 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
     if (hasWindow) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [navigate, setIsAdminAuthenticated]);
+  }, [navigate, authRoleId, setIsAdminAuthenticated, setAuthRoleId, setAuthRoleName]);
 
   const hasAuthInStorage = typeof window !== 'undefined' && localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
-  const isAdminUser = isAdminAuthenticated || hasAuthInStorage;
+  const storedRoleId = typeof window !== 'undefined' ? Number(localStorage.getItem('lifewood_role_id')) : NaN;
+  const isAuthenticated = isAdminAuthenticated || hasAuthInStorage;
+  const isAdminUser = (authRoleId ?? storedRoleId) === 1 && isAuthenticated;
 
   const renderAdmin = (element: ReactNode) =>
-    isAdminUser ? <AdminLayout>{element}</AdminLayout> : <Navigate to={PAGE_PATHS['signin']} replace />;
+    !isAuthenticated
+      ? <Navigate to={PAGE_PATHS['signin']} replace />
+      : isAdminUser
+        ? <AdminLayout>{element}</AdminLayout>
+        : <Navigate to={PAGE_PATHS['admin-access-denied']} replace />;
+
+  const resolveRoleDashboard = () => {
+    const storedRoleName = typeof window !== 'undefined' ? localStorage.getItem('lifewood_role_name') : null;
+    if ((authRoleId ?? storedRoleId) === 1) return PAGE_PATHS['admin-dashboard'];
+    const roleLabel = (authRoleName || storedRoleName || '').toLowerCase();
+    if (roleLabel.includes('intern')) return PAGE_PATHS['intern-dashboard'];
+    if (roleLabel.includes('employee')) return PAGE_PATHS['employee-dashboard'];
+    if (roleLabel.includes('applicant')) return PAGE_PATHS['applicant-dashboard'];
+    return PAGE_PATHS['home'];
+  };
+
+  const renderRoleDashboard = (roleLabel: string, targetPage: PageRoute) => {
+    if (!isAuthenticated) {
+      return <Navigate to={PAGE_PATHS['signin']} replace />;
+    }
+
+    const expected = resolveRoleDashboard();
+    if (PAGE_PATHS[targetPage] !== expected) {
+      return <Navigate to={expected} replace />;
+    }
+
+    return <RoleDashboard roleLabel={roleLabel} navigateTo={navigateTo} />;
+  };
 
   return (
     <div className="relative min-h-screen bg-lifewood-seaSalt dark:bg-[#020804]">
@@ -224,7 +295,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
           <Route path="/offices" element={<Offices theme={theme} />} />
           <Route path="/philanthropy-impact" element={<PhilanthropyImpact />} />
           <Route path="/careers" element={<Careers navigateTo={navigateTo} />} />
-          <Route path="/join-us" element={<JoinUs navigateTo={navigateTo} />} />
+          <Route path="/join-us" element={<Navigate to={PAGE_PATHS['join-us-as']} replace />} />
+          <Route path="/join-us-as" element={<JoinUsAs navigateTo={navigateTo} />} />
+          <Route path="/join-us-as-employee" element={<JoinUs navigateTo={navigateTo} variant="employee" />} />
+          <Route path="/join-us-as-intern" element={<JoinUs navigateTo={navigateTo} variant="intern" />} />
           <Route path="/internal-news" element={<InternalNews navigateTo={navigateTo} />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy navigateTo={navigateTo} />} />
           <Route path="/cookie-policy" element={<CookiePolicy navigateTo={navigateTo} />} />
@@ -242,8 +316,33 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
           <Route path="/type-c-vertical-llm-data" element={<TypeC theme={theme} navigateTo={navigateTo} />} />
           <Route path="/type-d-aigc" element={<TypeD navigateTo={navigateTo} />} />
           <Route path="/signin" element={<Navigate to={PAGE_PATHS['signin']} replace />} />
-          <Route path="/sign-in" element={<SignIn navigateTo={navigateTo} />} />
-          <Route path="/forgot-password" element={<SignIn navigateTo={navigateTo} initialAuthMode="forgot" />} />
+          <Route
+            path="/sign-in"
+            element={(
+              <SignIn
+                navigateTo={navigateTo}
+                onAuthSuccess={({ roleId, roleName }) => {
+                  setIsAdminAuthenticated(true);
+                  setAuthRoleId(roleId);
+                  setAuthRoleName(roleName);
+                }}
+              />
+            )}
+          />
+          <Route
+            path="/forgot-password"
+            element={(
+              <SignIn
+                navigateTo={navigateTo}
+                initialAuthMode="forgot"
+                onAuthSuccess={({ roleId, roleName }) => {
+                  setIsAdminAuthenticated(true);
+                  setAuthRoleId(roleId);
+                  setAuthRoleName(roleName);
+                }}
+              />
+            )}
+          />
           <Route path="/admin-dashboard" element={renderAdmin(<AdminDashboard navigateTo={navigateTo} />)} />
           <Route path="/admin-analytics" element={renderAdmin(<AdminAnalytics navigateTo={navigateTo} />)} />
           <Route path="/admin-evaluation" element={renderAdmin(<AdminEvaluation navigateTo={navigateTo} />)} />
@@ -257,6 +356,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
             path="/admin-manage-employees"
             element={renderAdmin(<AdminManageEmployees navigateTo={navigateTo} />)}
           />
+          <Route path="/admin-access-denied" element={<AdminAccessDenied navigateTo={navigateTo} />} />
+          <Route path="/intern-dashboard" element={renderRoleDashboard('Intern', 'intern-dashboard')} />
+          <Route path="/employee-dashboard" element={renderRoleDashboard('Employee', 'employee-dashboard')} />
+          <Route path="/applicant-dashboard" element={renderRoleDashboard('Applicant', 'applicant-dashboard')} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

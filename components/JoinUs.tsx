@@ -4,6 +4,7 @@ import type { PageRoute } from '../routes/routeTypes';
 
 interface JoinUsProps {
   navigateTo?: (page: PageRoute) => void;
+  variant?: 'employee' | 'intern';
 }
 
 type GenderOption = 'Male' | 'Female' | 'Prefer not to say';
@@ -20,6 +21,7 @@ interface FormData {
   country: string;
   otherCountry: string;
   address: string;
+  school: string;
   cvFile: File | null;
 }
 
@@ -35,12 +37,15 @@ const INITIAL_FORM: FormData = {
   country: '',
   otherCountry: '',
   address: '',
+  school: '',
   cvFile: null
 };
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
-export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo }) => {
+export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee' }) => {
+  const roleLabel = variant === 'intern' ? 'Intern' : 'Employee';
+  const includeSchool = variant === 'intern';
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [stepDirection, setStepDirection] = useState<1 | -1>(1);
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
@@ -91,6 +96,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo }) => {
         newErrors.otherCountry = 'Please specify your country.';
       }
       if (!form.address.trim()) newErrors.address = 'Current address is required.';
+      if (includeSchool && !form.school.trim()) newErrors.school = 'School is required.';
     }
 
     if (currentStep === 3) {
@@ -186,7 +192,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo }) => {
             Welcome to
           </p>
           <h1 className="text-3xl md:text-4xl font-heading font-black text-lifewood-serpent dark:text-white">
-            Join the Lifewood Team
+            Apply as {roleLabel}
           </h1>
           <p className="text-sm md:text-base text-lifewood-serpent/70 dark:text-white/70 max-w-2xl">
             Join the world&apos;s leading provider of AI-powered data solutions. This application is currently in
@@ -452,6 +458,24 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo }) => {
                       <p className="mt-1 text-xs text-red-600">{errors.address}</p>
                     )}
                   </div>
+
+                  {includeSchool && (
+                    <div>
+                      <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
+                        School
+                      </label>
+                      <input
+                        type="text"
+                        value={form.school}
+                        onChange={(e) => updateField('school', e.target.value)}
+                        className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
+                        placeholder="Enter your school or university"
+                      />
+                      {errors.school && (
+                        <p className="mt-1 text-xs text-red-600">{errors.school}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">

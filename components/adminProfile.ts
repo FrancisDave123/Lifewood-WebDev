@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 export const ADMIN_PROFILE_STORAGE_KEY = 'admin_dashboard_profile';
 export const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
-export const DEFAULT_ADMIN_GMAIL = 'admin@lifewood.test';
+export const DEFAULT_ADMIN_GMAIL = '';
 
 export interface AdminProfileData {
   firstName: string;
@@ -16,12 +16,12 @@ export interface AdminProfileData {
 }
 
 export const DEFAULT_ADMIN_PROFILE: AdminProfileData = {
-  firstName: 'Admin',
-  lastName: 'Admin',
+  firstName: '',
+  lastName: '',
   birthday: '',
   address: '',
   school: '',
-  role: 'Internal Access',
+  role: '',
   shortBio: '',
   avatarDataUrl: ''
 };
@@ -46,6 +46,38 @@ export const useAdminProfile = () => {
     if (savedAdminEmail) {
       setAdminGmail(savedAdminEmail);
     }
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/auth/profile', { credentials: 'include' });
+        const payload = await response.json().catch(() => null);
+        if (!isActive || !response.ok || !payload?.data) return;
+
+        const data = payload.data;
+        setProfile((prev) => ({
+          ...prev,
+          firstName: typeof data.first_name === 'string' ? data.first_name : '',
+          lastName: typeof data.last_name === 'string' ? data.last_name : '',
+          role: typeof data.role_name === 'string' ? data.role_name : ''
+        }));
+
+        if (typeof data.email === 'string' && data.email.trim()) {
+          const normalized = data.email.trim().toLowerCase();
+          setAdminGmail(normalized);
+          localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, normalized);
+        }
+      } catch {}
+    };
+
+    fetchProfile();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   useEffect(() => {

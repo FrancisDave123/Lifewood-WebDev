@@ -8,6 +8,9 @@ export type PageRoute =
   | 'philanthropy-impact'
   | 'careers'
   | 'join-us'
+  | 'join-us-as'
+  | 'join-us-as-employee'
+  | 'join-us-as-intern'
   | 'type-a-data-servicing'
   | 'type-b-horizontal-llm-data'
   | 'type-c-vertical-llm-data'
@@ -24,4 +27,8 @@ export type PageRoute =
   | 'admin-reports'
   | 'admin-manage-interns'
   | 'admin-manage-applicants'
-  | 'admin-manage-employees';
+  | 'admin-manage-employees'
+  | 'admin-access-denied'
+  | 'intern-dashboard'
+  | 'employee-dashboard'
+  | 'applicant-dashboard';

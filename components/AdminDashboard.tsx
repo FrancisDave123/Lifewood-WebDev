@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
+import { useAdminProfile } from './adminProfile';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminDashboardProps {
@@ -33,8 +34,6 @@ interface AdminDashboardProps {
 const days = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 const MAX_GOALS = 10;
 const MAX_GOAL_CHARS = 100;
-const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
-const DEFAULT_ADMIN_GMAIL = 'admin@lifewood.test';
 
 interface ProfileData {
   firstName: string;
@@ -53,6 +52,7 @@ type GoalDeleteIntent =
   | null;
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) => {
+  const { profile, setProfile, adminGmail } = useAdminProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -66,27 +66,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   const [goalTitle, setGoalTitle] = useState('');
   const [adminGoals, setAdminGoals] = useState<Array<{ id: string; title: string }>>([]);
   const [goalDeleteIntent, setGoalDeleteIntent] = useState<GoalDeleteIntent>(null);
-  const [adminGmail, setAdminGmail] = useState(DEFAULT_ADMIN_GMAIL);
-  const [profile, setProfile] = useState<ProfileData>({
-    firstName: 'Admin',
-    lastName: 'Admin',
-    birthday: '',
-    address: '',
-    school: '',
-    role: 'Internal Access',
-    shortBio: '',
-    avatarDataUrl: ''
-  });
-  const [profileDraft, setProfileDraft] = useState<ProfileData>({
-    firstName: 'Admin',
-    lastName: 'Admin',
-    birthday: '',
-    address: '',
-    school: '',
-    role: 'Internal Access',
-    shortBio: '',
-    avatarDataUrl: ''
-  });
+  const [profileDraft, setProfileDraft] = useState<ProfileData>(profile);
   const [profileError, setProfileError] = useState('');
 
   const monthLabel = useMemo(
@@ -140,14 +120,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   };
 
   useEffect(() => {
-    const savedAdminEmail = localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY)?.trim().toLowerCase();
-    if (savedAdminEmail) {
-      setAdminGmail(savedAdminEmail);
-    }
-
     const savedEvents = localStorage.getItem('admin_dashboard_events');
     const savedGoals = localStorage.getItem('admin_dashboard_goals');
-    const savedProfile = localStorage.getItem('admin_dashboard_profile');
     if (savedEvents) {
       setCalendarEvents(JSON.parse(savedEvents));
     }
@@ -168,14 +142,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
         { id: 'g3', title: 'Prepare leadership report for Monday sync' }
       ]);
     }
-
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile) as Partial<ProfileData>;
-      setProfile((prev) => ({
-        ...prev,
-        ...parsedProfile
-      }));
-    }
   }, []);
 
   useEffect(() => {
@@ -185,10 +151,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   useEffect(() => {
     localStorage.setItem('admin_dashboard_goals', JSON.stringify(adminGoals));
   }, [adminGoals]);
-
-  useEffect(() => {
-    localStorage.setItem('admin_dashboard_profile', JSON.stringify(profile));
-  }, [profile]);
 
   useEffect(() => {
     if (!isProfileOpen) return;

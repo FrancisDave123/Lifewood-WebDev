@@ -2,18 +2,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
+import { ADMIN_PROFILE_STORAGE_KEY, DEFAULT_ADMIN_PROFILE } from './adminProfile';
 
 interface SignInProps {
   navigateTo?: (page: PageRoute) => void;
   initialAuthMode?: 'signin' | 'forgot';
+  onAuthSuccess?: (payload: { email: string; roleId: number | null; roleName: string | null }) => void;
 }
 
-export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 'signin' }) => {
+export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 'signin', onAuthSuccess }) => {
   const AUTH_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
   const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
   const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
-  const TEST_ADMIN_EMAIL = 'admin@lifewood.test';
-  const TEST_ADMIN_PASSWORD = 'Lifewood123!';
+  const ROLE_ID_STORAGE_KEY = 'lifewood_role_id';
+  const ROLE_NAME_STORAGE_KEY = 'lifewood_role_name';
+  const API_LOGIN_URL = '/api/login';
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [email, setEmail] = useState('');
@@ -21,6 +24,30 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
   const [showPassword, setShowPassword] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'forgot'>(initialAuthMode);
   const [authError, setAuthError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const syncAdminRole = (roleName?: string | null) => {
+    if (!roleName) return;
+    try {
+      const raw = localStorage.getItem(ADMIN_PROFILE_STORAGE_KEY);
+      const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+      const nextProfile = {
+        ...DEFAULT_ADMIN_PROFILE,
+        ...parsed,
+        role: roleName
+      };
+      localStorage.setItem(ADMIN_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile));
+    } catch {}
+  };
+
+  const resolveDestination = (roleId: number | null, roleName: string | null): PageRoute => {
+    if (roleId === 1) return 'admin-dashboard';
+    const label = (roleName || '').toLowerCase();
+    if (label.includes('intern')) return 'intern-dashboard';
+    if (label.includes('employee')) return 'employee-dashboard';
+    if (label.includes('applicant')) return 'applicant-dashboard';
+    return 'home';
+  };
 
   useEffect(() => {
     setAuthMode(initialAuthMode);
@@ -28,24 +55,63 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
 
   const isForgot = authMode === 'forgot';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', { email, password, authMode });
+    if (isSubmitting) return;
 
-    if (authMode === 'signin') {
-      const isValid =
-        email.trim().toLowerCase() === TEST_ADMIN_EMAIL &&
-        password === TEST_ADMIN_PASSWORD;
+    if (authMode !== 'signin') {
+      setAuthError('Password reset is not available yet.');
+      return;
+    }
 
-      if (!isValid) {
-        setAuthError('Invalid credentials. Use the provided test admin account.');
+    const normalizedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!normalizedEmail || !trimmedPassword) {
+      setAuthError('Email and password are required.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setAuthError('Enter a valid email address.');
+      return;
+    }
+
+    setAuthError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(API_LOGIN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: normalizedEmail, password: trimmedPassword })
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (response.ok) {
+        const roleId = typeof payload?.data?.role_id === 'number' ? payload.data.role_id : null;
+        const roleName = typeof payload?.data?.role_name === 'string' ? payload.data.role_name : null;
+        localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+        localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, normalizedEmail);
+        if (roleId !== null) {
+          localStorage.setItem(ROLE_ID_STORAGE_KEY, String(roleId));
+        }
+        if (roleName) {
+          localStorage.setItem(ROLE_NAME_STORAGE_KEY, roleName);
+        }
+        syncAdminRole(roleName);
+        onAuthSuccess?.({ email: normalizedEmail, roleId, roleName });
+        navigateTo?.(resolveDestination(roleId, roleName));
         return;
       }
 
-      setAuthError('');
-      localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-      localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, email.trim().toLowerCase());
-      navigateTo?.('admin-dashboard');
+      setAuthError(payload?.message ?? 'Invalid credentials.');
+    } catch {
+      setAuthError('Unable to sign in right now. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -206,9 +272,10 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="mt-5 w-full rounded-lg bg-lifewood-green py-2 text-sm font-bold text-white transition-all hover:bg-lifewood-green/90 active:scale-95"
+                    disabled={isSubmitting}
+                    className={`mt-5 w-full rounded-lg py-2 text-sm font-bold text-white transition-all active:scale-95 ${isSubmitting ? 'cursor-not-allowed bg-lifewood-green/60' : 'bg-lifewood-green hover:bg-lifewood-green/90'}`}
                   >
-                    {isForgot ? 'Send Reset Link' : 'Sign In'}
+                    {isForgot ? 'Send Reset Link' : isSubmitting ? 'Signing In...' : 'Sign In'}
                   </button>
 
                   {authMode === 'signin' && authError && (
