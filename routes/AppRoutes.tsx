@@ -24,6 +24,7 @@ import { PrivacyPolicy } from '../components/PrivacyPolicy';
 import { CookiePolicy } from '../components/CookiePolicy';
 import { TermsConditions } from '../components/TermsConditions';
 import { SignIn } from '../components/SignIn';
+import { JoinUs } from '../components/JoinUs';
 import { AdminDashboard } from '../components/AdminDashboard';
 import { AdminAnalytics } from '../components/AdminAnalytics';
 import { AdminEvaluation } from '../components/AdminEvaluation';
@@ -45,6 +46,7 @@ const PAGE_PATHS: Record<PageRoute, string> = {
   offices: '/offices',
   'philanthropy-impact': '/philanthropy-impact',
   careers: '/careers',
+  'join-us': '/join-us',
   'type-a-data-servicing': '/type-a-data-servicing',
   'type-b-horizontal-llm-data': '/type-b-horizontal-llm-data',
   'type-c-vertical-llm-data': '/type-c-vertical-llm-data',
@@ -53,7 +55,8 @@ const PAGE_PATHS: Record<PageRoute, string> = {
   'privacy-policy': '/privacy-policy',
   'cookie-policy': '/cookie-policy',
   'terms-and-conditions': '/terms-and-conditions',
-  signin: '/signin',
+  signin: '/sign-in',
+  'forgot-password': '/forgot-password',
   'admin-dashboard': '/admin-dashboard',
   'admin-analytics': '/admin-analytics',
   'admin-evaluation': '/admin-evaluation',
@@ -75,7 +78,11 @@ Object.assign(PATH_TO_PAGE, {
   '/about': 'about-us',
   '/impact': 'philanthropy-impact',
   '/privacy': 'privacy-policy',
-  '/terms': 'terms-and-conditions'
+  '/terms': 'terms-and-conditions',
+  '/signin': 'signin',
+  '/sign-in': 'signin',
+  '/forgot-password': 'forgot-password',
+  '/join-us': 'join-us'
 });
 
 const normalizePath = (value: string) => {
@@ -153,7 +160,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
 
   const currentPage = getPageFromPath(location.pathname);
   const isAdminPage = ADMIN_PAGES.has(currentPage);
-  const showChrome = currentPage !== 'signin' && !isAdminPage;
+  const showChrome = currentPage !== 'signin' && currentPage !== 'forgot-password' && !isAdminPage;
 
   const navigateTo = useCallback<NavigateTo>((page) => {
     const destination = PAGE_PATHS[page];
@@ -217,6 +224,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
           <Route path="/offices" element={<Offices theme={theme} />} />
           <Route path="/philanthropy-impact" element={<PhilanthropyImpact />} />
           <Route path="/careers" element={<Careers navigateTo={navigateTo} />} />
+          <Route path="/join-us" element={<JoinUs navigateTo={navigateTo} />} />
           <Route path="/internal-news" element={<InternalNews navigateTo={navigateTo} />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy navigateTo={navigateTo} />} />
           <Route path="/cookie-policy" element={<CookiePolicy navigateTo={navigateTo} />} />
@@ -233,7 +241,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({ theme, isAdminAuthenticate
           <Route path="/type-b-horizontal-llm-data" element={<TypeB theme={theme} navigateTo={navigateTo} />} />
           <Route path="/type-c-vertical-llm-data" element={<TypeC theme={theme} navigateTo={navigateTo} />} />
           <Route path="/type-d-aigc" element={<TypeD navigateTo={navigateTo} />} />
-          <Route path="/signin" element={<SignIn navigateTo={navigateTo} />} />
+          <Route path="/signin" element={<Navigate to={PAGE_PATHS['signin']} replace />} />
+          <Route path="/sign-in" element={<SignIn navigateTo={navigateTo} />} />
+          <Route path="/forgot-password" element={<SignIn navigateTo={navigateTo} initialAuthMode="forgot" />} />
           <Route path="/admin-dashboard" element={renderAdmin(<AdminDashboard navigateTo={navigateTo} />)} />
           <Route path="/admin-analytics" element={renderAdmin(<AdminAnalytics navigateTo={navigateTo} />)} />
           <Route path="/admin-evaluation" element={renderAdmin(<AdminEvaluation navigateTo={navigateTo} />)} />

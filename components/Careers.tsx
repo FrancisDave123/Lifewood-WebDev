@@ -6,7 +6,7 @@ interface CareersProps {
   navigateTo?: (page: PageRoute) => void;
 }
 
-export const Careers: React.FC<CareersProps> = () => {
+export const Careers: React.FC<CareersProps> = ({ navigateTo }) => {
   const row1 = useMemo(() => ['Innovative', 'Flexible', 'Supportive', 'Collaborative'], []);
   const row2 = useMemo(() => ['Transparent', 'Engaging', 'Diverse', 'Purpose-driven'], []);
   const row3 = useMemo(() => ['Balanced (work-life balance)', 'Trustworthy', 'Professional', 'Reliable'], []);
@@ -148,7 +148,7 @@ export const Careers: React.FC<CareersProps> = () => {
                 Lifewood
               </h1>
               <button
-                onClick={() => window.open('https://application-form-ph.vercel.app/', '_blank', 'noopener,noreferrer')}
+                onClick={() => navigateTo?.('join-us')}
                 className="group px-8 py-3 bg-lifewood-saffron text-lifewood-serpent rounded-full text-lg font-bold inline-flex items-center gap-3 hover:scale-105 transition-transform"
               >
                 Join Us

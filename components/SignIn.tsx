@@ -1,13 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface SignInProps {
   navigateTo?: (page: PageRoute) => void;
+  initialAuthMode?: 'signin' | 'forgot';
 }
 
-export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
+export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 'signin' }) => {
   const AUTH_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
   const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
   const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
@@ -18,10 +19,13 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
+  const [authMode, setAuthMode] = useState<'signin' | 'forgot'>(initialAuthMode);
   const [authError, setAuthError] = useState('');
 
-  const isSignUp = authMode === 'signup';
+  useEffect(() => {
+    setAuthMode(initialAuthMode);
+  }, [initialAuthMode]);
+
   const isForgot = authMode === 'forgot';
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -118,14 +122,12 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
                   </button>
 
                   <h1 className="mb-2 font-heading text-4xl font-black text-lifewood-serpent">
-                    {isForgot ? 'Forgot Password' : isSignUp ? 'Create Account' : 'Sign In'}
+                    {isForgot ? 'Forgot Password' : 'Sign In'}
                   </h1>
                   <p className="text-base text-lifewood-serpent/60">
                     {isForgot
                       ? 'Enter your email and we will send a password reset link.'
-                      : isSignUp
-                        ? 'Join Lifewood and power your AI journey.'
-                        : 'Access your AI data solutions.'}
+                      : 'Access your AI data solutions.'}
                   </p>
                 </div>
 
@@ -187,8 +189,12 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
                       <button
                         type="button"
                         onClick={() => {
-                          setAuthMode('forgot');
                           if (authError) setAuthError('');
+                          if (navigateTo) {
+                            navigateTo('forgot-password');
+                          } else {
+                            setAuthMode('forgot');
+                          }
                         }}
                         className="text-lifewood-green transition hover:text-lifewood-green/80"
                       >
@@ -202,7 +208,7 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
                     type="submit"
                     className="mt-5 w-full rounded-lg bg-lifewood-green py-2 text-sm font-bold text-white transition-all hover:bg-lifewood-green/90 active:scale-95"
                   >
-                    {isForgot ? 'Send Reset Link' : isSignUp ? 'Create Account' : 'Sign In'}
+                    {isForgot ? 'Send Reset Link' : 'Sign In'}
                   </button>
 
                   {authMode === 'signin' && authError && (
@@ -220,8 +226,12 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
                       <button
                         type="button"
                         onClick={() => {
-                          setAuthMode('signin');
                           if (authError) setAuthError('');
+                          if (navigateTo) {
+                            navigateTo('signin');
+                          } else {
+                            setAuthMode('signin');
+                          }
                         }}
                         className="font-semibold text-lifewood-green transition hover:text-lifewood-green/80"
                       >
@@ -230,16 +240,16 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo }) => {
                     </p>
                   ) : (
                     <p className="text-xs text-lifewood-serpent/60">
-                      {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+                      {"Don't have an account?"}{' '}
                       <button
                         type="button"
                         onClick={() => {
-                          setAuthMode(isSignUp ? 'signin' : 'signup');
                           if (authError) setAuthError('');
+                          navigateTo?.('join-us');
                         }}
                         className="font-semibold text-lifewood-green transition hover:text-lifewood-green/80"
                       >
-                        {isSignUp ? 'Sign In' : 'Sign Up'}
+                        Join Us
                       </button>
                     </p>
                   )}
