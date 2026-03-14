@@ -87,8 +87,8 @@ class UserLoginController
 
     private function fetchUserByEmail(string $email): ?array
     {
-        $supabaseUrl = getenv('SUPABASE_URL') ?: '';
-        $serviceKey = getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '';
+        $supabaseUrl = env_value('SUPABASE_URL');
+        $serviceKey = env_value('SUPABASE_SERVICE_ROLE_KEY');
 
         if ($supabaseUrl === '' || $serviceKey === '') {
             json_response(500, ['ok' => false, 'message' => 'Supabase credentials are missing.']);

@@ -8,9 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
-  LineChart,
   LogOut,
-  NotebookPen,
   Menu,
   Pencil,
   PieChart,
@@ -52,9 +50,11 @@ type GoalDeleteIntent =
   | null;
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) => {
+  const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
   const { profile, setProfile, adminGmail } = useAdminProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [redirectNotice, setRedirectNotice] = useState('');
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -120,6 +120,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const notice = sessionStorage.getItem(ADMIN_REDIRECT_NOTICE_KEY);
+      if (notice) {
+        setRedirectNotice(notice);
+        sessionStorage.removeItem(ADMIN_REDIRECT_NOTICE_KEY);
+      }
+    }
+
     const savedEvents = localStorage.getItem('admin_dashboard_events');
     const savedGoals = localStorage.getItem('admin_dashboard_goals');
     if (savedEvents) {
@@ -309,22 +317,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
             <button
               onClick={() => {
                 setIsSidebarOpen(false);
-                navigateTo?.('admin-analytics');
+                navigateTo?.('admin-manage-applicants');
               }}
               className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
             >
-              <LineChart className="h-4 w-4" />
-              Analytics
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-evaluation');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <NotebookPen className="h-4 w-4" />
-              Evaluation
+              <ClipboardList className="h-4 w-4" />
+              Applicants
             </button>
             <button
               onClick={() => {
@@ -335,36 +333,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
             >
               <BookOpen className="h-4 w-4" />
               Reports
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-interns');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <Users className="h-4 w-4" />
-              Manage Interns
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-applicants');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <ClipboardList className="h-4 w-4" />
-              Manage Applicants
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-employees');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <UserCircle2 className="h-4 w-4" />
-              Manage Employees
             </button>
           </div>
 
@@ -401,6 +369,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
 
         <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
           <div className="relative z-10 mx-auto max-w-6xl space-y-5">
+            {redirectNotice && (
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-lifewood-saffron/30 bg-lifewood-saffron/15 px-4 py-3 text-sm text-lifewood-serpent">
+                <p className="font-semibold">{redirectNotice}</p>
+                <button
+                  type="button"
+                  onClick={() => setRedirectNotice('')}
+                  className="rounded-lg border border-lifewood-serpent/15 px-2 py-1 text-xs font-semibold text-lifewood-serpent transition hover:bg-lifewood-seaSalt"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
                 type="button"
@@ -439,18 +419,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                     In Progress
                   </p>
                   <h2 className="mt-5 max-w-lg text-2xl font-black leading-tight sm:text-3xl md:text-5xl">
-                    Data Operations
-                    <span className="text-lifewood-yellow"> Performance</span> Snapshot
+                    Recruitment
+                    <span className="text-lifewood-yellow"> Pipeline</span> Snapshot
                   </h2>
                   <p className="mt-3 max-w-xl text-sm text-white/70">
-                    Real-time quality and delivery monitoring for enterprise AI workflows.
+                    Live visibility into applicant flow, interview readiness, and offer momentum.
                   </p>
                   <div className="mt-6 flex flex-wrap items-center gap-3">
                     <button
-                      onClick={() => navigateTo?.('admin-evaluation')}
+                      onClick={() => navigateTo?.('admin-manage-applicants')}
                       className="inline-flex items-center gap-2 rounded-full bg-lifewood-green px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-lifewood-green/30 transition hover:-translate-y-0.5 hover:bg-lifewood-green/90"
                     >
-                      Continue Review
+                      View Applicants
                       <ArrowUpRight className="h-4 w-4" />
                     </button>
                   </div>
@@ -595,13 +575,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
 
             <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
               <div
-                onClick={() => navigateTo?.('admin-evaluation')}
+                onClick={() => navigateTo?.('admin-manage-applicants')}
                 className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-lifewood-serpent">Activity</h3>
-                    <p className="text-xs text-lifewood-serpent/50">Recent updates</p>
+                    <h3 className="text-lg font-bold text-lifewood-serpent">Applicant Activity</h3>
+                    <p className="text-xs text-lifewood-serpent/50">Latest pipeline updates</p>
                   </div>
                   <button className="rounded-lg bg-lifewood-seaSalt p-2 text-lifewood-serpent/60">
                     <Calendar className="h-4 w-4" />
@@ -609,12 +589,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                 </div>
                 <div className="space-y-2">
                   <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-3 text-white">
-                    <p className="text-xs text-lifewood-yellow">98% Quiz Score</p>
-                    <p className="font-semibold">React Hooks Evaluation</p>
+                    <p className="text-xs text-lifewood-yellow">7 interviews confirmed</p>
+                    <p className="font-semibold">Interview slots filled for this week</p>
                   </div>
                   <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-3">
-                    <p className="text-xs text-lifewood-serpent/60">Pipeline Health</p>
-                    <p className="font-semibold text-lifewood-serpent">12 datasets validated today</p>
+                    <p className="text-xs text-lifewood-serpent/60">Offer readiness</p>
+                    <p className="font-semibold text-lifewood-serpent">3 applicants ready for review</p>
                   </div>
                 </div>
               </div>
@@ -631,70 +611,70 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               <div className="rounded-3xl border border-lifewood-serpent/10 bg-lifewood-serpent p-5 text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.26)]">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/50">Level</p>
                 <p className="mt-3 text-5xl font-black">04</p>
-                <p className="mt-2 text-sm text-white/70">Senior Intern</p>
+                <p className="mt-2 text-sm text-white/70">Recruitment Lead</p>
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div
-                onClick={() => navigateTo?.('admin-manage-interns')}
+                onClick={() => navigateTo?.('admin-manage-applicants')}
                 className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-lifewood-serpent/55">Total Interns</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-lifewood-serpent/55">Applicants in Pipeline</p>
                     <p className="mt-2 text-4xl font-black text-lifewood-serpent">31</p>
                   </div>
                   <div className="rounded-xl bg-lifewood-green/10 p-2 text-lifewood-green">
                     <Users className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-3 text-xs text-lifewood-serpent/60">Active internship cohort</p>
+                <p className="mt-3 text-xs text-lifewood-serpent/60">Active candidates across all roles</p>
               </div>
 
               <div
-                onClick={() => navigateTo?.('admin-manage-employees')}
+                onClick={() => navigateTo?.('admin-manage-applicants')}
                 className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-lifewood-serpent/55">Employees Present</p>
-                    <p className="mt-2 text-4xl font-black text-lifewood-serpent">19</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-lifewood-serpent/55">Interviews Scheduled</p>
+                    <p className="mt-2 text-4xl font-black text-lifewood-serpent">7</p>
                   </div>
                   <div className="rounded-xl bg-lifewood-yellow/20 p-2 text-lifewood-serpent">
-                    <ClipboardList className="h-5 w-5" />
-                  </div>
-                </div>
-                <p className="mt-3 text-xs text-lifewood-serpent/60">Out of 20 scheduled today</p>
-              </div>
-
-              <div
-                onClick={() => navigateTo?.('admin-manage-employees')}
-                className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-lifewood-serpent/55">On Leave</p>
-                    <p className="mt-2 text-4xl font-black text-lifewood-serpent">1</p>
-                  </div>
-                  <div className="rounded-xl bg-lifewood-saffron/20 p-2 text-lifewood-serpent">
                     <Calendar className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-3 text-xs text-lifewood-serpent/60">Planned and approved leaves</p>
+                <p className="mt-3 text-xs text-lifewood-serpent/60">Interviews confirmed for this week</p>
+              </div>
+
+              <div
+                onClick={() => navigateTo?.('admin-reports')}
+                className="cursor-pointer rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_14px_35px_rgba(19,48,32,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(19,48,32,0.16)]"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-lifewood-serpent/55">Reports Ready</p>
+                    <p className="mt-2 text-4xl font-black text-lifewood-serpent">3</p>
+                  </div>
+                  <div className="rounded-xl bg-lifewood-saffron/20 p-2 text-lifewood-serpent">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-lifewood-serpent/60">Weekly exports queued for download</p>
               </div>
 
               <div className="rounded-3xl border border-lifewood-serpent/10 bg-lifewood-serpent p-5 text-white shadow-[0_14px_35px_rgba(4,98,65,0.2)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(4,98,65,0.3)]">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/60">Attendance Rate</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/60">SLA Compliance</p>
                     <p className="mt-2 text-4xl font-black text-lifewood-yellow">95%</p>
                   </div>
                   <div className="rounded-xl bg-white/10 p-2 text-lifewood-yellow">
                     <PieChart className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-3 text-xs text-white/70">Updated every 30 minutes</p>
+                <p className="mt-3 text-xs text-white/70">Latest operations report alignment</p>
               </div>
             </div>
 

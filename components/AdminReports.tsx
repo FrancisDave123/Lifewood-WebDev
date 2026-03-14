@@ -7,12 +7,9 @@ import {
   FileSpreadsheet,
   FileText,
   LayoutDashboard,
-  LineChart,
   LogOut,
   Menu,
-  NotebookPen,
-  UserCircle2,
-  Users
+  UserCircle2
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
@@ -100,22 +97,12 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
             <button
               onClick={() => {
                 setIsSidebarOpen(false);
-                navigateTo?.('admin-analytics');
+                navigateTo?.('admin-manage-applicants');
               }}
               className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
             >
-              <LineChart className="h-4 w-4" />
-              Analytics
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-evaluation');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <NotebookPen className="h-4 w-4" />
-              Evaluation
+              <ClipboardList className="h-4 w-4" />
+              Applicants
             </button>
             <button
               onClick={() => setIsSidebarOpen(false)}
@@ -123,36 +110,6 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
             >
               <BookOpen className="h-4 w-4" />
               Reports
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-interns');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <Users className="h-4 w-4" />
-              Manage Interns
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-applicants');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <ClipboardList className="h-4 w-4" />
-              Manage Applicants
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-employees');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <UserCircle2 className="h-4 w-4" />
-              Manage Employees
             </button>
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
 
@@ -12,6 +12,7 @@ type GenderOption = 'Male' | 'Female' | 'Prefer not to say';
 interface FormData {
   firstName: string;
   lastName: string;
+  middleName: string;
   gender: GenderOption | '';
   age: string;
   phone: string;
@@ -28,6 +29,7 @@ interface FormData {
 const INITIAL_FORM: FormData = {
   firstName: '',
   lastName: '',
+  middleName: '',
   gender: '',
   age: '',
   phone: '',
@@ -46,12 +48,97 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee' }) => {
   const roleLabel = variant === 'intern' ? 'Intern' : 'Employee';
   const includeSchool = variant === 'intern';
+  const ADMIN_AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
+  const ROLE_ID_STORAGE_KEY = 'lifewood_role_id';
+  const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
+  const API_APPLICANTS_URL = '/api/applicants';
+  const API_AUTH_SESSION_URL = '/api/auth/session';
+  const API_SCHOOLS_URL = '/api/schools';
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [stepDirection, setStepDirection] = useState<1 | -1>(1);
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [schools, setSchools] = useState<Array<{ id: number; name: string }>>([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(false);
+  const [schoolsError, setSchoolsError] = useState('');
+
+  useEffect(() => {
+    const redirectMessage = "You're signed in as an admin. Please sign out to apply.";
+    const hasWindow = typeof window !== 'undefined';
+
+    const redirectAdmin = () => {
+      if (hasWindow) {
+        sessionStorage.setItem(ADMIN_REDIRECT_NOTICE_KEY, redirectMessage);
+      }
+      navigateTo?.('admin-dashboard');
+    };
+
+    if (hasWindow) {
+      const isAdminAuth = localStorage.getItem(ADMIN_AUTH_STORAGE_KEY) === 'true';
+      const roleId = Number(localStorage.getItem(ROLE_ID_STORAGE_KEY));
+      if (isAdminAuth && roleId === 1) {
+        redirectAdmin();
+        return;
+      }
+    }
+
+    const checkSession = async () => {
+      try {
+        const response = await fetch(API_AUTH_SESSION_URL, { credentials: 'include' });
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (payload?.data?.role_id === 1) {
+          redirectAdmin();
+        }
+      } catch {}
+    };
+
+    void checkSession();
+  }, [navigateTo]);
+
+  useEffect(() => {
+    if (!includeSchool) return;
+    let isActive = true;
+    const loadSchools = async () => {
+      setSchoolsLoading(true);
+      setSchoolsError('');
+      try {
+        const response = await fetch(API_SCHOOLS_URL, { credentials: 'include' });
+        const payload = await response.json();
+        if (!response.ok || !payload?.ok) {
+          throw new Error(payload?.message || 'Unable to load schools.');
+        }
+        const data = Array.isArray(payload?.data?.schools) ? payload.data.schools : [];
+        const normalized = data
+          .map((item: { id?: number; school_name?: string }) => ({
+            id: Number(item.id ?? 0),
+            name: String(item.school_name ?? '').trim()
+          }))
+          .filter((item: { id: number; name: string }) => item.id > 0 && item.name !== '');
+
+        if (isActive) {
+          setSchools(normalized);
+        }
+      } catch (error) {
+        if (isActive) {
+          setSchoolsError(error instanceof Error ? error.message : 'Unable to load schools.');
+          setSchools([]);
+        }
+      } finally {
+        if (isActive) {
+          setSchoolsLoading(false);
+        }
+      }
+    };
+
+    void loadSchools();
+    return () => {
+      isActive = false;
+    };
+  }, [includeSchool]);
 
   const updateField = (field: keyof FormData, value: string | File | null) => {
     setForm((prev) => ({
@@ -135,16 +222,71 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
       setStep(3);
       return;
     }
+    if (isSubmitting) return;
     setIsSubmitting(true);
     setSubmitMessage(null);
+    setSubmitError(null);
 
-    // Simulate submit; integrate API as needed.
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitMessage('Your application has been submitted. Please check your email to continue with the AI pre-screening.');
-      setForm(INITIAL_FORM);
-      setStep(1);
-    }, 800);
+    const positionApplied = form.position === 'Other' ? form.otherPosition : form.position;
+    const country = form.country === 'Other' ? form.otherCountry : form.country;
+    const designationName = variant === 'intern' ? 'intern' : 'employee';
+    const payload = new FormData();
+    payload.append('first_name', form.firstName.trim());
+    payload.append('last_name', form.lastName.trim());
+    payload.append('middle_name', form.middleName.trim());
+    payload.append('gender', form.gender);
+    payload.append('age', String(Number(form.age)));
+    payload.append('phone_number', form.phone.trim());
+    payload.append('email', form.email.trim());
+    payload.append('position_applied', positionApplied.trim());
+    payload.append('country', country.trim());
+    payload.append('current_address', form.address.trim());
+    payload.append('school_name', includeSchool ? form.school.trim() : '');
+    payload.append('designation_name', designationName);
+    payload.append('uploaded_cv', form.cvFile ? 'true' : 'false');
+    if (form.cvFile) {
+      payload.append('cv_file', form.cvFile, form.cvFile.name);
+    }
+
+    const submit = async () => {
+      try {
+        const response = await fetch(API_APPLICANTS_URL, {
+          method: 'POST',
+          credentials: 'include',
+          body: payload
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok || !result?.ok) {
+          const apiMessage = result?.message ? String(result.message) : 'Unable to submit your application.';
+          const lower = apiMessage.toLowerCase();
+          const fieldErrors: Record<string, string> = {};
+          if (lower.includes('phone number')) fieldErrors.phone = apiMessage;
+          if (lower.includes('email')) fieldErrors.email = apiMessage;
+          if (lower.includes('school')) fieldErrors.school = apiMessage;
+
+          if (Object.keys(fieldErrors).length > 0) {
+            setErrors((prev) => ({ ...prev, ...fieldErrors }));
+            if (fieldErrors.phone || fieldErrors.email || fieldErrors.school) {
+              setStepDirection(-1);
+              setStep(2);
+            }
+            setSubmitError(null);
+            return;
+          }
+
+          throw new Error(apiMessage);
+        }
+        setSubmitMessage('Your application has been submitted. Please check your email to continue with the AI pre-screening.');
+        setForm(INITIAL_FORM);
+        setStep(1);
+      } catch (error) {
+        setSubmitError(error instanceof Error ? error.message : 'Unable to submit your application.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    void submit();
   };
 
   const renderStepIndicator = () => (
@@ -184,7 +326,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
           onClick={() => navigateTo?.('careers')}
           className="mb-6 inline-flex items-center text-xs font-semibold text-lifewood-serpent/70 hover:text-lifewood-serpent transition"
         >
-          ← Back to Careers
+          &larr; Back to Careers
         </button>
 
         <div className="mb-8 space-y-2">
@@ -253,10 +395,10 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                   <h2 className="text-lg md:text-xl font-heading font-semibold text-lifewood-serpent dark:text-white">
                     Step 1 · Personal Information
                   </h2>
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-3">
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        First Name
+                        First Name <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="text"
@@ -271,7 +413,19 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        Last Name
+                        Middle Name (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={form.middleName}
+                        onChange={(e) => updateField('middleName', e.target.value)}
+                        className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
+                        placeholder="Enter your middle name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
+                        Last Name <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="text"
@@ -289,7 +443,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="md:col-span-1">
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        Gender
+                        Gender <span className="text-red-600">*</span>
                       </label>
                       <select
                         value={form.gender}
@@ -309,7 +463,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        Age
+                        Age <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="number"
@@ -333,7 +487,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        Phone Number
+                        Phone Number <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="tel"
@@ -348,7 +502,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        Email Address
+                        Email Address <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="email"
@@ -369,7 +523,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        Position Applied
+                        Position Applied <span className="text-red-600">*</span>
                       </label>
                       <select
                         value={form.position}
@@ -388,7 +542,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                       {form.position === 'Other' && (
                         <div className="mt-3">
                           <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                            Specify Other Position
+                            Specify Other Position <span className="text-red-600">*</span>
                           </label>
                           <input
                             type="text"
@@ -405,7 +559,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        Country
+                        Country <span className="text-red-600">*</span>
                       </label>
                       <select
                         value={form.country}
@@ -426,7 +580,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                       {form.country === 'Other' && (
                         <div className="mt-3">
                           <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                            Specify Other Country
+                            Specify Other Country <span className="text-red-600">*</span>
                           </label>
                           <input
                             type="text"
@@ -445,7 +599,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
 
                   <div>
                     <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                      Current Address
+                      Current Address <span className="text-red-600">*</span>
                     </label>
                     <textarea
                       value={form.address}
@@ -462,15 +616,29 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                   {includeSchool && (
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                        School
+                        School <span className="text-red-600">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={form.school}
                         onChange={(e) => updateField('school', e.target.value)}
-                        className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
-                        placeholder="Enter your school or university"
-                      />
+                        disabled={schoolsLoading}
+                        className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70 disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        <option value="">
+                          {schoolsLoading ? 'Loading schools...' : 'Select your school'}
+                        </option>
+                        {schools.map((school) => (
+                          <option key={school.id} value={school.name}>
+                            {school.name}
+                          </option>
+                        ))}
+                      </select>
+                      {schoolsError && (
+                        <p className="mt-1 text-xs text-red-600">{schoolsError}</p>
+                      )}
+                      {!schoolsLoading && !schoolsError && schools.length === 0 && (
+                        <p className="mt-1 text-xs text-red-600">No schools available. Please contact support.</p>
+                      )}
                       {errors.school && (
                         <p className="mt-1 text-xs text-red-600">{errors.school}</p>
                       )}
@@ -484,7 +652,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                   </h2>
                   <div>
                     <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-2">
-                      Upload CV (PDF only, max. 10MB)
+                      Upload CV (PDF only, max. 10MB) <span className="text-red-600">*</span>
                     </label>
                     <div
                       className={[
@@ -589,6 +757,11 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
           {submitMessage && (
             <p className="mt-2 text-xs text-lifewood-green font-medium">
               {submitMessage}
+            </p>
+          )}
+          {submitError && (
+            <p className="mt-2 text-xs text-red-600 font-medium">
+              {submitError}
             </p>
           )}
         </form>

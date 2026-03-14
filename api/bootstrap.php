@@ -38,6 +38,24 @@ function load_env(): void
     }
 }
 
+function env_value(string $key): string
+{
+    $value = getenv($key);
+    if ($value !== false && $value !== '') {
+        return $value;
+    }
+
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
+        return (string) $_ENV[$key];
+    }
+
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+        return (string) $_SERVER[$key];
+    }
+
+    return '';
+}
+
 function json_response(int $status, array $payload): void
 {
     http_response_code($status);
@@ -118,7 +136,7 @@ function cors_bootstrap(): void
             json_response(403, ['ok' => false, 'message' => 'Origin not allowed.']);
         }
 
-        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+        header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
         http_response_code(204);
         exit;

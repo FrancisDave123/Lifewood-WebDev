@@ -5,25 +5,15 @@ import {
   Calendar,
   ClipboardList,
   LayoutDashboard,
-  LineChart,
   LogOut,
   Menu,
-  NotebookPen,
   Trash2,
-  UserCircle2,
-  Users
+  UserCircle2
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
-import { defaultInternRecords } from './AdminManageInterns';
-import { defaultEmployeeRecords } from './AdminManageEmployees';
-import {
-  MANAGE_APPLICANTS_STORAGE_KEY,
-  MANAGE_EMPLOYEES_STORAGE_KEY,
-  MANAGE_INTERNS_STORAGE_KEY
-} from './adminPeopleStorage';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminManageApplicantsProps {
@@ -34,6 +24,7 @@ type ApplicantRecord = {
   id: string;
   firstName: string;
   lastName: string;
+  middleName?: string | null;
   gender: string;
   age: number;
   phoneNumber: string;
@@ -41,96 +32,32 @@ type ApplicantRecord = {
   positionApplied: string;
   country: string;
   currentAddress: string;
-  cvUrl: string;
-  cvFileName: string;
-  appliedDate: string;
-  source: string;
-  assessment: string;
-  interview: string;
-  availability: string;
-  stage: string;
+  schoolName?: string | null;
+  uploadedCv: boolean;
+  cvPath?: string | null;
+  statusName?: string | null;
+  newApplicantStatus: boolean;
+  createdAt: string;
 };
 
-type InternRecord = (typeof defaultInternRecords)[number];
-type EmployeeRecord = (typeof defaultEmployeeRecords)[number];
-
-const applicantRecords: ApplicantRecord[] = [
-  {
-    id: 'applicant-maria',
-    firstName: 'Maria Camille',
-    lastName: 'Santos',
-    gender: 'Female',
-    age: 24,
-    phoneNumber: '+63 917 000 1132',
-    emailAddress: 'maria.santos@example.com',
-    positionApplied: 'Image QA Intern',
-    country: 'Philippines',
-    currentAddress: 'Bajada, Davao City',
-    cvUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    cvFileName: 'Maria_Camille_Santos_CV.pdf',
-    appliedDate: 'Feb 18, 2026',
-    source: 'Website Form',
-    assessment: '91%',
-    interview: 'Passed panel',
-    availability: 'Immediate',
-    stage: 'Offer ready'
-  },
-  {
-    id: 'applicant-renz',
-    firstName: 'Renz',
-    lastName: 'Aquino',
-    gender: 'Male',
-    age: 22,
-    phoneNumber: '+63 998 222 5104',
-    emailAddress: 'renz.aquino@example.com',
-    positionApplied: 'NLP Annotation Intern',
-    country: 'Philippines',
-    currentAddress: 'Mankilam, Tagum City',
-    cvUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    cvFileName: 'Renz_Aquino_CV.pdf',
-    appliedDate: 'Feb 17, 2026',
-    source: 'Campus Partner',
-    assessment: '84%',
-    interview: 'Scheduled - Feb 24',
-    availability: 'Within 2 weeks',
-    stage: 'Interviewing'
-  },
-  {
-    id: 'applicant-jean',
-    firstName: 'Jean Paul',
-    lastName: 'Natividad',
-    gender: 'Male',
-    age: 23,
-    phoneNumber: '+63 905 444 2290',
-    emailAddress: 'jean.natividad@example.com',
-    positionApplied: 'Audio Tagging Intern',
-    country: 'Philippines',
-    currentAddress: 'Gredu, Panabo City',
-    cvUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    cvFileName: 'Jean_Paul_Natividad_CV.pdf',
-    appliedDate: 'Feb 16, 2026',
-    source: 'Referral',
-    assessment: '76%',
-    interview: 'Pending invite',
-    availability: 'Next month',
-    stage: 'Screening'
-  }
-];
+type ApplicantSummary = {
+  hired: number;
+  rejected: number;
+};
 
 export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { profile, setProfile, adminGmail } = useAdminProfile();
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [applicants, setApplicants] = useState<ApplicantRecord[]>(() => {
-    const saved = localStorage.getItem(MANAGE_APPLICANTS_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved) as ApplicantRecord[];
-      } catch {}
-    }
-    return applicantRecords;
+  const [applicants, setApplicants] = useState<ApplicantRecord[]>([]);
+  const [summary, setSummary] = useState<ApplicantSummary>({
+    hired: 0,
+    rejected: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalApplicant, setModalApplicant] = useState<ApplicantRecord | null>(null);
@@ -171,16 +98,35 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     setSelectedIds([]);
   };
 
-  const confirmDeleteAction = () => {
+  const deleteApplicantsByIds = async (ids: string[]) => {
+    if (!ids.length) return;
+    try {
+      const response = await fetch('/api/applicants', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ids })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.message || 'Unable to delete applicants.');
+      }
+      setApplicants((prev) => prev.filter((applicant) => !ids.includes(applicant.id)));
+      setModalApplicant((prev) => (prev && ids.includes(prev.id) ? null : prev));
+      setSelectedIds((prev) => prev.filter((selectedId) => !ids.includes(selectedId)));
+      setAssignmentNotice(ids.length > 1 ? `${ids.length} applicants deleted.` : 'Applicant deleted.');
+      void loadSummary();
+    } catch (error) {
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to delete applicants.');
+    }
+  };
+
+  const confirmDeleteAction = async () => {
     if (!confirmDelete) return;
     if (confirmDelete.mode === 'single' && confirmDelete.id) {
-      setApplicants((prev) => prev.filter((applicant) => applicant.id !== confirmDelete.id));
-      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== confirmDelete.id));
-      setModalApplicant((prev) => (prev?.id === confirmDelete.id ? null : prev));
+      await deleteApplicantsByIds([confirmDelete.id]);
     } else if (confirmDelete.mode === 'selected') {
-      setApplicants((prev) => prev.filter((applicant) => !selectedIds.includes(applicant.id)));
-      setModalApplicant((prev) => (prev && selectedIds.includes(prev.id) ? null : prev));
-      setSelectedIds([]);
+      await deleteApplicantsByIds(selectedIds);
     }
     setConfirmDelete(null);
     setIsSelectMode(false);
@@ -191,150 +137,196 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     cancelSelection();
   };
 
+  const formatStatusLabel = (statusName?: string | null) => {
+    if (!statusName) return 'Unassigned';
+    return statusName
+      .replace(/_/g, ' ')
+      .replace(/\bai\b/gi, 'AI')
+      .replace(/\b\w/g, (match) => match.toUpperCase());
+  };
+
+  const formatAppliedDate = (isoDate: string) => {
+    if (!isoDate) return '—';
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) return '—';
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const loadApplicants = async () => {
+    setIsLoading(true);
+    setLoadError('');
+    try {
+      const response = await fetch('/api/applicants', { credentials: 'include' });
+      const payload = await response.json();
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.message || 'Unable to load applicants.');
+      }
+      const records = (payload?.data?.applicants || []) as Array<Record<string, unknown>>;
+      const normalized = records.map((record) => ({
+        id: String(record.id ?? ''),
+        firstName: String(record.first_name ?? ''),
+        lastName: String(record.last_name ?? ''),
+        middleName: record.middle_name ? String(record.middle_name) : null,
+        gender: String(record.gender ?? ''),
+        age: Number(record.age ?? 0),
+        phoneNumber: String(record.phone_number ?? ''),
+        emailAddress: String(record.email ?? ''),
+        positionApplied: String(record.position_applied ?? ''),
+        country: String(record.country ?? ''),
+        currentAddress: String(record.current_address ?? ''),
+        schoolName: record.school_name ? String(record.school_name) : null,
+        uploadedCv: Boolean(record.uploaded_cv),
+        cvPath: record.cv_path ? String(record.cv_path) : null,
+        statusName: record.status_name ? String(record.status_name) : null,
+        newApplicantStatus: Boolean(record.new_applicant_status),
+        createdAt: String(record.created_at ?? '')
+      })) as ApplicantRecord[];
+      setApplicants(normalized);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to load applicants.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadSummary = async () => {
+    setIsSummaryLoading(true);
+    try {
+      const response = await fetch('/api/applicants/summary', { credentials: 'include' });
+      const payload = await response.json();
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.message || 'Unable to load applicant summary.');
+      }
+      setSummary({
+        hired: Number(payload?.data?.hired ?? 0),
+        rejected: Number(payload?.data?.rejected ?? 0)
+      });
+    } catch {
+      setSummary({
+        hired: 0,
+        rejected: 0
+      });
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem(MANAGE_APPLICANTS_STORAGE_KEY, JSON.stringify(applicants));
-  }, [applicants]);
+    void loadApplicants();
+    void loadSummary();
+  }, []);
 
   const handleEditProfile = () => {
     setIsProfileOpen(true);
   };
 
-  const toTrack = (positionApplied: string) => {
-    const text = positionApplied.toLowerCase();
-    if (text.includes('audio') || text.includes('speech')) return 'Speech Tagging';
-    if (text.includes('image')) return 'Image QA';
-    if (text.includes('nlp') || text.includes('text')) return 'Text Annotation';
-    return 'General Operations';
-  };
-
-  const toTeam = (positionApplied: string) => {
-    const text = positionApplied.toLowerCase();
-    if (text.includes('audio') || text.includes('speech')) return 'Speech Programs';
-    if (text.includes('image')) return 'Image QA';
-    if (text.includes('nlp') || text.includes('text')) return 'NLP Annotation';
-    return 'Operations';
-  };
-
-  const getEmployeeNumericId = (applicantId: string) => {
-    const seed = applicantId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return `${(seed % 900) + 100}`.padStart(3, '0');
-  };
-
-  const readStoredInterns = (): InternRecord[] => {
-    const saved = localStorage.getItem(MANAGE_INTERNS_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved) as InternRecord[];
-      } catch {}
+  const updateApplicantStatus = async (applicantId: string, statusName: string, successMessage: string) => {
+    setAssignmentNotice('');
+    try {
+      const response = await fetch('/api/applicants/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          applicant_id: applicantId,
+          status_name: statusName,
+          new_applicant_status: false
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.message || 'Unable to update applicant status.');
+      }
+      setApplicants((prev) =>
+        prev.map((applicant) =>
+          applicant.id === applicantId
+            ? { ...applicant, statusName, newApplicantStatus: false }
+            : applicant
+        )
+      );
+      setModalApplicant((prev) =>
+        prev && prev.id === applicantId
+          ? { ...prev, statusName, newApplicantStatus: false }
+          : prev
+      );
+      setAssignmentNotice(successMessage);
+      void loadSummary();
+    } catch (error) {
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to update applicant status.');
     }
-    return [...defaultInternRecords];
   };
 
-  const readStoredEmployees = (): EmployeeRecord[] => {
-    const saved = localStorage.getItem(MANAGE_EMPLOYEES_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved) as EmployeeRecord[];
-      } catch {}
+  const markAsHired = (applicant: ApplicantRecord) => {
+    void updateApplicantStatus(
+      applicant.id,
+      'hired',
+      `${applicant.firstName} ${applicant.lastName} marked as hired.`
+    );
+  };
+
+  const markAsRejected = (applicant: ApplicantRecord) => {
+    void updateApplicantStatus(
+      applicant.id,
+      'rejected',
+      `${applicant.firstName} ${applicant.lastName} marked as rejected.`
+    );
+  };
+
+  const fetchCvUrl = async (applicantId: string) => {
+    const response = await fetch(`/api/applicants/cv?applicant_id=${encodeURIComponent(applicantId)}`, {
+      credentials: 'include'
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.message || 'Unable to open CV.');
     }
-    return [...defaultEmployeeRecords];
+    const url = payload?.data?.url;
+    if (!url || typeof url !== 'string') {
+      throw new Error('Unable to open CV.');
+    }
+    return url;
   };
 
-  const removeApplicantFromPipeline = (applicantId: string) => {
-    setApplicants((prev) => prev.filter((entry) => entry.id !== applicantId));
-    setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== applicantId));
-    setModalApplicant((prev) => (prev?.id === applicantId ? null : prev));
-  };
-
-  const addAsIntern = (applicant: ApplicantRecord) => {
-    const existingInterns = readStoredInterns();
-    const internId = `intern-${applicant.id}`;
-
-    if (existingInterns.some((entry) => entry.id === internId)) {
-      setAssignmentNotice(`${applicant.firstName} ${applicant.lastName} is already in Manage Interns.`);
+  const openCv = async (applicant: ApplicantRecord) => {
+    if (!applicant.cvPath) {
+      setAssignmentNotice('CV not available.');
       return;
     }
 
-    const internCandidate: InternRecord = {
-      id: internId,
-      name: `${applicant.firstName} ${applicant.lastName}`,
-      firstName: applicant.firstName,
-      lastName: applicant.lastName,
-      email: applicant.emailAddress,
-      gender: applicant.gender,
-      age: applicant.age,
-      school: 'Sample University',
-      phoneNumber: applicant.phoneNumber,
-      position: applicant.positionApplied,
-      currentAddress: applicant.currentAddress,
-      country: applicant.country,
-      batch: 'Batch 09',
-      track: toTrack(applicant.positionApplied),
-      currentProject: `${applicant.positionApplied} Onboarding`,
-      mentor: 'TBD',
-      attendanceRate: '100%',
-      quality: 'Pending review',
-      status: 'Newly Added',
-      notes: `Promoted from applicants (${applicant.appliedDate})`,
-      trackHistory: [toTrack(applicant.positionApplied), 'Orientation & Compliance'],
-      projectHistory: [
-        {
-          project: `${applicant.positionApplied} Onboarding`,
-          mentor: 'TBD',
-          period: 'Starting'
-        }
-      ],
-      attendanceRecords: []
-    };
-
-    localStorage.setItem(MANAGE_INTERNS_STORAGE_KEY, JSON.stringify([...existingInterns, internCandidate]));
-    removeApplicantFromPipeline(applicant.id);
+    try {
+      const url = await fetchCvUrl(applicant.id);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to open CV.');
+    }
   };
 
-  const addAsEmployee = (applicant: ApplicantRecord) => {
-    const existingEmployees = readStoredEmployees();
-    const employeeRecordId = `emp-${applicant.id}`;
-
-    if (existingEmployees.some((entry) => entry.id === employeeRecordId)) {
-      setAssignmentNotice(`${applicant.firstName} ${applicant.lastName} is already in Manage Employees.`);
+  const downloadCv = async (applicant: ApplicantRecord) => {
+    if (!applicant.cvPath) {
+      setAssignmentNotice('CV not available.');
       return;
     }
 
-    const normalizedRole = applicant.positionApplied.replace(/\bIntern\b/i, 'Associate');
-    const employeeCandidate: EmployeeRecord = {
-      id: employeeRecordId,
-      employeeId: `EMP-${getEmployeeNumericId(applicant.id)}`,
-      name: `${applicant.firstName} ${applicant.lastName}`,
-      firstName: applicant.firstName,
-      lastName: applicant.lastName,
-      email: applicant.emailAddress,
-      gender: applicant.gender,
-      age: applicant.age,
-      school: 'Sample University',
-      phoneNumber: applicant.phoneNumber,
-      position: normalizedRole,
-      currentAddress: applicant.currentAddress,
-      country: applicant.country,
-      role: normalizedRole,
-      team: toTeam(applicant.positionApplied),
-      certifications: 'Pending onboarding',
-      workload: '0%',
-      attendance: 'Pending check-in',
-      currentFocus: 'Onboarding and initial training',
-      status: 'New hire',
-      roleHistory: [normalizedRole],
-      projectHistory: [
-        {
-          project: 'Workforce Onboarding Program',
-          supervisor: 'TBD',
-          period: 'Starting'
-        }
-      ],
-      attendanceRecords: []
-    };
-
-    localStorage.setItem(MANAGE_EMPLOYEES_STORAGE_KEY, JSON.stringify([...existingEmployees, employeeCandidate]));
-    removeApplicantFromPipeline(applicant.id);
+    try {
+      const url = await fetchCvUrl(applicant.id);
+      const safeName = `${applicant.lastName}_${applicant.firstName}_CV`.replace(/\s+/g, '_');
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Unable to download CV.');
+      }
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `${safeName}.pdf`;
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to download CV.');
+    }
   };
 
   return (
@@ -404,22 +396,12 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
             <button
               onClick={() => {
                 setIsSidebarOpen(false);
-                navigateTo?.('admin-analytics');
+                navigateTo?.('admin-manage-applicants');
               }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-3 rounded-xl bg-lifewood-green px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-lifewood-green/30"
             >
-              <LineChart className="h-4 w-4" />
-              Analytics
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-evaluation');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <NotebookPen className="h-4 w-4" />
-              Evaluation
+              <ClipboardList className="h-4 w-4" />
+              Applicants
             </button>
             <button
               onClick={() => {
@@ -430,36 +412,6 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
             >
               <BookOpen className="h-4 w-4" />
               Reports
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-interns');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <Users className="h-4 w-4" />
-              Manage Interns
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-applicants');
-              }}
-              className="flex items-center gap-3 rounded-xl bg-lifewood-green px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-lifewood-green/30"
-            >
-              <ClipboardList className="h-4 w-4" />
-              Manage Applicants
-            </button>
-            <button
-              onClick={() => {
-                setIsSidebarOpen(false);
-                navigateTo?.('admin-manage-employees');
-              }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              <UserCircle2 className="h-4 w-4" />
-              Manage Employees
             </button>
           </div>
 
@@ -517,27 +469,23 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
 
             <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_16px_50px_rgba(19,48,32,0.08)]">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-lifewood-green">Recruitment</p>
-              <h1 className="mt-1 text-2xl font-black text-lifewood-serpent md:text-3xl">Manage Applicants</h1>
+              <h1 className="mt-1 text-2xl font-black text-lifewood-serpent md:text-3xl">Applicants</h1>
               <p className="mt-2 text-sm text-lifewood-serpent/65">
-                Track pipeline stage, role preference, assessment score, and interview recommendations.
+                Track applicant status, school details, and CV uploads across the hiring pipeline.
               </p>
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">New Applications</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-serpent">18</p>
-                </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">For Interview</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-serpent">7</p>
-                </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Offer Ready</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-green">3</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Hired</p>
+                  <p className="mt-2 text-3xl font-black text-lifewood-serpent">
+                    {isSummaryLoading ? '-' : summary.hired}
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-4 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Avg Turnaround</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-yellow">4.2d</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Rejected</p>
+                  <p className="mt-2 text-3xl font-black text-lifewood-yellow">
+                    {isSummaryLoading ? '-' : summary.rejected}
+                  </p>
                 </div>
               </div>
             </div>
@@ -596,8 +544,28 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   </button>
                 )}
               </div>
+              {loadError && (
+                <p className="mb-3 text-xs font-semibold text-red-600">
+                  {loadError}
+                </p>
+              )}
+              {!loadError && isLoading && (
+                <p className="mb-3 text-xs font-semibold text-lifewood-serpent/60">
+                  Loading applicants...
+                </p>
+              )}
+              {!loadError && !isLoading && filteredApplicants.length === 0 && (
+                <p className="mb-3 text-xs font-semibold text-lifewood-serpent/60">
+                  No applicants found.
+                </p>
+              )}
+              {assignmentNotice && !modalApplicant && (
+                <p className="mb-3 text-xs font-semibold text-lifewood-green">
+                  {assignmentNotice}
+                </p>
+              )}
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[980px] table-auto text-left">
+                <table className="w-full min-w-[860px] table-auto text-left">
                   <thead className="bg-lifewood-seaSalt/70">
                     <tr className="text-xs uppercase tracking-[0.14em] text-lifewood-serpent/55">
                       {isSelectMode && (
@@ -607,12 +575,11 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                       )}
                       <th className="px-4 py-3">Applicant</th>
                       <th className="px-4 py-3">Position Applied</th>
-                      <th className="px-4 py-3">Source</th>
-                      <th className="px-4 py-3">Assessment</th>
-                      <th className="px-4 py-3">Interview</th>
-                      <th className="px-4 py-3">Availability</th>
-                      <th className="px-4 py-3">Stage</th>
+                      <th className="px-4 py-3">School</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">CV</th>
                       {isSelectMode && <th className="px-4 py-3">Actions</th>}
+                      <th className="px-4 py-3 text-right" aria-label="New applicant indicator" />
                     </tr>
                   </thead>
                   <tbody className="text-sm">
@@ -623,7 +590,12 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                           setAssignmentNotice('');
                           setModalApplicant(applicant);
                         }}
-                        className="cursor-pointer border-t border-lifewood-serpent/10 transition odd:bg-white even:bg-lifewood-seaSalt/35 hover:bg-lifewood-seaSalt/60"
+                        className={[
+                          'cursor-pointer border-t border-lifewood-serpent/10 transition',
+                          applicant.newApplicantStatus
+                            ? 'bg-lifewood-green/10 hover:bg-lifewood-green/15'
+                            : 'odd:bg-white even:bg-lifewood-seaSalt/35 hover:bg-lifewood-seaSalt/60'
+                        ].join(' ')}
                       >
                         {isSelectMode && (
                           <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
@@ -636,14 +608,20 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                         )}
                         <td className="px-4 py-4 font-semibold text-lifewood-serpent">
                           <p>{applicant.firstName} {applicant.lastName}</p>
-                          <p className="mt-1 text-xs font-medium text-lifewood-serpent/60">Applied: {applicant.appliedDate}</p>
+                          <p className="mt-1 text-xs font-medium text-lifewood-serpent/60">
+                            Applied: {formatAppliedDate(applicant.createdAt)}
+                          </p>
                         </td>
                         <td className="px-4 py-4 text-lifewood-serpent">{applicant.positionApplied}</td>
-                        <td className="px-4 py-4 text-lifewood-serpent">{applicant.source}</td>
-                        <td className="px-4 py-4 font-semibold text-lifewood-green">{applicant.assessment}</td>
-                        <td className="px-4 py-4 text-lifewood-serpent">{applicant.interview}</td>
-                        <td className="px-4 py-4 text-lifewood-serpent">{applicant.availability}</td>
-                        <td className="px-4 py-4"><span className="rounded-full bg-lifewood-green/10 px-2.5 py-1 text-xs font-semibold text-lifewood-green">{applicant.stage}</span></td>
+                        <td className="px-4 py-4 text-lifewood-serpent">{applicant.schoolName || '—'}</td>
+                        <td className="px-4 py-4">
+                          <span className="rounded-full bg-lifewood-green/10 px-2.5 py-1 text-xs font-semibold text-lifewood-green">
+                            {formatStatusLabel(applicant.statusName)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-lifewood-serpent">
+                          {applicant.cvPath ? 'Uploaded' : 'Missing'}
+                        </td>
                         {isSelectMode && (
                           <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                             <button
@@ -656,6 +634,11 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                             </button>
                           </td>
                         )}
+                        <td className="px-4 py-4 text-right">
+                          {applicant.newApplicantStatus && (
+                            <span className="inline-flex h-2.5 w-2.5 rounded-full bg-lifewood-green shadow-[0_0_0_4px_rgba(34,197,94,0.12)]" />
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -704,35 +687,50 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">First Name:</span> {modalApplicant.firstName}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Last Name:</span> {modalApplicant.lastName}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Middle Name:</span> {modalApplicant.middleName || '—'}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Gender:</span> {modalApplicant.gender}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Age:</span> {modalApplicant.age}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Phone Number:</span> {modalApplicant.phoneNumber}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Email Address:</span> {modalApplicant.emailAddress}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Position Applied:</span> {modalApplicant.positionApplied}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">School:</span> {modalApplicant.schoolName || '—'}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Country:</span> {modalApplicant.country}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Status:</span> {formatStatusLabel(modalApplicant.statusName)}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">New Applicant:</span> {modalApplicant.newApplicantStatus ? 'Yes' : 'No'}</div>
+              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Applied Date:</span> {formatAppliedDate(modalApplicant.createdAt)}</div>
               <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent sm:col-span-2"><span className="font-semibold">Current Address:</span> {modalApplicant.currentAddress}</div>
             </div>
 
             <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4">
-              <p className="text-sm font-semibold text-lifewood-serpent">Uploaded CV</p>
-              <p className="mt-1 text-xs text-lifewood-serpent/70">{modalApplicant.cvFileName}</p>
+              <p className="text-sm font-semibold text-lifewood-serpent">CV Upload</p>
+              <p className="mt-1 text-xs text-lifewood-serpent/70">
+                {modalApplicant.cvPath ? 'Uploaded' : 'Not uploaded'}
+              </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <a
-                  href={modalApplicant.cvUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-xl bg-lifewood-green px-3 py-2 text-xs font-bold text-white hover:bg-lifewood-green/90"
+                <button
+                  type="button"
+                  onClick={() => openCv(modalApplicant)}
+                  disabled={!modalApplicant.cvPath}
+                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                    modalApplicant.cvPath
+                      ? 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
+                      : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                  }`}
                 >
                   View CV
-                </a>
-                <a
-                  href={modalApplicant.cvUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-xl border border-lifewood-serpent/20 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent hover:bg-lifewood-seaSalt"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadCv(modalApplicant)}
+                  disabled={!modalApplicant.cvPath}
+                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                    modalApplicant.cvPath
+                      ? 'bg-lifewood-serpent text-white hover:bg-lifewood-serpent/90'
+                      : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                  }`}
                 >
                   Download CV
-                </a>
+                </button>
                 <a
                   href={`mailto:${modalApplicant.emailAddress}?subject=Application Update - Lifewood`}
                   className="rounded-xl border border-lifewood-green/30 bg-lifewood-green/10 px-3 py-2 text-xs font-semibold text-lifewood-green hover:bg-lifewood-green/20"
@@ -743,24 +741,34 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
             </div>
 
             <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
-              <p className="text-sm font-semibold text-lifewood-serpent">Promote Applicant</p>
+              <p className="text-sm font-semibold text-lifewood-serpent">Update Applicant Status</p>
               <p className="mt-1 text-xs text-lifewood-serpent/60">
-                Add this applicant directly to the corresponding management table.
+                Set the final decision for this applicant.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => addAsIntern(modalApplicant)}
-                  className="rounded-xl bg-lifewood-green px-3 py-2 text-xs font-bold text-white hover:bg-lifewood-green/90"
+                  onClick={() => markAsHired(modalApplicant)}
+                  disabled={modalApplicant.statusName?.toLowerCase() === 'hired'}
+                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                    modalApplicant.statusName?.toLowerCase() === 'hired'
+                      ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                      : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
+                  }`}
                 >
-                  Add as Intern
+                  Mark as Hired
                 </button>
                 <button
                   type="button"
-                  onClick={() => addAsEmployee(modalApplicant)}
-                  className="rounded-xl border border-lifewood-serpent/20 bg-lifewood-seaSalt px-3 py-2 text-xs font-semibold text-lifewood-serpent hover:bg-lifewood-seaSalt/80"
+                  onClick={() => markAsRejected(modalApplicant)}
+                  disabled={modalApplicant.statusName?.toLowerCase() === 'rejected'}
+                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                    modalApplicant.statusName?.toLowerCase() === 'rejected'
+                      ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                      : 'bg-red-500 text-white hover:bg-red-600'
+                  }`}
                 >
-                  Add as Employee
+                  Mark as Rejected
                 </button>
               </div>
               {assignmentNotice && <p className="mt-2 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}

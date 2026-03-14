@@ -14,8 +14,8 @@ class UserProfileController
             json_response(401, ['ok' => false, 'message' => 'Not authenticated.']);
         }
 
-        $supabaseUrl = getenv('SUPABASE_URL') ?: '';
-        $serviceKey = getenv('SUPABASE_SERVICE_ROLE_KEY') ?: '';
+        $supabaseUrl = env_value('SUPABASE_URL');
+        $serviceKey = env_value('SUPABASE_SERVICE_ROLE_KEY');
 
         if ($supabaseUrl === '' || $serviceKey === '') {
             json_response(500, ['ok' => false, 'message' => 'Supabase credentials are missing.']);

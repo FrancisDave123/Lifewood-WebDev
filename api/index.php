@@ -5,6 +5,7 @@ require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/controllers/UserLoginController.php';
 require_once __DIR__ . '/controllers/AdminSessionController.php';
 require_once __DIR__ . '/controllers/UserProfileController.php';
+require_once __DIR__ . '/controllers/ApplicantsController.php';
 
 cors_bootstrap();
 
@@ -37,6 +38,37 @@ if ($path === '/auth/profile' && $method === 'GET') {
 
 if ($path === '/auth/logout' && $method === 'POST') {
     (new AdminSessionController())->logout();
+}
+
+if ($path === '/applicants' && $method === 'GET') {
+    (new ApplicantsController())->list();
+}
+
+if ($path === '/applicants' && $method === 'POST') {
+    $input = get_json_input();
+    (new ApplicantsController())->create($input);
+}
+
+if ($path === '/applicants/summary' && $method === 'GET') {
+    (new ApplicantsController())->summary();
+}
+
+if ($path === '/schools' && $method === 'GET') {
+    (new ApplicantsController())->listSchools();
+}
+
+if ($path === '/applicants/cv' && $method === 'GET') {
+    (new ApplicantsController())->getCvUrl();
+}
+
+if ($path === '/applicants' && $method === 'DELETE') {
+    $input = get_json_input();
+    (new ApplicantsController())->delete($input);
+}
+
+if ($path === '/applicants/status' && $method === 'PATCH') {
+    $input = get_json_input();
+    (new ApplicantsController())->updateStatus($input);
 }
 
 json_response(404, ['ok' => false, 'message' => 'Endpoint not found.']);

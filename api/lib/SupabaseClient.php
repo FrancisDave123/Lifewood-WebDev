@@ -68,4 +68,55 @@ class SupabaseClient
             'raw' => $responseBody,
         ];
     }
+
+    public function uploadObject(string $bucket, string $objectPath, string $binary, string $contentType): array
+    {
+        $path = '/storage/v1/object/' . rawurlencode($bucket) . '/' . str_replace('%2F', '/', rawurlencode($objectPath));
+        $url = $this->baseUrl . $path;
+
+        $ch = curl_init();
+        if ($ch === false) {
+            throw new RuntimeException('Unable to initialize HTTP client.');
+        }
+
+        $headers = [
+            'apikey: ' . $this->serviceKey,
+            'Authorization: Bearer ' . $this->serviceKey,
+            'Content-Type: ' . $contentType,
+        ];
+
+        $options = [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_POSTFIELDS => $binary,
+        ];
+
+        curl_setopt_array($ch, $options);
+
+        $responseBody = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($responseBody === false) {
+            throw new RuntimeException('Supabase request failed: ' . $error);
+        }
+
+        $decoded = json_decode($responseBody, true);
+
+        return [
+            'status' => $status,
+            'data' => is_array($decoded) ? $decoded : null,
+            'raw' => $responseBody,
+        ];
+    }
+
+    public function createSignedUrl(string $bucket, string $objectPath, int $expiresIn): array
+    {
+        $path = '/storage/v1/object/sign/' . rawurlencode($bucket) . '/' . str_replace('%2F', '/', rawurlencode($objectPath));
+        return $this->request('POST', $path, [], ['expiresIn' => $expiresIn]);
+    }
 }

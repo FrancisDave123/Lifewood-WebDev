@@ -27,12 +27,8 @@ import { SignIn } from '../components/SignIn';
 import { JoinUs } from '../components/JoinUs';
 import { JoinUsAs } from '../components/JoinUsAs';
 import { AdminDashboard } from '../components/AdminDashboard';
-import { AdminAnalytics } from '../components/AdminAnalytics';
-import { AdminEvaluation } from '../components/AdminEvaluation';
 import { AdminReports } from '../components/AdminReports';
-import { AdminManageInterns } from '../components/AdminManageInterns';
 import { AdminManageApplicants } from '../components/AdminManageApplicants';
-import { AdminManageEmployees } from '../components/AdminManageEmployees';
 import { AdminAccessDenied } from '../components/AdminAccessDenied';
 import { RoleDashboard } from '../components/RoleDashboard';
 import { PageRoute } from './routeTypes';
@@ -344,17 +340,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             )}
           />
           <Route path="/admin-dashboard" element={renderAdmin(<AdminDashboard navigateTo={navigateTo} />)} />
-          <Route path="/admin-analytics" element={renderAdmin(<AdminAnalytics navigateTo={navigateTo} />)} />
-          <Route path="/admin-evaluation" element={renderAdmin(<AdminEvaluation navigateTo={navigateTo} />)} />
           <Route path="/admin-reports" element={renderAdmin(<AdminReports navigateTo={navigateTo} />)} />
-          <Route path="/admin-manage-interns" element={renderAdmin(<AdminManageInterns navigateTo={navigateTo} />)} />
           <Route
             path="/admin-manage-applicants"
             element={renderAdmin(<AdminManageApplicants navigateTo={navigateTo} />)}
-          />
-          <Route
-            path="/admin-manage-employees"
-            element={renderAdmin(<AdminManageEmployees navigateTo={navigateTo} />)}
           />
           <Route path="/admin-access-denied" element={<AdminAccessDenied navigateTo={navigateTo} />} />
           <Route path="/intern-dashboard" element={renderRoleDashboard('Intern', 'intern-dashboard')} />
