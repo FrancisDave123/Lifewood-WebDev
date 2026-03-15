@@ -71,4 +71,9 @@ if ($path === '/applicants/status' && $method === 'PATCH') {
     (new ApplicantsController())->updateStatus($input);
 }
 
+if ($path === '/applicants/email' && $method === 'POST') {
+    $input = get_json_input();
+    (new ApplicantsController())->sendEmail($input);
+}
+
 json_response(404, ['ok' => false, 'message' => 'Endpoint not found.']);

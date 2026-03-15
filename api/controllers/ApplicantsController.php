@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/SupabaseClient.php';
+require_once __DIR__ . '/../lib/SmtpMailer.php';
 
 class ApplicantsController
 {
@@ -11,9 +12,11 @@ class ApplicantsController
         $client = $this->createClient();
 
         $requestData = $this->extractRequestData($input);
-        $firstName = trim((string) ($requestData['first_name'] ?? ''));
-        $lastName = trim((string) ($requestData['last_name'] ?? ''));
-        $middleName = isset($requestData['middle_name']) ? trim((string) $requestData['middle_name']) : null;
+        $firstName = $this->normalizePersonName(trim((string) ($requestData['first_name'] ?? '')));
+        $lastName = $this->normalizePersonName(trim((string) ($requestData['last_name'] ?? '')));
+        $middleName = isset($requestData['middle_name'])
+            ? $this->normalizePersonName(trim((string) $requestData['middle_name']))
+            : null;
         $gender = trim((string) ($requestData['gender'] ?? ''));
         $age = isset($requestData['age']) ? (int) $requestData['age'] : 0;
         $phoneNumber = trim((string) ($requestData['phone_number'] ?? ''));
@@ -42,7 +45,7 @@ class ApplicantsController
         }
 
         $statusMap = $this->loadStatusMap($client);
-        if (!isset($statusMap['rejected'])) {
+        if (!isset($statusMap['pending'])) {
             json_response(500, ['ok' => false, 'message' => 'Default status is missing.']);
         }
 
@@ -77,7 +80,7 @@ class ApplicantsController
             'country' => $country,
             'current_address' => $currentAddress,
             'uploaded_cv' => $uploadedCv,
-            'status_id' => $statusMap['rejected'],
+            'status_id' => $statusMap['pending'],
             'designation_id' => $designationMap[$designationName],
             'new_applicant_status' => true,
         ];
@@ -107,9 +110,14 @@ class ApplicantsController
     {
         $this->requireAdmin();
         $client = $this->createClient();
+        $designationLookup = [];
+        $designationMap = $this->loadDesignationMap($client);
+        foreach ($designationMap as $name => $id) {
+            $designationLookup[(int) $id] = (string) $name;
+        }
 
         $response = $client->get('/rest/v1/applicants', [
-            'select' => 'id,first_name,last_name,middle_name,gender,age,phone_number,email,position_applied,country,current_address,uploaded_cv,cv_path,status_id,school_id,new_applicant_status,created_at,applicant_statuses(status_name),schools(school_name)',
+            'select' => 'id,first_name,last_name,middle_name,gender,age,phone_number,email,position_applied,country,current_address,uploaded_cv,cv_path,status_id,school_id,designation_id,new_applicant_status,created_at,applicant_statuses(status_name),schools(school_name),designations(designation_name)',
             'order' => 'created_at.desc',
         ]);
 
@@ -118,7 +126,14 @@ class ApplicantsController
         }
 
         $rows = is_array($response['data']) ? $response['data'] : [];
-        $normalized = array_map(function (array $row): array {
+        $normalized = array_map(function (array $row) use ($designationLookup): array {
+            $designationName = $this->extractRelationValue($row['designations'] ?? null, 'designation_name');
+            if ($designationName === null) {
+                $designationId = isset($row['designation_id']) ? (int) $row['designation_id'] : 0;
+                if ($designationId !== 0 && isset($designationLookup[$designationId])) {
+                    $designationName = $designationLookup[$designationId];
+                }
+            }
             return [
                 'id' => $row['id'] ?? null,
                 'first_name' => $row['first_name'] ?? null,
@@ -135,10 +150,12 @@ class ApplicantsController
                 'cv_path' => $row['cv_path'] ?? null,
                 'status_id' => $row['status_id'] ?? null,
                 'school_id' => $row['school_id'] ?? null,
+                'designation_id' => $row['designation_id'] ?? null,
                 'new_applicant_status' => $row['new_applicant_status'] ?? false,
                 'created_at' => $row['created_at'] ?? null,
                 'status_name' => $this->extractRelationValue($row['applicant_statuses'] ?? null, 'status_name'),
                 'school_name' => $this->extractRelationValue($row['schools'] ?? null, 'school_name'),
+                'designation_name' => $designationName,
             ];
         }, $rows);
 
@@ -224,6 +241,7 @@ class ApplicantsController
         }
 
         $rows = is_array($response['data']) ? $response['data'] : [];
+        $pendingCount = 0;
         $hiredCount = 0;
         $rejectedCount = 0;
 
@@ -236,15 +254,75 @@ class ApplicantsController
             if ($statusId !== 0 && isset($statusMap['rejected']) && $statusId === $statusMap['rejected']) {
                 $rejectedCount += 1;
             }
+
+            if ($statusId !== 0 && isset($statusMap['pending']) && $statusId === $statusMap['pending']) {
+                $pendingCount += 1;
+            }
         }
 
         json_response(200, [
             'ok' => true,
             'data' => [
+                'pending' => $pendingCount,
                 'hired' => $hiredCount,
                 'rejected' => $rejectedCount,
             ],
         ]);
+    }
+
+    public function sendEmail(array $input): void
+    {
+        $this->requireAdmin();
+        $template = strtolower(trim((string) ($input['template'] ?? '')));
+        $applicantId = trim((string) ($input['applicant_id'] ?? ''));
+
+        if ($template === '' || $applicantId === '') {
+            json_response(400, ['ok' => false, 'message' => 'Template and applicant ID are required.']);
+        }
+
+        $templates = $this->getEmailTemplates();
+        if (!isset($templates[$template])) {
+            json_response(400, ['ok' => false, 'message' => 'Invalid email template.']);
+        }
+
+        $client = $this->createClient();
+        $response = $client->get('/rest/v1/applicants', [
+            'select' => 'id,first_name,last_name,email',
+            'id' => 'eq.' . $applicantId,
+            'limit' => '1',
+        ]);
+
+        if ($response['status'] >= 400) {
+            json_response(500, ['ok' => false, 'message' => 'Unable to fetch applicant.']);
+        }
+
+        $rows = is_array($response['data']) ? $response['data'] : [];
+        if (count($rows) === 0) {
+            json_response(404, ['ok' => false, 'message' => 'Applicant not found.']);
+        }
+
+        $row = $rows[0];
+        $email = trim((string) ($row['email'] ?? ''));
+        if ($email === '') {
+            json_response(422, ['ok' => false, 'message' => 'Applicant email is missing.']);
+        }
+
+        $firstName = trim((string) ($row['first_name'] ?? ''));
+        $lastName = trim((string) ($row['last_name'] ?? ''));
+        $fullName = trim($firstName . ' ' . $lastName);
+
+        $templateData = $templates[$template];
+        $subject = $templateData['subject'];
+        $body = str_replace('{{first_name}}', $firstName !== '' ? $firstName : 'there', $templateData['body']);
+
+        $mailer = $this->createMailer();
+        try {
+            $mailer->send($email, $fullName, $subject, $body);
+        } catch (RuntimeException $error) {
+            json_response(500, ['ok' => false, 'message' => 'Unable to send email.']);
+        }
+
+        json_response(200, ['ok' => true]);
     }
 
     public function listSchools(): void
@@ -388,6 +466,66 @@ class ApplicantsController
             }
         }
         return $map;
+    }
+
+    private function createMailer(): SmtpMailer
+    {
+        $host = env_value('MAIL_HOST');
+        $port = (int) env_value('MAIL_PORT');
+        $username = env_value('MAIL_USERNAME');
+        $password = env_value('MAIL_PASSWORD');
+        $encryption = env_value('MAIL_ENCRYPTION');
+        $fromAddress = env_value('MAIL_FROM_ADDRESS');
+        $fromName = env_value('MAIL_FROM_NAME');
+
+        if ($host === '' || $port === 0 || $username === '' || $password === '' || $fromAddress === '') {
+            json_response(500, ['ok' => false, 'message' => 'Mail configuration is missing.']);
+        }
+
+        return new SmtpMailer([
+            'host' => $host,
+            'port' => $port,
+            'username' => $username,
+            'password' => $password,
+            'encryption' => $encryption,
+            'from_address' => $fromAddress,
+            'from_name' => $fromName,
+            'client_name' => $_SERVER['HTTP_HOST'] ?? 'localhost',
+        ]);
+    }
+
+    private function getEmailTemplates(): array
+    {
+        return [
+            'ai_screening' => [
+                'subject' => 'AI Screening - Lifewood',
+                'body' => "Hello {{first_name}},\n\nThank you for applying to Lifewood. Please proceed with the AI screening using the instructions we will send you shortly.\n\nRegards,\nLifewood Recruitment Team",
+            ],
+            'personal_interview' => [
+                'subject' => 'Personal Interview - Lifewood',
+                'body' => "Hello {{first_name}},\n\nWe would like to invite you to a personal interview. Please reply with your availability so we can schedule your interview.\n\nRegards,\nLifewood Recruitment Team",
+            ],
+        ];
+    }
+
+    private function normalizePersonName(string $value): string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        if (function_exists('mb_strtolower')) {
+            $lower = mb_strtolower($trimmed, 'UTF-8');
+            return preg_replace_callback('/(^|[\\s\\-\\\'`])([\\p{L}])/u', function (array $matches): string {
+                return $matches[1] . mb_strtoupper($matches[2], 'UTF-8');
+            }, $lower) ?? $lower;
+        }
+
+        $lower = strtolower($trimmed);
+        return preg_replace_callback('/(^|[\\s\\-\\\'`])([a-z])/', function (array $matches): string {
+            return $matches[1] . strtoupper($matches[2]);
+        }, $lower) ?? $lower;
     }
 
     private function loadDesignationMap(SupabaseClient $client): array

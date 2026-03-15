@@ -30,6 +30,7 @@ type ApplicantRecord = {
   phoneNumber: string;
   emailAddress: string;
   positionApplied: string;
+  designationName?: string | null;
   country: string;
   currentAddress: string;
   schoolName?: string | null;
@@ -41,6 +42,7 @@ type ApplicantRecord = {
 };
 
 type ApplicantSummary = {
+  pending: number;
   hired: number;
   rejected: number;
 };
@@ -52,6 +54,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [applicants, setApplicants] = useState<ApplicantRecord[]>([]);
   const [summary, setSummary] = useState<ApplicantSummary>({
+    pending: 0,
     hired: 0,
     rejected: 0
   });
@@ -63,6 +66,23 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [modalApplicant, setModalApplicant] = useState<ApplicantRecord | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
   const [assignmentNotice, setAssignmentNotice] = useState('');
+  const [isEmailSending, setIsEmailSending] = useState(false);
+
+  const formatPersonName = (value?: string | null) => {
+    if (!value) return '';
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/(^|[\\s'’-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+  };
+
+  const formatTitleCase = (value?: string | null) => {
+    if (!value) return '';
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/(^|[\\s'’-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+  };
 
   const filteredApplicants = useMemo(
     () => applicants.filter((applicant) => `${applicant.firstName} ${applicant.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())),
@@ -164,14 +184,15 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       const records = (payload?.data?.applicants || []) as Array<Record<string, unknown>>;
       const normalized = records.map((record) => ({
         id: String(record.id ?? ''),
-        firstName: String(record.first_name ?? ''),
-        lastName: String(record.last_name ?? ''),
-        middleName: record.middle_name ? String(record.middle_name) : null,
+        firstName: formatPersonName(String(record.first_name ?? '')),
+        lastName: formatPersonName(String(record.last_name ?? '')),
+        middleName: record.middle_name ? formatPersonName(String(record.middle_name)) : null,
         gender: String(record.gender ?? ''),
         age: Number(record.age ?? 0),
         phoneNumber: String(record.phone_number ?? ''),
         emailAddress: String(record.email ?? ''),
         positionApplied: String(record.position_applied ?? ''),
+        designationName: record.designation_name ? String(record.designation_name) : null,
         country: String(record.country ?? ''),
         currentAddress: String(record.current_address ?? ''),
         schoolName: record.school_name ? String(record.school_name) : null,
@@ -198,11 +219,13 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
         throw new Error(payload?.message || 'Unable to load applicant summary.');
       }
       setSummary({
+        pending: Number(payload?.data?.pending ?? 0),
         hired: Number(payload?.data?.hired ?? 0),
         rejected: Number(payload?.data?.rejected ?? 0)
       });
     } catch {
       setSummary({
+        pending: 0,
         hired: 0,
         rejected: 0
       });
@@ -270,6 +293,33 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       'rejected',
       `${applicant.firstName} ${applicant.lastName} marked as rejected.`
     );
+  };
+
+  const sendApplicantEmail = async (template: 'ai_screening' | 'personal_interview') => {
+    if (!modalApplicant) return;
+    setAssignmentNotice('');
+    setIsEmailSending(true);
+    try {
+      const response = await fetch('/api/applicants/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          applicant_id: modalApplicant.id,
+          template
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.message || 'Unable to send email.');
+      }
+      const label = template === 'ai_screening' ? 'AI screening' : 'personal interview';
+      setAssignmentNotice(`Email sent for ${label}.`);
+    } catch (error) {
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to send email.');
+    } finally {
+      setIsEmailSending(false);
+    }
   };
 
   const fetchCvUrl = async (applicantId: string) => {
@@ -474,8 +524,14 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                 Track applicant status, school details, and CV uploads across the hiring pipeline.
               </p>
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Pending</p>
+                  <p className="mt-2 text-3xl font-black text-lifewood-serpent">
+                    {isSummaryLoading ? '-' : summary.pending}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-green/10 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Hired</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-serpent">
                     {isSummaryLoading ? '-' : summary.hired}
@@ -575,7 +631,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                       )}
                       <th className="px-4 py-3">Applicant</th>
                       <th className="px-4 py-3">Position Applied</th>
-                      <th className="px-4 py-3">School</th>
+                      <th className="px-4 py-3">Applying As</th>
                       <th className="px-4 py-3">Status</th>
                       <th className="px-4 py-3">CV</th>
                       {isSelectMode && <th className="px-4 py-3">Actions</th>}
@@ -613,7 +669,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                           </p>
                         </td>
                         <td className="px-4 py-4 text-lifewood-serpent">{applicant.positionApplied}</td>
-                        <td className="px-4 py-4 text-lifewood-serpent">{applicant.schoolName || '—'}</td>
+                        <td className="px-4 py-4 text-lifewood-serpent">{formatTitleCase(applicant.designationName) || '—'}</td>
                         <td className="px-4 py-4">
                           <span className="rounded-full bg-lifewood-green/10 px-2.5 py-1 text-xs font-semibold text-lifewood-green">
                             {formatStatusLabel(applicant.statusName)}
@@ -684,94 +740,131 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
               </button>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">First Name:</span> {modalApplicant.firstName}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Last Name:</span> {modalApplicant.lastName}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Middle Name:</span> {modalApplicant.middleName || '—'}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Gender:</span> {modalApplicant.gender}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Age:</span> {modalApplicant.age}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Phone Number:</span> {modalApplicant.phoneNumber}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Email Address:</span> {modalApplicant.emailAddress}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Position Applied:</span> {modalApplicant.positionApplied}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">School:</span> {modalApplicant.schoolName || '—'}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Country:</span> {modalApplicant.country}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Status:</span> {formatStatusLabel(modalApplicant.statusName)}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">New Applicant:</span> {modalApplicant.newApplicantStatus ? 'Yes' : 'No'}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Applied Date:</span> {formatAppliedDate(modalApplicant.createdAt)}</div>
-              <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent sm:col-span-2"><span className="font-semibold">Current Address:</span> {modalApplicant.currentAddress}</div>
-            </div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+              <div className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">First Name:</span> {modalApplicant.firstName}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Last Name:</span> {modalApplicant.lastName}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Middle Name:</span> {modalApplicant.middleName || '?'}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Gender:</span> {modalApplicant.gender}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Age:</span> {modalApplicant.age}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Phone Number:</span> {modalApplicant.phoneNumber}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Email Address:</span> {modalApplicant.emailAddress}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Position Applied:</span> {modalApplicant.positionApplied}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Applying as:</span> {formatTitleCase(modalApplicant.designationName) || '—'}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">School:</span> {modalApplicant.schoolName || '?'}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Country:</span> {modalApplicant.country}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Status:</span> {formatStatusLabel(modalApplicant.statusName)}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">New Applicant:</span> {modalApplicant.newApplicantStatus ? 'Yes' : 'No'}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Applied Date:</span> {formatAppliedDate(modalApplicant.createdAt)}</div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent sm:col-span-2"><span className="font-semibold">Current Address:</span> {formatTitleCase(modalApplicant.currentAddress)}</div>
+                </div>
 
-            <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4">
-              <p className="text-sm font-semibold text-lifewood-serpent">CV Upload</p>
-              <p className="mt-1 text-xs text-lifewood-serpent/70">
-                {modalApplicant.cvPath ? 'Uploaded' : 'Not uploaded'}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => openCv(modalApplicant)}
-                  disabled={!modalApplicant.cvPath}
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                    modalApplicant.cvPath
-                      ? 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
-                      : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                  }`}
-                >
-                  View CV
-                </button>
-                <button
-                  type="button"
-                  onClick={() => downloadCv(modalApplicant)}
-                  disabled={!modalApplicant.cvPath}
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                    modalApplicant.cvPath
-                      ? 'bg-lifewood-serpent text-white hover:bg-lifewood-serpent/90'
-                      : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                  }`}
-                >
-                  Download CV
-                </button>
-                <a
-                  href={`mailto:${modalApplicant.emailAddress}?subject=Application Update - Lifewood`}
-                  className="rounded-xl border border-lifewood-green/30 bg-lifewood-green/10 px-3 py-2 text-xs font-semibold text-lifewood-green hover:bg-lifewood-green/20"
-                >
-                  Email Applicant
-                </a>
               </div>
-            </div>
 
-            <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
-              <p className="text-sm font-semibold text-lifewood-serpent">Update Applicant Status</p>
-              <p className="mt-1 text-xs text-lifewood-serpent/60">
-                Set the final decision for this applicant.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => markAsHired(modalApplicant)}
-                  disabled={modalApplicant.statusName?.toLowerCase() === 'hired'}
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                    modalApplicant.statusName?.toLowerCase() === 'hired'
-                      ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                      : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
-                  }`}
-                >
-                  Mark as Hired
-                </button>
-                <button
-                  type="button"
-                  onClick={() => markAsRejected(modalApplicant)}
-                  disabled={modalApplicant.statusName?.toLowerCase() === 'rejected'}
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                    modalApplicant.statusName?.toLowerCase() === 'rejected'
-                      ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                      : 'bg-red-500 text-white hover:bg-red-600'
-                  }`}
-                >
-                  Mark as Rejected
-                </button>
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
+                  <p className="text-sm font-semibold text-lifewood-serpent">Update Applicant Status</p>
+                  <p className="mt-1 text-xs text-lifewood-serpent/60">
+                    Set the final decision for this applicant.
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => markAsHired(modalApplicant)}
+                      disabled={modalApplicant.statusName?.toLowerCase() === 'hired'}
+                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                        modalApplicant.statusName?.toLowerCase() === 'hired'
+                          ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                          : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
+                      }`}
+                    >
+                      Mark as Hired
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => markAsRejected(modalApplicant)}
+                      disabled={modalApplicant.statusName?.toLowerCase() === 'rejected'}
+                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                        modalApplicant.statusName?.toLowerCase() === 'rejected'
+                          ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                          : 'bg-red-500 text-white hover:bg-red-600'
+                      }`}
+                    >
+                      Mark as Rejected
+                    </button>
+                  </div>
+
+                  <div className="mt-4 border-t border-lifewood-serpent/10 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">Email Templates</p>
+                    <div className="mt-2 flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => sendApplicantEmail('ai_screening')}
+                        disabled={isEmailSending}
+                        className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                          isEmailSending
+                            ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                            : 'border border-lifewood-serpent/20 bg-lifewood-seaSalt text-lifewood-serpent hover:bg-lifewood-seaSalt/80'
+                        }`}
+                      >
+                        Email Applicant for AI Screening
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => sendApplicantEmail('personal_interview')}
+                        disabled={isEmailSending}
+                        className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                          isEmailSending
+                            ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                            : 'border border-lifewood-serpent/20 bg-lifewood-seaSalt text-lifewood-serpent hover:bg-lifewood-seaSalt/80'
+                        }`}
+                      >
+                        Email Applicant for Personal Interview
+                      </button>
+                    </div>
+                  </div>
+                  {assignmentNotice && <p className="mt-3 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
+                </div>
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4">
+                  <p className="text-sm font-semibold text-lifewood-serpent">CV Upload</p>
+                  <p className="mt-1 text-xs text-lifewood-serpent/70">
+                    {modalApplicant.cvPath ? 'Uploaded' : 'Not uploaded'}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openCv(modalApplicant)}
+                      disabled={!modalApplicant.cvPath}
+                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                        modalApplicant.cvPath
+                          ? 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
+                          : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                      }`}
+                    >
+                      View CV
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadCv(modalApplicant)}
+                      disabled={!modalApplicant.cvPath}
+                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                        modalApplicant.cvPath
+                          ? 'bg-lifewood-serpent text-white hover:bg-lifewood-serpent/90'
+                          : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                      }`}
+                    >
+                      Download CV
+                    </button>
+                    <a
+                      href={`mailto:${modalApplicant.emailAddress}?subject=Application Update - Lifewood`}
+                      className="rounded-xl border border-lifewood-green/30 bg-lifewood-green/10 px-3 py-2 text-xs font-semibold text-lifewood-green hover:bg-lifewood-green/20"
+                    >
+                      Email Applicant
+                    </a>
+                  </div>
+                </div>
               </div>
-              {assignmentNotice && <p className="mt-2 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
             </div>
             </motion.div>
           </motion.div>
