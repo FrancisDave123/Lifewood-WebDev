@@ -337,11 +337,26 @@ class ApplicantsController
 
         $templateData = $templates[$template];
         $subject = $templateData['subject'];
-        $body = str_replace('{{first_name}}', $firstName !== '' ? $firstName : 'there', $templateData['body']);
+        $screeningLink = env_value('AI_SCREENING_LINK');
+        $ctaHtml = $screeningLink !== ''
+            ? '<a href="' . htmlspecialchars($screeningLink, ENT_QUOTES) . '" style="background:#FFB347;color:#133020;text-decoration:none;padding:12px 22px;border-radius:999px;display:inline-block;font-weight:700;">Start AI Screening</a>'
+            : '<span style="display:inline-block;background:#FFB347;color:#133020;padding:12px 22px;border-radius:999px;font-weight:700;">AI Screening Link Incoming</span>';
+        $ctaText = $screeningLink !== ''
+            ? 'Start AI screening: ' . $screeningLink
+            : 'Your AI screening link will arrive by email shortly.';
+
+        $placeholders = [
+            '{{first_name}}' => $firstName !== '' ? $firstName : 'there',
+            '{{cta_html}}' => $ctaHtml,
+            '{{cta_text}}' => $ctaText,
+            '{{year}}' => date('Y'),
+        ];
+        $bodyText = strtr($templateData['text'], $placeholders);
+        $bodyHtml = isset($templateData['html']) ? strtr($templateData['html'], $placeholders) : null;
 
         $mailer = $this->createMailer();
         try {
-            $mailer->send($email, $fullName, $subject, $body);
+            $mailer->send($email, $fullName, $subject, $bodyText, $bodyHtml);
         } catch (RuntimeException $error) {
             json_response(500, ['ok' => false, 'message' => 'Unable to send email.']);
         }
@@ -523,11 +538,84 @@ class ApplicantsController
         return [
             'ai_screening' => [
                 'subject' => 'AI Screening - Lifewood',
-                'body' => "Hello {{first_name}},\n\nThank you for applying to Lifewood. Please proceed with the AI screening using the instructions we will send you shortly.\n\nRegards,\nLifewood Recruitment Team",
+                'text' => "Hello {{first_name}},\n\nThank you for applying to Lifewood. We reviewed your application and would like you to complete the AI screening step.\n\nWhat to prepare:\n- Quiet environment with minimal distractions\n- Stable internet connection\n- Working audio (microphone and speakers)\n- Laptop or desktop (preferred)\n\nPreparation tips:\n- Visit our company website\n- Watch the introduction video (if provided)\n\n{{cta_text}}\n\nRegards,\nLifewood Recruitment Team",
+                'html' => '<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Screening</title>
+  </head>
+  <body style="margin:0;background:#F5EEDB;font-family:Arial,Helvetica,sans-serif;color:#133020;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F5EEDB;padding:32px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#F5EEDB;border-radius:22px;overflow:hidden;border:2px solid #133020;">
+            <tr>
+              <td style="background:#133020;padding:20px 24px;color:#F5EEDB;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td>
+                      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#F5EEDB;">Lifewood Data Technology</div>
+                      <div style="font-size:22px;font-weight:800;margin-top:6px;color:#F5EEDB;">AI Screening Invitation</div>
+                    </td>
+                    <td align="right">
+                      <span style="display:inline-block;background:#FFB347;color:#133020;padding:6px 12px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Screening</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:#FFB347;height:6px;line-height:6px;font-size:1px;">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding:24px;">
+                <p style="margin:0 0 12px 0;font-size:16px;color:#133020;">Hello <strong>{{first_name}}</strong>,</p>
+                <p style="margin:0 0 16px 0;font-size:14px;line-height:1.6;color:#133020;">
+                  We reviewed your application and would like you to complete the AI screening step. This helps us confirm your fit for the role before we move forward.
+                </p>
+                <div style="border:2px solid #133020;border-radius:14px;padding:16px;margin:16px 0;background:#F5EEDB;">
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;color:#133020;">Screening Requirements</div>
+                  <ul style="margin:10px 0 0 16px;padding:0;font-size:13px;line-height:1.6;color:#133020;">
+                    <li>Quiet environment with minimal distractions</li>
+                    <li>Stable internet connection</li>
+                    <li>Working audio (microphone and speakers)</li>
+                    <li>Laptop or desktop recommended</li>
+                  </ul>
+                </div>
+                <div style="border:2px solid #133020;border-radius:14px;padding:16px;background:#F5EEDB;">
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;color:#133020;">Preparation Tips</div>
+                  <p style="margin:10px 0 0 0;font-size:13px;line-height:1.6;color:#133020;">
+                    Review our company website and any intro material shared with you so you feel confident during the screening.
+                  </p>
+                </div>
+                <p style="margin:18px 0 8px 0;font-size:13px;color:#133020;">
+                  Your AI screening link will arrive shortly. If you already have it, you may begin below.
+                </p>
+                <div style="text-align:center;margin:18px 0 6px 0;">
+                  {{cta_html}}
+                </div>
+                <p style="margin:14px 0 0 0;font-size:12px;color:#133020;">
+                  Need help? Reply to this email and our recruitment team will assist you.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 20px;text-align:center;font-size:11px;color:#133020;border-top:2px solid #133020;">
+                © {{year}} Lifewood Data Technology
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>',
             ],
             'personal_interview' => [
                 'subject' => 'Personal Interview - Lifewood',
-                'body' => "Hello {{first_name}},\n\nWe would like to invite you to a personal interview. Please reply with your availability so we can schedule your interview.\n\nRegards,\nLifewood Recruitment Team",
+                'text' => "Hello {{first_name}},\n\nWe would like to invite you to a personal interview. Please reply with your availability so we can schedule your interview.\n\nRegards,\nLifewood Recruitment Team",
             ],
         ];
     }

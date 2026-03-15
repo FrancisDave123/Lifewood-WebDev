@@ -76,7 +76,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'’-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
 
   const formatTitleCase = (value?: string | null) => {
@@ -84,7 +84,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'’-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
 
   const filteredApplicants = useMemo(
@@ -875,10 +875,10 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   <p className="mt-1 text-xs text-lifewood-serpent/70">
                     {modalApplicant.cvPath ? 'Uploaded' : 'Not uploaded'}
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openCv(modalApplicant)}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openCv(modalApplicant)}
                       disabled={!modalApplicant.cvPath}
                       className={`rounded-xl px-3 py-2 text-xs font-semibold ${
                         modalApplicant.cvPath
@@ -888,27 +888,21 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                     >
                       View CV
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => downloadCv(modalApplicant)}
-                      disabled={!modalApplicant.cvPath}
-                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                        modalApplicant.cvPath
-                          ? 'bg-lifewood-serpent text-white hover:bg-lifewood-serpent/90'
-                          : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                      }`}
-                    >
-                      Download CV
-                    </button>
-                    <a
-                      href={`mailto:${modalApplicant.emailAddress}?subject=Application Update - Lifewood`}
-                      className="rounded-xl border border-lifewood-green/30 bg-lifewood-green/10 px-3 py-2 text-xs font-semibold text-lifewood-green hover:bg-lifewood-green/20"
-                    >
-                      Email Applicant
-                    </a>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => downloadCv(modalApplicant)}
+                    disabled={!modalApplicant.cvPath}
+                    className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                      modalApplicant.cvPath
+                        ? 'bg-lifewood-serpent text-white hover:bg-lifewood-serpent/90'
+                        : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
+                    }`}
+                  >
+                    Download CV
+                  </button>
                 </div>
               </div>
+            </div>
             </div>
             </motion.div>
           </motion.div>

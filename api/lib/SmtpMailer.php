@@ -24,7 +24,7 @@ class SmtpMailer
         $this->clientName = (string) ($config['client_name'] ?? 'localhost');
     }
 
-    public function send(string $toEmail, string $toName, string $subject, string $body): void
+    public function send(string $toEmail, string $toName, string $subject, string $bodyText, ?string $bodyHtml = null): void
     {
         $socket = $this->connect();
 
@@ -37,11 +37,33 @@ class SmtpMailer
             'To: ' . $this->formatAddress($toName, $toEmail),
             'Subject: ' . $this->encodeHeader($subject),
             'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
-            'Content-Transfer-Encoding: 8bit',
         ];
 
-        $message = implode("\r\n", $headers) . "\r\n\r\n" . $this->normalizeBody($body) . "\r\n.";
+        if ($bodyHtml !== null && $bodyHtml !== '') {
+            $boundary = 'lw_' . bin2hex(random_bytes(8));
+            $headers[] = 'Content-Type: multipart/alternative; boundary="' . $boundary . '"';
+
+            $parts = [];
+            $parts[] = '--' . $boundary;
+            $parts[] = 'Content-Type: text/plain; charset=UTF-8';
+            $parts[] = 'Content-Transfer-Encoding: 8bit';
+            $parts[] = '';
+            $parts[] = $bodyText;
+            $parts[] = '--' . $boundary;
+            $parts[] = 'Content-Type: text/html; charset=UTF-8';
+            $parts[] = 'Content-Transfer-Encoding: 8bit';
+            $parts[] = '';
+            $parts[] = $bodyHtml;
+            $parts[] = '--' . $boundary . '--';
+
+            $messageBody = implode("\r\n", $parts);
+        } else {
+            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+            $headers[] = 'Content-Transfer-Encoding: 8bit';
+            $messageBody = $bodyText;
+        }
+
+        $message = implode("\r\n", $headers) . "\r\n\r\n" . $this->normalizeBody($messageBody) . "\r\n.";
         $this->write($socket, $message . "\r\n");
         $this->expectResponse($socket, [250]);
 
@@ -142,4 +164,3 @@ class SmtpMailer
         return $value;
     }
 }
-

@@ -54,7 +54,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'’-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
 
   const formatTitleCase = (value?: string | null) => {
@@ -62,7 +62,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'’-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
 
   useEffect(() => {
