@@ -4,9 +4,11 @@ import {
   BookOpen,
   Calendar,
   ClipboardList,
+  Filter,
   LayoutDashboard,
   LogOut,
   Menu,
+  SlidersHorizontal,
   Trash2,
   UserCircle2
 } from 'lucide-react';
@@ -62,6 +64,16 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [createdFrom, setCreatedFrom] = useState('');
+  const [createdTo, setCreatedTo] = useState('');
+  const [createdOn, setCreatedOn] = useState('');
+  const [designationFilter, setDesignationFilter] = useState('');
+  const [newOnly, setNewOnly] = useState(false);
+  const [sortOrder, setSortOrder] = useState<
+    'newest' | 'oldest' | 'first_name_asc' | 'first_name_desc' | 'last_name_asc' | 'last_name_desc'
+  >('newest');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalApplicant, setModalApplicant] = useState<ApplicantRecord | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
@@ -70,6 +82,10 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [pageOffset, setPageOffset] = useState(0);
   const [pageLimit] = useState(20);
   const [hasMore, setHasMore] = useState(false);
+  const isFilterActive = Boolean(
+    createdOn || createdFrom || createdTo || designationFilter || newOnly
+  );
+  const isSortActive = sortOrder !== 'newest';
 
   const formatPersonName = (value?: string | null) => {
     if (!value) return '';
@@ -179,7 +195,29 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     setIsLoading(true);
     setLoadError('');
     try {
-      const response = await fetch(`/api/applicants?limit=${pageLimit}&offset=${offset}`, { credentials: 'include' });
+      const params = new URLSearchParams({
+        limit: String(pageLimit),
+        offset: String(offset)
+      });
+      if (createdFrom) {
+        params.set('created_from', createdFrom);
+      }
+      if (createdTo) {
+        params.set('created_to', createdTo);
+      }
+      if (createdOn) {
+        params.set('created_on', createdOn);
+      }
+      if (designationFilter) {
+        params.set('designation_id', designationFilter);
+      }
+      if (newOnly) {
+        params.set('new_only', 'true');
+      }
+      if (sortOrder !== 'newest') {
+        params.set('sort', sortOrder);
+      }
+      const response = await fetch(`/api/applicants?${params.toString()}`, { credentials: 'include' });
       const payload = await response.json();
       if (!response.ok || !payload?.ok) {
         throw new Error(payload?.message || 'Unable to load applicants.');
@@ -244,6 +282,14 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     void loadApplicants(pageOffset);
     void loadSummary();
   }, [pageOffset]);
+
+  useEffect(() => {
+    if (pageOffset !== 0) {
+      setPageOffset(0);
+      return;
+    }
+    void loadApplicants(0);
+  }, [createdFrom, createdTo, createdOn, designationFilter, newOnly, sortOrder]);
 
   const handleEditProfile = () => {
     setIsProfileOpen(true);
@@ -571,6 +617,185 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   placeholder="Search by name..."
                   className="min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
                 />
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsFilterOpen((prev) => !prev);
+                      setIsSortOpen(false);
+                    }}
+                    aria-pressed={isFilterActive}
+                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                      isFilterActive
+                        ? 'border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
+                        : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
+                    }`}
+                  >
+                    <Filter className={`h-4 w-4 ${isFilterActive ? 'text-white' : ''}`} />
+                    Filter
+                    {isFilterActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
+                  </button>
+                  {isFilterOpen && (
+                    <div className="absolute left-0 top-full z-20 mt-2 w-[320px] rounded-2xl border border-lifewood-serpent/15 bg-white p-4 shadow-[0_18px_40px_rgba(19,48,32,0.12)]">
+                      <div className="space-y-3 text-xs text-lifewood-serpent/70">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">
+                            Created On
+                          </p>
+                          <input
+                            type="date"
+                            value={createdOn}
+                            onChange={(e) => setCreatedOn(e.target.value)}
+                            className="mt-2 w-full rounded-lg border border-lifewood-serpent/10 px-3 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">
+                            Date Range
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <input
+                              type="date"
+                              value={createdFrom}
+                              onChange={(e) => setCreatedFrom(e.target.value)}
+                              className="w-full rounded-lg border border-lifewood-serpent/10 px-2 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                            />
+                            <span className="text-lifewood-serpent/40">to</span>
+                            <input
+                              type="date"
+                              value={createdTo}
+                              onChange={(e) => setCreatedTo(e.target.value)}
+                              className="w-full rounded-lg border border-lifewood-serpent/10 px-2 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">
+                            Designation
+                          </p>
+                          <select
+                            value={designationFilter}
+                            onChange={(e) => setDesignationFilter(e.target.value)}
+                            className="mt-2 w-full rounded-lg border border-lifewood-serpent/10 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent"
+                          >
+                            <option value="">All Designations</option>
+                            <option value="1">Intern</option>
+                            <option value="2">Employee</option>
+                          </select>
+                        </div>
+                        <label className="flex items-center gap-2 rounded-lg border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 px-3 py-2 text-xs font-semibold text-lifewood-serpent">
+                          <input
+                            type="checkbox"
+                            checked={newOnly}
+                            onChange={(e) => setNewOnly(e.target.checked)}
+                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
+                          />
+                          New applicants only
+                        </label>
+                        <p className="text-[11px] text-lifewood-serpent/50">
+                          Specific date overrides the range.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSortOpen((prev) => !prev);
+                      setIsFilterOpen(false);
+                    }}
+                    aria-pressed={isSortActive}
+                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                      isSortActive
+                        ? 'border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
+                        : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
+                    }`}
+                  >
+                    <SlidersHorizontal className={`h-4 w-4 ${isSortActive ? 'text-white' : ''}`} />
+                    Sort
+                    {isSortActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
+                  </button>
+                  {isSortOpen && (
+                    <div className="absolute left-0 top-full z-20 mt-2 w-[260px] rounded-2xl border border-lifewood-serpent/15 bg-white p-4 shadow-[0_18px_40px_rgba(19,48,32,0.12)]">
+                      <div className="space-y-2 text-xs text-lifewood-serpent/70">
+                        <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
+                          <input
+                            type="checkbox"
+                            checked={sortOrder === 'newest'}
+                            onChange={() => {
+                              setSortOrder('newest');
+                              setIsSortOpen(false);
+                            }}
+                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
+                          />
+                          Newest first
+                        </label>
+                        <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
+                          <input
+                            type="checkbox"
+                            checked={sortOrder === 'oldest'}
+                            onChange={() => {
+                              setSortOrder('oldest');
+                              setIsSortOpen(false);
+                            }}
+                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
+                          />
+                          Oldest first
+                        </label>
+                        <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
+                          <input
+                            type="checkbox"
+                            checked={sortOrder === 'first_name_asc'}
+                            onChange={() => {
+                              setSortOrder('first_name_asc');
+                              setIsSortOpen(false);
+                            }}
+                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
+                          />
+                          A-Z (First name)
+                        </label>
+                        <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
+                          <input
+                            type="checkbox"
+                            checked={sortOrder === 'first_name_desc'}
+                            onChange={() => {
+                              setSortOrder('first_name_desc');
+                              setIsSortOpen(false);
+                            }}
+                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
+                          />
+                          Z-A (First name)
+                        </label>
+                        <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
+                          <input
+                            type="checkbox"
+                            checked={sortOrder === 'last_name_asc'}
+                            onChange={() => {
+                              setSortOrder('last_name_asc');
+                              setIsSortOpen(false);
+                            }}
+                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
+                          />
+                          A-Z (Last name)
+                        </label>
+                        <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
+                          <input
+                            type="checkbox"
+                            checked={sortOrder === 'last_name_desc'}
+                            onChange={() => {
+                              setSortOrder('last_name_desc');
+                              setIsSortOpen(false);
+                            }}
+                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
+                          />
+                          Z-A (Last name)
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 {!isSelectMode && (
                   <button
                     type="button"

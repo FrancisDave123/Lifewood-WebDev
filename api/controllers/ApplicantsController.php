@@ -127,13 +127,70 @@ class ApplicantsController
             $offset = 0;
         }
         $fetchLimit = $limit + 1;
+        $createdFrom = isset($_GET['created_from']) ? trim((string) $_GET['created_from']) : '';
+        $createdTo = isset($_GET['created_to']) ? trim((string) $_GET['created_to']) : '';
+        $createdOn = isset($_GET['created_on']) ? trim((string) $_GET['created_on']) : '';
+        $designationId = isset($_GET['designation_id']) ? (int) $_GET['designation_id'] : 0;
+        $newOnlyParam = isset($_GET['new_only']) ? trim((string) $_GET['new_only']) : '';
+        $newOnly = $newOnlyParam !== '' ? filter_var($newOnlyParam, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+        $sort = strtolower(trim((string) ($_GET['sort'] ?? 'newest')));
+        $sortOrder = 'created_at.desc';
+        switch ($sort) {
+            case 'oldest':
+                $sortOrder = 'created_at.asc';
+                break;
+            case 'first_name_asc':
+                $sortOrder = 'first_name.asc,last_name.asc';
+                break;
+            case 'first_name_desc':
+                $sortOrder = 'first_name.desc,last_name.desc';
+                break;
+            case 'last_name_asc':
+                $sortOrder = 'last_name.asc,first_name.asc';
+                break;
+            case 'last_name_desc':
+                $sortOrder = 'last_name.desc,first_name.desc';
+                break;
+            case 'alpha':
+                $sortOrder = 'first_name.asc,last_name.asc';
+                break;
+            default:
+                $sortOrder = 'created_at.desc';
+                break;
+        }
 
-        $response = $client->get('/rest/v1/applicants', [
+        $query = [
             'select' => 'id,first_name,last_name,middle_name,gender,age,phone_number,email,position_applied,country,current_address,uploaded_cv,cv_path,status_id,school_id,designation_id,new_applicant_status,created_at,applicant_statuses(status_name),schools(school_name),designations(designation_name)',
-            'order' => 'created_at.desc',
+            'order' => $sortOrder,
             'limit' => (string) $fetchLimit,
             'offset' => (string) $offset,
-        ]);
+        ];
+
+        if ($designationId > 0) {
+            $query['designation_id'] = 'eq.' . $designationId;
+        }
+
+        if ($newOnly !== null) {
+            $query['new_applicant_status'] = 'eq.' . ($newOnly ? 'true' : 'false');
+        }
+
+        $andFilters = [];
+        if ($createdOn !== '') {
+            $andFilters[] = 'created_at.gte.' . $this->normalizeDateStart($createdOn);
+            $andFilters[] = 'created_at.lte.' . $this->normalizeDateEnd($createdOn);
+        } else {
+            if ($createdFrom !== '') {
+                $andFilters[] = 'created_at.gte.' . $this->normalizeDateStart($createdFrom);
+            }
+            if ($createdTo !== '') {
+                $andFilters[] = 'created_at.lte.' . $this->normalizeDateEnd($createdTo);
+            }
+        }
+        if (!empty($andFilters)) {
+            $query['and'] = '(' . implode(',', $andFilters) . ')';
+        }
+
+        $response = $client->get('/rest/v1/applicants', $query);
 
         if ($response['status'] >= 400) {
             json_response(500, ['ok' => false, 'message' => 'Unable to query applicant records.']);
@@ -678,6 +735,30 @@ class ApplicantsController
         }
 
         return null;
+    }
+
+    private function normalizeDateStart(string $value): string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return '';
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $trimmed) === 1) {
+            return $trimmed . 'T00:00:00Z';
+        }
+        return $trimmed;
+    }
+
+    private function normalizeDateEnd(string $value): string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return '';
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $trimmed) === 1) {
+            return $trimmed . 'T23:59:59.999Z';
+        }
+        return $trimmed;
     }
 
     private function extractRelationValue(mixed $relation, string $key): ?string
