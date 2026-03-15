@@ -114,7 +114,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   const loadRecentApplicants = async () => {
     setIsApplicantsLoading(true);
     try {
-      const response = await fetch('/api/applicants', { credentials: 'include' });
+      const response = await fetch('/api/applicants?limit=5&offset=0', { credentials: 'include' });
       const payload = await response.json();
       if (!response.ok || !payload?.ok) {
         throw new Error(payload?.message || 'Unable to load applicants.');
@@ -129,7 +129,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
         designationName: record.designation_name ? String(record.designation_name) : null,
         createdAt: String(record.created_at ?? '')
       })) as ApplicantRecord[];
-      setRecentApplicants(normalized.slice(0, 5));
+      setRecentApplicants(normalized);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to load applicants.');
     } finally {
@@ -315,22 +315,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Pending</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-serpent">
-                    {isSummaryLoading ? '?' : summary.pending}
+                    {isSummaryLoading ? '—' : summary.pending}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-green/10 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Hired</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-serpent">
-                    {isSummaryLoading ? '?' : summary.hired}
+                    {isSummaryLoading ? '—' : summary.hired}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-4 text-white">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Rejected</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-yellow">
-                    {isSummaryLoading ? '?' : summary.rejected}
+                    {isSummaryLoading ? '—' : summary.rejected}
                   </p>
                 </div>
               </div>
+              {isSummaryLoading && (
+                <div className="mt-4 flex items-center gap-3 text-sm font-semibold text-lifewood-serpent/70">
+                  <span className="h-6 w-6 animate-spin rounded-full border-4 border-lifewood-serpent/20 border-t-lifewood-green" />
+                  Loading summary...
+                </div>
+              )}
             </div>
 
             <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
@@ -344,7 +350,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                 </button>
               </div>
               {isApplicantsLoading && (
-                <p className="text-xs font-semibold text-lifewood-serpent/60">Loading applicants...</p>
+                <div className="flex items-center gap-3 text-sm font-semibold text-lifewood-serpent/70">
+                  <span className="h-6 w-6 animate-spin rounded-full border-4 border-lifewood-serpent/20 border-t-lifewood-green" />
+                  Loading applicants...
+                </div>
               )}
               {!isApplicantsLoading && recentApplicants.length === 0 && (
                 <p className="text-xs font-semibold text-lifewood-serpent/60">No applicants found.</p>

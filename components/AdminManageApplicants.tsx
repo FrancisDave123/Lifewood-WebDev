@@ -67,6 +67,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
   const [assignmentNotice, setAssignmentNotice] = useState('');
   const [isEmailSending, setIsEmailSending] = useState(false);
+  const [pageOffset, setPageOffset] = useState(0);
+  const [pageLimit] = useState(20);
+  const [hasMore, setHasMore] = useState(false);
 
   const formatPersonName = (value?: string | null) => {
     if (!value) return '';
@@ -172,16 +175,17 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const loadApplicants = async () => {
+  const loadApplicants = async (offset = pageOffset) => {
     setIsLoading(true);
     setLoadError('');
     try {
-      const response = await fetch('/api/applicants', { credentials: 'include' });
+      const response = await fetch(`/api/applicants?limit=${pageLimit}&offset=${offset}`, { credentials: 'include' });
       const payload = await response.json();
       if (!response.ok || !payload?.ok) {
         throw new Error(payload?.message || 'Unable to load applicants.');
       }
       const records = (payload?.data?.applicants || []) as Array<Record<string, unknown>>;
+      const paging = payload?.data?.paging || {};
       const normalized = records.map((record) => ({
         id: String(record.id ?? ''),
         firstName: formatPersonName(String(record.first_name ?? '')),
@@ -203,6 +207,8 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
         createdAt: String(record.created_at ?? '')
       })) as ApplicantRecord[];
       setApplicants(normalized);
+      setHasMore(Boolean(paging?.has_more));
+      setPageOffset(Number(paging?.offset ?? offset));
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to load applicants.');
     } finally {
@@ -235,9 +241,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   };
 
   useEffect(() => {
-    void loadApplicants();
+    void loadApplicants(pageOffset);
     void loadSummary();
-  }, []);
+  }, [pageOffset]);
 
   const handleEditProfile = () => {
     setIsProfileOpen(true);
@@ -544,6 +550,12 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   </p>
                 </div>
               </div>
+              {isSummaryLoading && (
+                <div className="mt-4 flex items-center gap-3 text-sm font-semibold text-lifewood-serpent/70">
+                  <span className="h-6 w-6 animate-spin rounded-full border-4 border-lifewood-serpent/20 border-t-lifewood-green" />
+                  Loading summary...
+                </div>
+              )}
             </div>
 
             <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
@@ -606,9 +618,10 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                 </p>
               )}
               {!loadError && isLoading && (
-                <p className="mb-3 text-xs font-semibold text-lifewood-serpent/60">
+                <div className="mb-3 flex items-center gap-3 text-sm font-semibold text-lifewood-serpent/70">
+                  <span className="h-6 w-6 animate-spin rounded-full border-4 border-lifewood-serpent/20 border-t-lifewood-green" />
                   Loading applicants...
-                </p>
+                </div>
               )}
               {!loadError && !isLoading && filteredApplicants.length === 0 && (
                 <p className="mb-3 text-xs font-semibold text-lifewood-serpent/60">
@@ -699,6 +712,37 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-lifewood-serpent/70">
+                <span>
+                  Showing {pageOffset + 1}–{pageOffset + applicants.length}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPageOffset(Math.max(0, pageOffset - pageLimit))}
+                    disabled={pageOffset === 0}
+                    className={`rounded-lg px-3 py-1.5 ${
+                      pageOffset === 0
+                        ? 'cursor-not-allowed bg-lifewood-serpent/10 text-lifewood-serpent/40'
+                        : 'bg-lifewood-seaSalt text-lifewood-serpent hover:bg-lifewood-seaSalt/80'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPageOffset(pageOffset + pageLimit)}
+                    disabled={!hasMore}
+                    className={`rounded-lg px-3 py-1.5 ${
+                      !hasMore
+                        ? 'cursor-not-allowed bg-lifewood-serpent/10 text-lifewood-serpent/40'
+                        : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           </div>

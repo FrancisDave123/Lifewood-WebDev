@@ -115,10 +115,24 @@ class ApplicantsController
         foreach ($designationMap as $name => $id) {
             $designationLookup[(int) $id] = (string) $name;
         }
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 50;
+        $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
+        if ($limit <= 0) {
+            $limit = 50;
+        }
+        if ($limit > 100) {
+            $limit = 100;
+        }
+        if ($offset < 0) {
+            $offset = 0;
+        }
+        $fetchLimit = $limit + 1;
 
         $response = $client->get('/rest/v1/applicants', [
             'select' => 'id,first_name,last_name,middle_name,gender,age,phone_number,email,position_applied,country,current_address,uploaded_cv,cv_path,status_id,school_id,designation_id,new_applicant_status,created_at,applicant_statuses(status_name),schools(school_name),designations(designation_name)',
             'order' => 'created_at.desc',
+            'limit' => (string) $fetchLimit,
+            'offset' => (string) $offset,
         ]);
 
         if ($response['status'] >= 400) {
@@ -126,6 +140,10 @@ class ApplicantsController
         }
 
         $rows = is_array($response['data']) ? $response['data'] : [];
+        $hasMore = count($rows) > $limit;
+        if ($hasMore) {
+            $rows = array_slice($rows, 0, $limit);
+        }
         $normalized = array_map(function (array $row) use ($designationLookup): array {
             $designationName = $this->extractRelationValue($row['designations'] ?? null, 'designation_name');
             if ($designationName === null) {
@@ -163,6 +181,12 @@ class ApplicantsController
             'ok' => true,
             'data' => [
                 'applicants' => $normalized,
+                'paging' => [
+                    'limit' => $limit,
+                    'offset' => $offset,
+                    'has_more' => $hasMore,
+                    'next_offset' => $hasMore ? $offset + $limit : null,
+                ],
             ],
         ]);
     }
