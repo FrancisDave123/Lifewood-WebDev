@@ -8,6 +8,7 @@ import {
   UserCircle2
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
+import { applicantService } from '../services/applicantService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
@@ -93,15 +94,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   const loadSummary = async () => {
     setIsSummaryLoading(true);
     try {
-      const response = await fetch('/api/applicants/summary', { credentials: 'include' });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || 'Unable to load applicant summary.');
-      }
+      const summary = await applicantService.getApplicantSummary();
       setSummary({
-        pending: Number(payload?.data?.pending ?? 0),
-        hired: Number(payload?.data?.hired ?? 0),
-        rejected: Number(payload?.data?.rejected ?? 0)
+        pending: summary['pending'] || 0,
+        hired: summary['hired'] || 0,
+        rejected: summary['rejected'] || 0
       });
     } catch (error) {
       setSummary({ pending: 0, hired: 0, rejected: 0 });
@@ -114,19 +111,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   const loadRecentApplicants = async () => {
     setIsApplicantsLoading(true);
     try {
-      const response = await fetch('/api/applicants?limit=5&offset=0', { credentials: 'include' });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || 'Unable to load applicants.');
-      }
-      const records = (payload?.data?.applicants || []) as Array<Record<string, unknown>>;
-      const normalized = records.map((record) => ({
+      const result = await applicantService.getApplicants(5, 0);
+      const normalized = (result.applicants || []).map((record: any) => ({
         id: String(record.id ?? ''),
         firstName: formatPersonName(String(record.first_name ?? '')),
         lastName: formatPersonName(String(record.last_name ?? '')),
         positionApplied: String(record.position_applied ?? ''),
-        statusName: record.status_name ? String(record.status_name) : null,
-        designationName: record.designation_name ? String(record.designation_name) : null,
+        statusName: record.applicant_statuses?.status_name ? String(record.applicant_statuses.status_name) : null,
+        designationName: record.designations?.designation_name ? String(record.designations.designation_name) : null,
         createdAt: String(record.created_at ?? '')
       })) as ApplicantRecord[];
       setRecentApplicants(normalized);

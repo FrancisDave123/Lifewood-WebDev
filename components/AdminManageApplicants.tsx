@@ -13,6 +13,9 @@ import {
   UserCircle2
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
+import { supabase } from '../services/supabaseClient';
+import { applicantService } from '../services/applicantService';
+import { storageService } from '../services/storageService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
@@ -140,16 +143,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const deleteApplicantsByIds = async (ids: string[]) => {
     if (!ids.length) return;
     try {
-      const response = await fetch('/api/applicants', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ ids })
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || 'Unable to delete applicants.');
-      }
+      await applicantService.deleteApplicants(ids);
       setApplicants((prev) => prev.filter((applicant) => !ids.includes(applicant.id)));
       setModalApplicant((prev) => (prev && ids.includes(prev.id) ? null : prev));
       setSelectedIds((prev) => prev.filter((selectedId) => !ids.includes(selectedId)));
@@ -195,36 +189,16 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     setIsLoading(true);
     setLoadError('');
     try {
-      const params = new URLSearchParams({
-        limit: String(pageLimit),
-        offset: String(offset)
+      const result = await applicantService.getApplicants(pageLimit, offset, {
+        created_from: createdFrom || undefined,
+        created_to: createdTo || undefined,
+        created_on: createdOn || undefined,
+        designation_id: designationFilter || undefined,
+        new_only: newOnly || undefined,
+        sort: sortOrder as any
       });
-      if (createdFrom) {
-        params.set('created_from', createdFrom);
-      }
-      if (createdTo) {
-        params.set('created_to', createdTo);
-      }
-      if (createdOn) {
-        params.set('created_on', createdOn);
-      }
-      if (designationFilter) {
-        params.set('designation_id', designationFilter);
-      }
-      if (newOnly) {
-        params.set('new_only', 'true');
-      }
-      if (sortOrder !== 'newest') {
-        params.set('sort', sortOrder);
-      }
-      const response = await fetch(`/api/applicants?${params.toString()}`, { credentials: 'include' });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || 'Unable to load applicants.');
-      }
-      const records = (payload?.data?.applicants || []) as Array<Record<string, unknown>>;
-      const paging = payload?.data?.paging || {};
-      const normalized = records.map((record) => ({
+
+      const normalized = (result.applicants || []).map((record: any) => ({
         id: String(record.id ?? ''),
         firstName: formatPersonName(String(record.first_name ?? '')),
         lastName: formatPersonName(String(record.last_name ?? '')),
@@ -234,19 +208,20 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
         phoneNumber: String(record.phone_number ?? ''),
         emailAddress: String(record.email ?? ''),
         positionApplied: String(record.position_applied ?? ''),
-        designationName: record.designation_name ? String(record.designation_name) : null,
+        designationName: record.designations?.designation_name ? String(record.designations.designation_name) : null,
         country: String(record.country ?? ''),
         currentAddress: String(record.current_address ?? ''),
-        schoolName: record.school_name ? String(record.school_name) : null,
+        schoolName: record.schools?.school_name ? String(record.schools.school_name) : null,
         uploadedCv: Boolean(record.uploaded_cv),
         cvPath: record.cv_path ? String(record.cv_path) : null,
-        statusName: record.status_name ? String(record.status_name) : null,
+        statusName: record.applicant_statuses?.status_name ? String(record.applicant_statuses.status_name) : null,
         newApplicantStatus: Boolean(record.new_applicant_status),
         createdAt: String(record.created_at ?? '')
       })) as ApplicantRecord[];
+
       setApplicants(normalized);
-      setHasMore(Boolean(paging?.has_more));
-      setPageOffset(Number(paging?.offset ?? offset));
+      setHasMore(result.has_more || false);
+      setPageOffset(result.offset);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to load applicants.');
     } finally {
@@ -257,15 +232,11 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const loadSummary = async () => {
     setIsSummaryLoading(true);
     try {
-      const response = await fetch('/api/applicants/summary', { credentials: 'include' });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || 'Unable to load applicant summary.');
-      }
+      const summary = await applicantService.getApplicantSummary();
       setSummary({
-        pending: Number(payload?.data?.pending ?? 0),
-        hired: Number(payload?.data?.hired ?? 0),
-        rejected: Number(payload?.data?.rejected ?? 0)
+        pending: summary['pending'] || 0,
+        hired: summary['hired'] || 0,
+        rejected: summary['rejected'] || 0
       });
     } catch {
       setSummary({
@@ -298,20 +269,23 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const updateApplicantStatus = async (applicantId: string, statusName: string, successMessage: string) => {
     setAssignmentNotice('');
     try {
-      const response = await fetch('/api/applicants/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          applicant_id: applicantId,
-          status_name: statusName,
-          new_applicant_status: false
-        })
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || 'Unable to update applicant status.');
+      const { data: allStatuses } = await supabase
+        .from('applicant_statuses')
+        .select('id, status_name');
+
+      const statusRecord = allStatuses?.find(
+        (s: any) => s.status_name?.toLowerCase() === statusName.toLowerCase()
+      );
+
+      if (!statusRecord) {
+        throw new Error(`Status "${statusName}" not found.`);
       }
+
+      await applicantService.updateApplicant(applicantId, {
+        status_id: statusRecord.id,
+        new_applicant_status: false
+      });
+
       setApplicants((prev) =>
         prev.map((applicant) =>
           applicant.id === applicantId
@@ -352,21 +326,8 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     setAssignmentNotice('');
     setIsEmailSending(true);
     try {
-      const response = await fetch('/api/applicants/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          applicant_id: modalApplicant.id,
-          template
-        })
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || 'Unable to send email.');
-      }
-      const label = template === 'ai_screening' ? 'AI screening' : 'personal interview';
-      setAssignmentNotice(`Email sent for ${label}.`);
+      // TODO: Implement email sending via Supabase Edge Functions or external email service
+      setAssignmentNotice('Email sending feature coming soon. Please use your email service directly.');
     } catch (error) {
       setAssignmentNotice(error instanceof Error ? error.message : 'Unable to send email.');
     } finally {
@@ -375,18 +336,10 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   };
 
   const fetchCvUrl = async (applicantId: string) => {
-    const response = await fetch(`/api/applicants/cv?applicant_id=${encodeURIComponent(applicantId)}`, {
-      credentials: 'include'
-    });
-    const payload = await response.json();
-    if (!response.ok || !payload?.ok) {
-      throw new Error(payload?.message || 'Unable to open CV.');
+    if (!modalApplicant?.cvPath) {
+      throw new Error('CV path not available.');
     }
-    const url = payload?.data?.url;
-    if (!url || typeof url !== 'string') {
-      throw new Error('Unable to open CV.');
-    }
-    return url;
+    return await storageService.getSignedCVUrl(modalApplicant.cvPath, 900);
   };
 
   const openCv = async (applicant: ApplicantRecord) => {

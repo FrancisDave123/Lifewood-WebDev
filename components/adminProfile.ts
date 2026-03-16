@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { supabase } from '../services/supabaseClient';
+import { authService } from '../services/authService';
 
 export const ADMIN_PROFILE_STORAGE_KEY = 'admin_dashboard_profile';
 export const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
@@ -53,16 +55,22 @@ export const useAdminProfile = () => {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch('/api/auth/profile', { credentials: 'include' });
-        const payload = await response.json().catch(() => null);
-        if (!isActive || !response.ok || !payload?.data) return;
+        const user = authService.getCurrentUser();
+        if (!user || !isActive) return;
 
-        const data = payload.data;
+        const { data, error } = await supabase
+          .from('user_accounts')
+          .select('id, email, first_name, last_name, roles(name)')
+          .eq('id', user.id)
+          .single();
+
+        if (error || !data || !isActive) return;
+
         setProfile((prev) => ({
           ...prev,
           firstName: typeof data.first_name === 'string' ? data.first_name : '',
           lastName: typeof data.last_name === 'string' ? data.last_name : '',
-          role: typeof data.role_name === 'string' ? data.role_name : ''
+          role: user.role_name || ''
         }));
 
         if (typeof data.email === 'string' && data.email.trim()) {

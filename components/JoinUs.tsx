@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
+import { authService } from '../services/authService';
+import { applicantService } from '../services/applicantService';
+import { storageService } from '../services/storageService';
 
 interface JoinUsProps {
   navigateTo?: (page: PageRoute) => void;
@@ -49,11 +52,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
   const roleLabel = variant === 'intern' ? 'Intern' : 'Employee';
   const includeSchool = variant === 'intern';
   const ADMIN_AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
-  const ROLE_ID_STORAGE_KEY = 'lifewood_role_id';
   const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
-  const API_APPLICANTS_URL = '/api/applicants';
-  const API_AUTH_SESSION_URL = '/api/auth/session';
-  const API_SCHOOLS_URL = '/api/schools';
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [stepDirection, setStepDirection] = useState<1 | -1>(1);
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
@@ -77,26 +76,12 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
     };
 
     if (hasWindow) {
-      const isAdminAuth = localStorage.getItem(ADMIN_AUTH_STORAGE_KEY) === 'true';
-      const roleId = Number(localStorage.getItem(ROLE_ID_STORAGE_KEY));
-      if (isAdminAuth && roleId === 1) {
+      const user = authService.getCurrentUser();
+      if (user && user.role_id === 1) {
         redirectAdmin();
         return;
       }
     }
-
-    const checkSession = async () => {
-      try {
-        const response = await fetch(API_AUTH_SESSION_URL, { credentials: 'include' });
-        if (!response.ok) return;
-        const payload = await response.json();
-        if (payload?.data?.role_id === 1) {
-          redirectAdmin();
-        }
-      } catch {}
-    };
-
-    void checkSession();
   }, [navigateTo]);
 
   useEffect(() => {
@@ -106,18 +91,13 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
       setSchoolsLoading(true);
       setSchoolsError('');
       try {
-        const response = await fetch(API_SCHOOLS_URL, { credentials: 'include' });
-        const payload = await response.json();
-        if (!response.ok || !payload?.ok) {
-          throw new Error(payload?.message || 'Unable to load schools.');
-        }
-        const data = Array.isArray(payload?.data?.schools) ? payload.data.schools : [];
+        const data = await applicantService.getSchools();
         const normalized = data
-          .map((item: { id?: number; school_name?: string }) => ({
-            id: Number(item.id ?? 0),
+          .map((item: any) => ({
+            id: item.id,
             name: String(item.school_name ?? '').trim()
           }))
-          .filter((item: { id: number; name: string }) => item.id > 0 && item.name !== '');
+          .filter((item: { id: string; name: string }) => item.name !== '');
 
         if (isActive) {
           setSchools(normalized);
@@ -230,57 +210,103 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
     const positionApplied = form.position === 'Other' ? form.otherPosition : form.position;
     const country = form.country === 'Other' ? form.otherCountry : form.country;
     const designationName = variant === 'intern' ? 'intern' : 'employee';
-    const payload = new FormData();
-    payload.append('first_name', form.firstName.trim());
-    payload.append('last_name', form.lastName.trim());
-    payload.append('middle_name', form.middleName.trim());
-    payload.append('gender', form.gender);
-    payload.append('age', String(Number(form.age)));
-    payload.append('phone_number', form.phone.trim());
-    payload.append('email', form.email.trim());
-    payload.append('position_applied', positionApplied.trim());
-    payload.append('country', country.trim());
-    payload.append('current_address', form.address.trim());
-    payload.append('school_name', includeSchool ? form.school.trim() : '');
-    payload.append('designation_name', designationName);
-    payload.append('uploaded_cv', form.cvFile ? 'true' : 'false');
-    if (form.cvFile) {
-      payload.append('cv_file', form.cvFile, form.cvFile.name);
-    }
 
     const submit = async () => {
       try {
-        const response = await fetch(API_APPLICANTS_URL, {
-          method: 'POST',
-          credentials: 'include',
-          body: payload
-        });
-        const result = await response.json().catch(() => null);
-        if (!response.ok || !result?.ok) {
-          const apiMessage = result?.message ? String(result.message) : 'Unable to submit your application.';
-          const lower = apiMessage.toLowerCase();
-          const fieldErrors: Record<string, string> = {};
-          if (lower.includes('phone number')) fieldErrors.phone = apiMessage;
-          if (lower.includes('email')) fieldErrors.email = apiMessage;
-          if (lower.includes('school')) fieldErrors.school = apiMessage;
+        // Check for duplicate email/phone
+        const existing = await applicantService.checkDuplicateContact(
+          form.email.trim(),
+          form.phone.trim()
+        );
 
-          if (Object.keys(fieldErrors).length > 0) {
-            setErrors((prev) => ({ ...prev, ...fieldErrors }));
-            if (fieldErrors.phone || fieldErrors.email || fieldErrors.school) {
-              setStepDirection(-1);
-              setStep(2);
-            }
-            setSubmitError(null);
-            return;
-          }
-
-          throw new Error(apiMessage);
+        if (existing.duplicateEmail && existing.duplicatePhone) {
+          throw new Error('An applicant with this phone number and email already exists.');
         }
+        if (existing.duplicateEmail) {
+          setErrors((prev) => ({ ...prev, email: 'An applicant with this email already exists.' }));
+          throw new Error('An applicant with this email already exists.');
+        }
+        if (existing.duplicatePhone) {
+          setErrors((prev) => ({ ...prev, phone: 'An applicant with this phone number already exists.' }));
+          throw new Error('An applicant with this phone number already exists.');
+        }
+
+        // Get designation
+        const designations = await applicantService.getDesignations();
+        const designation = designations.find(
+          (d) => d.designation_name?.toLowerCase() === designationName.toLowerCase()
+        );
+        if (!designation) {
+          throw new Error('Invalid designation.');
+        }
+
+        // Validate school if needed
+        let schoolId = null;
+        if (includeSchool && form.school.trim()) {
+          const schools = await applicantService.getSchools();
+          const school = schools.find(
+            (s) => s.school_name?.toLowerCase() === form.school.trim().toLowerCase()
+          );
+          if (!school) {
+            setErrors((prev) => ({ ...prev, school: 'School is not recognized. Please select an existing school.' }));
+            throw new Error('School is not recognized.');
+          }
+          schoolId = school.id;
+        }
+
+        // Generate applicant ID
+        const applicantId = crypto.randomUUID();
+
+        // Upload CV if present
+        let cvPath = null;
+        if (form.cvFile) {
+          const uploadResult = await storageService.uploadCV(form.cvFile, applicantId);
+          cvPath = uploadResult.fullPath;
+        }
+
+        // Create applicant record
+        await applicantService.createApplicant({
+          id: applicantId,
+          first_name: form.firstName.trim(),
+          last_name: form.lastName.trim(),
+          middle_name: form.middleName.trim(),
+          gender: form.gender,
+          age: Number(form.age),
+          phone_number: form.phone.trim(),
+          email: form.email.trim(),
+          position_applied: positionApplied.trim(),
+          country: country.trim(),
+          current_address: form.address.trim(),
+          school_id: schoolId,
+          designation_id: designation.id,
+          uploaded_cv: form.cvFile ? true : false,
+          cv_path: cvPath,
+          new_applicant_status: true,
+          created_at: new Date().toISOString()
+        });
+
         setSubmitMessage('Your application has been submitted. Please check your email to continue with the AI pre-screening.');
         setForm(INITIAL_FORM);
         setStep(1);
       } catch (error) {
-        setSubmitError(error instanceof Error ? error.message : 'Unable to submit your application.');
+        const message = error instanceof Error ? error.message : 'Unable to submit your application.';
+        const lower = message.toLowerCase();
+
+        // Map errors to specific fields
+        const fieldErrors: Record<string, string> = {};
+        if (lower.includes('phone')) fieldErrors.phone = message;
+        if (lower.includes('email')) fieldErrors.email = message;
+        if (lower.includes('school')) fieldErrors.school = message;
+
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors((prev) => ({ ...prev, ...fieldErrors }));
+          if (fieldErrors.phone || fieldErrors.email || fieldErrors.school) {
+            setStepDirection(-1);
+            setStep(2);
+          }
+        } else {
+          setSubmitError(message);
+        }
       } finally {
         setIsSubmitting(false);
       }

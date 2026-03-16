@@ -3,6 +3,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
 import { ADMIN_PROFILE_STORAGE_KEY, DEFAULT_ADMIN_PROFILE } from './adminProfile';
+import { authService } from '../services/authService';
 
 interface SignInProps {
   navigateTo?: (page: PageRoute) => void;
@@ -12,11 +13,6 @@ interface SignInProps {
 
 export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 'signin', onAuthSuccess }) => {
   const AUTH_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
-  const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
-  const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
-  const ROLE_ID_STORAGE_KEY = 'lifewood_role_id';
-  const ROLE_NAME_STORAGE_KEY = 'lifewood_role_name';
-  const API_LOGIN_URL = '/api/login';
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [email, setEmail] = useState('');
@@ -81,35 +77,16 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(API_LOGIN_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: normalizedEmail, password: trimmedPassword })
-      });
-
-      const payload = await response.json().catch(() => null);
-
-      if (response.ok) {
-        const roleId = typeof payload?.data?.role_id === 'number' ? payload.data.role_id : null;
-        const roleName = typeof payload?.data?.role_name === 'string' ? payload.data.role_name : null;
-        localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-        localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, normalizedEmail);
-        if (roleId !== null) {
-          localStorage.setItem(ROLE_ID_STORAGE_KEY, String(roleId));
-        }
-        if (roleName) {
-          localStorage.setItem(ROLE_NAME_STORAGE_KEY, roleName);
-        }
-        syncAdminRole(roleName);
-        onAuthSuccess?.({ email: normalizedEmail, roleId, roleName });
-        navigateTo?.(resolveDestination(roleId, roleName));
-        return;
+      const user = await authService.login(normalizedEmail, trimmedPassword);
+      syncAdminRole(user.role_name);
+      onAuthSuccess?.({ email: user.email, roleId: user.role_id, roleName: user.role_name });
+      navigateTo?.(resolveDestination(user.role_id, user.role_name));
+    } catch (error) {
+      if (error instanceof Error) {
+        setAuthError(error.message);
+      } else {
+        setAuthError('Unable to sign in right now. Please try again.');
       }
-
-      setAuthError(payload?.message ?? 'Invalid credentials.');
-    } catch {
-      setAuthError('Unable to sign in right now. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

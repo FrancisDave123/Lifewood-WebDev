@@ -1,5 +1,6 @@
 import React, { Dispatch, ReactNode, SetStateAction, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { authService } from '../services/authService';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { Hero } from '../components/Hero';
@@ -195,13 +196,8 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
 
     if (page === 'signin') {
       if (hasWindow) {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-        localStorage.removeItem(ADMIN_EMAIL_STORAGE_KEY);
-        localStorage.removeItem('lifewood_role_id');
-        localStorage.removeItem('lifewood_role_name');
-        localStorage.removeItem('admin_dashboard_profile');
+        authService.logout();
       }
-      void fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => undefined);
       setIsAdminAuthenticated(false);
       setAuthRoleId(null);
       setAuthRoleName(null);
