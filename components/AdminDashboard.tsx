@@ -208,6 +208,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
             <button
               onClick={() => {
                 setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-inquiries');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Inquiries
+            </button>
+            <button
+              onClick={() => {
+                setIsSidebarOpen(false);
                 navigateTo?.('admin-reports');
               }}
               className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Linkedin, Facebook, Instagram, Youtube, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Facebook, Instagram, Youtube, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface ContactProps {
@@ -33,17 +34,50 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitted(true);
-    setIsLoading(false);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormData({ name: '', email: '', subject: '', message: '' });
-      setIsSubmitted(false);
-    }, 3000);
+    try {
+      // Format name and subject with proper capitalization
+      const formatTitleCase = (value: string) => {
+        if (!value) return '';
+        return value
+          .trim()
+          .toLowerCase()
+          .replace(/\b\w/g, (char) => char.toUpperCase());
+      };
+
+      const formattedName = formatTitleCase(formData.name);
+      const formattedSubject = formatTitleCase(formData.subject);
+
+      // Insert message into database
+      const { error } = await supabase
+        .from('messages')
+        .insert([
+          {
+            name: formattedName,
+            email: formData.email.trim(),
+            subject: formattedSubject,
+            message: formData.message.trim()
+          }
+        ]);
+
+      if (error) {
+        throw error;
+      }
+
+      // Success - show success message
+      setIsSubmitted(true);
+      setIsLoading(false);
+      
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setIsSubmitted(false);
+      }, 3000);
+    } catch (error) {
+      // Error - show error message
+      console.error('Error submitting message:', error);
+      alert('Failed to send message. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   const contactInfo = [

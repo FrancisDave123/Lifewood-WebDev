@@ -105,6 +105,16 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
               Applicants
             </button>
             <button
+              onClick={() => {
+                setIsSidebarOpen(false);
+                navigateTo?.('admin-manage-inquiries');
+              }}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Inquiries
+            </button>
+            <button
               onClick={() => setIsSidebarOpen(false)}
               className="flex items-center gap-3 rounded-xl bg-lifewood-green px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-lifewood-green/30"
             >

@@ -3,66 +3,52 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   BookOpen,
   Calendar,
-  ClipboardList,
   Filter,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   SlidersHorizontal,
   Trash2,
   UserCircle2
 } from 'lucide-react';
 import { LOGO_URL } from '../constants';
-import { supabase } from '../services/supabaseClient';
-import { applicantService } from '../services/applicantService';
-import { storageService } from '../services/storageService';
-import { emailService } from '../services/emailService';
+import { messageService } from '../services/messageService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
 import type { PageRoute } from '../routes/routeTypes';
 
-interface AdminManageApplicantsProps {
+interface AdminManageInquiriesProps {
   navigateTo?: (page: PageRoute) => void;
 }
 
-type ApplicantRecord = {
+type MessageRecord = {
   id: string;
-  firstName: string;
-  lastName: string;
-  middleName?: string | null;
-  gender: string;
-  age: number;
-  phoneNumber: string;
-  emailAddress: string;
-  positionApplied: string;
-  designationName?: string | null;
-  country: string;
-  currentAddress: string;
-  schoolName?: string | null;
-  uploadedCv: boolean;
-  cvPath?: string | null;
-  statusName?: string | null;
-  newApplicantStatus: boolean;
-  createdAt: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  created_at: string;
+  is_read: boolean;
 };
 
-type ApplicantSummary = {
-  pending: number;
-  hired: number;
-  rejected: number;
+type MessageSummary = {
+  total: number;
+  today: number;
+  unread: number;
 };
 
-export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ navigateTo }) => {
+export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { profile, setProfile, adminGmail } = useAdminProfile();
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [applicants, setApplicants] = useState<ApplicantRecord[]>([]);
-  const [summary, setSummary] = useState<ApplicantSummary>({
-    pending: 0,
-    hired: 0,
-    rejected: 0
+  const [messages, setMessages] = useState<MessageRecord[]>([]);
+  const [summary, setSummary] = useState<MessageSummary>({
+    total: 0,
+    today: 0,
+    unread: 0
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
@@ -71,24 +57,19 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [createdFrom, setCreatedFrom] = useState('');
   const [createdTo, setCreatedTo] = useState('');
   const [createdOn, setCreatedOn] = useState('');
-  const [designationFilter, setDesignationFilter] = useState('');
-  const [newOnly, setNewOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<
-    'newest' | 'oldest' | 'first_name_asc' | 'first_name_desc' | 'last_name_asc' | 'last_name_desc'
+    'newest' | 'oldest' | 'name_asc' | 'name_desc' | 'subject_asc' | 'subject_desc'
   >('newest');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [modalApplicant, setModalApplicant] = useState<ApplicantRecord | null>(null);
+  const [modalMessage, setModalMessage] = useState<MessageRecord | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
   const [assignmentNotice, setAssignmentNotice] = useState('');
-  const [isEmailSending, setIsEmailSending] = useState(false);
   const [pageOffset, setPageOffset] = useState(0);
   const [pageLimit] = useState(20);
   const [hasMore, setHasMore] = useState(false);
-  const isFilterActive = Boolean(
-    createdOn || createdFrom || createdTo || designationFilter || newOnly
-  );
+  const isFilterActive = Boolean(createdOn || createdFrom || createdTo);
   const isSortActive = sortOrder !== 'newest';
 
   const formatPersonName = (value?: string | null) => {
@@ -96,7 +77,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   const formatTitleCase = (value?: string | null) => {
@@ -104,23 +85,25 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  const filteredApplicants = useMemo(
-    () => applicants.filter((applicant) => `${applicant.firstName} ${applicant.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())),
-    [applicants, searchTerm]
+  const filteredMessages = useMemo(
+    () => messages.filter((message) => 
+      `${message.name} ${message.email} ${message.subject}`.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [messages, searchTerm]
   );
 
   const areAllFilteredSelected =
-    filteredApplicants.length > 0 && filteredApplicants.every((applicant) => selectedIds.includes(applicant.id));
+    filteredMessages.length > 0 && filteredMessages.every((message) => selectedIds.includes(message.id));
 
   const toggleSelectAll = () => {
     if (areAllFilteredSelected) {
-      setSelectedIds((prev) => prev.filter((id) => !filteredApplicants.some((applicant) => applicant.id === id)));
+      setSelectedIds((prev) => prev.filter((id) => !filteredMessages.some((message) => message.id === id)));
       return;
     }
-    setSelectedIds((prev) => Array.from(new Set([...prev, ...filteredApplicants.map((applicant) => applicant.id)])));
+    setSelectedIds((prev) => Array.from(new Set([...prev, ...filteredMessages.map((message) => message.id)])));
   };
 
   const toggleSelectRow = (id: string) => {
@@ -141,26 +124,26 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     setSelectedIds([]);
   };
 
-  const deleteApplicantsByIds = async (ids: string[]) => {
+  const deleteMessagesByIds = async (ids: string[]) => {
     if (!ids.length) return;
     try {
-      await applicantService.deleteApplicants(ids);
-      setApplicants((prev) => prev.filter((applicant) => !ids.includes(applicant.id)));
-      setModalApplicant((prev) => (prev && ids.includes(prev.id) ? null : prev));
+      await messageService.deleteMessages(ids);
+      setMessages((prev) => prev.filter((message) => !ids.includes(message.id)));
+      setModalMessage((prev) => (prev && ids.includes(prev.id) ? null : prev));
       setSelectedIds((prev) => prev.filter((selectedId) => !ids.includes(selectedId)));
-      setAssignmentNotice(ids.length > 1 ? `${ids.length} applicants deleted.` : 'Applicant deleted.');
+      setAssignmentNotice(ids.length > 1 ? `${ids.length} messages deleted.` : 'Message deleted.');
       void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to delete applicants.');
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to delete messages.');
     }
   };
 
   const confirmDeleteAction = async () => {
     if (!confirmDelete) return;
     if (confirmDelete.mode === 'single' && confirmDelete.id) {
-      await deleteApplicantsByIds([confirmDelete.id]);
+      await deleteMessagesByIds([confirmDelete.id]);
     } else if (confirmDelete.mode === 'selected') {
-      await deleteApplicantsByIds(selectedIds);
+      await deleteMessagesByIds(selectedIds);
     }
     setConfirmDelete(null);
     setIsSelectMode(false);
@@ -171,60 +154,45 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     cancelSelection();
   };
 
-  const formatStatusLabel = (statusName?: string | null) => {
-    if (!statusName) return 'Unassigned';
-    return statusName
-      .replace(/_/g, ' ')
-      .replace(/\bai\b/gi, 'AI')
-      .replace(/\b\w/g, (match) => match.toUpperCase());
-  };
-
-  const formatAppliedDate = (isoDate: string) => {
+  const formatMessageDate = (isoDate: string) => {
     if (!isoDate) return '—';
     const parsed = new Date(isoDate);
     if (Number.isNaN(parsed.getTime())) return '—';
     return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const loadApplicants = async (offset = pageOffset) => {
+  const formatMessageTime = (isoDate: string) => {
+    if (!isoDate) return '—';
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) return '—';
+    return parsed.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const loadMessages = async (offset = pageOffset) => {
     setIsLoading(true);
     setLoadError('');
     try {
-      const result = await applicantService.getApplicants(pageLimit, offset, {
+      const result = await messageService.getMessages(pageLimit, offset, {
         created_from: createdFrom || undefined,
         created_to: createdTo || undefined,
         created_on: createdOn || undefined,
-        designation_id: designationFilter || undefined,
-        new_only: newOnly || undefined,
         sort: sortOrder as any
       });
 
-      const normalized = (result.applicants || []).map((record: any) => ({
+      const normalized = (result.messages || []).map((record: any) => ({
         id: String(record.id ?? ''),
-        firstName: formatPersonName(String(record.first_name ?? '')),
-        lastName: formatPersonName(String(record.last_name ?? '')),
-        middleName: record.middle_name ? formatPersonName(String(record.middle_name)) : null,
-        gender: String(record.gender ?? ''),
-        age: Number(record.age ?? 0),
-        phoneNumber: String(record.phone_number ?? ''),
-        emailAddress: String(record.email ?? ''),
-        positionApplied: String(record.position_applied ?? ''),
-        designationName: record.designations?.designation_name ? String(record.designations.designation_name) : null,
-        country: String(record.country ?? ''),
-        currentAddress: String(record.current_address ?? ''),
-        schoolName: record.schools?.school_name ? String(record.schools.school_name) : null,
-        uploadedCv: Boolean(record.uploaded_cv),
-        cvPath: record.cv_path ? String(record.cv_path) : null,
-        statusName: record.applicant_statuses?.status_name ? String(record.applicant_statuses.status_name) : null,
-        newApplicantStatus: Boolean(record.new_applicant_status),
-        createdAt: String(record.created_at ?? '')
-      })) as ApplicantRecord[];
+        name: formatPersonName(String(record.name ?? '')),
+        email: String(record.email ?? ''),
+        subject: formatTitleCase(String(record.subject ?? '')),
+        message: String(record.message ?? ''),
+        created_at: String(record.created_at ?? ''),
+        is_read: Boolean(record.is_read ?? false)
+      })) as MessageRecord[];
 
-      setApplicants(normalized);
+      setMessages(normalized);
       setHasMore(result.has_more || false);
-      setPageOffset(result.offset);
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : 'Unable to load applicants.');
+      setLoadError(error instanceof Error ? error.message : 'Unable to load messages.');
     } finally {
       setIsLoading(false);
     }
@@ -233,17 +201,17 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const loadSummary = async () => {
     setIsSummaryLoading(true);
     try {
-      const summary = await applicantService.getApplicantSummary();
+      const summary = await messageService.getMessageSummary();
       setSummary({
-        pending: summary['pending'] || 0,
-        hired: summary['hired'] || 0,
-        rejected: summary['rejected'] || 0
+        total: summary.total || 0,
+        today: summary.today || 0,
+        unread: summary.unread || 0
       });
     } catch {
       setSummary({
-        pending: 0,
-        hired: 0,
-        rejected: 0
+        total: 0,
+        today: 0,
+        unread: 0
       });
     } finally {
       setIsSummaryLoading(false);
@@ -251,7 +219,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   };
 
   useEffect(() => {
-    void loadApplicants(pageOffset);
+    void loadMessages(pageOffset);
     void loadSummary();
   }, [pageOffset]);
 
@@ -260,152 +228,43 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       setPageOffset(0);
       return;
     }
-    void loadApplicants(0);
-  }, [createdFrom, createdTo, createdOn, designationFilter, newOnly, sortOrder]);
+    void loadMessages(0);
+  }, [createdFrom, createdTo, createdOn, sortOrder]);
+
+  // Auto-mark message as read when modal opens
+  useEffect(() => {
+    if (modalMessage && !modalMessage.is_read) {
+      void markMessageAsRead(modalMessage.id);
+    }
+  }, [modalMessage]);
 
   const handleEditProfile = () => {
     setIsProfileOpen(true);
   };
 
-  const updateApplicantStatus = async (applicantId: string, statusName: string, successMessage: string) => {
+  const deleteMessage = async (messageId: string) => {
     setAssignmentNotice('');
     try {
-      const { data: allStatuses } = await supabase
-        .from('applicant_statuses')
-        .select('id, status_name');
-
-      const statusRecord = allStatuses?.find(
-        (s: any) => s.status_name?.toLowerCase() === statusName.toLowerCase()
-      );
-
-      if (!statusRecord) {
-        throw new Error(`Status "${statusName}" not found.`);
-      }
-
-      await applicantService.updateApplicant(applicantId, {
-        status_id: statusRecord.id,
-        new_applicant_status: false
-      });
-
-      setApplicants((prev) =>
-        prev.map((applicant) =>
-          applicant.id === applicantId
-            ? { ...applicant, statusName, newApplicantStatus: false }
-            : applicant
-        )
-      );
-      setModalApplicant((prev) =>
-        prev && prev.id === applicantId
-          ? { ...prev, statusName, newApplicantStatus: false }
-          : prev
-      );
-      setAssignmentNotice(successMessage);
+      await messageService.deleteMessage(messageId);
+      setMessages((prev) => prev.filter((message) => message.id !== messageId));
+      setModalMessage((prev) => (prev && prev.id === messageId ? null : prev));
+      setAssignmentNotice('Message deleted.');
       void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to update applicant status.');
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to delete message.');
     }
   };
 
-  const markAsHired = (applicant: ApplicantRecord) => {
-    void updateApplicantStatus(
-      applicant.id,
-      'hired',
-      `${applicant.firstName} ${applicant.lastName} marked as hired.`
-    );
-    // Send hired email
-    void emailService
-      .sendHiredEmail(
-        applicant.emailAddress,
-        `${applicant.firstName} ${applicant.lastName}`,
-        applicant.positionApplied
-      )
-      .catch((error) => {
-        console.error('Email sending failed:', error);
-      });
-  };
-
-  const markAsRejected = (applicant: ApplicantRecord) => {
-    void updateApplicantStatus(
-      applicant.id,
-      'rejected',
-      `${applicant.firstName} ${applicant.lastName} marked as rejected.`
-    );
-    // Send rejected email
-    void emailService
-      .sendRejectedEmail(
-        applicant.emailAddress,
-        `${applicant.firstName} ${applicant.lastName}`,
-        applicant.positionApplied
-      )
-      .catch((error) => {
-        console.error('Email sending failed:', error);
-      });
-  };
-
-  const sendAIScreeningEmail = async () => {
-    if (!modalApplicant) return;
-    setAssignmentNotice('');
-    setIsEmailSending(true);
+  const markMessageAsRead = async (messageId: string) => {
     try {
-      await emailService.sendAIScreeningEmail(
-        modalApplicant.emailAddress,
-        `${modalApplicant.firstName} ${modalApplicant.lastName}`,
-        modalApplicant.positionApplied
-      );
-      setAssignmentNotice('AI screening email sent successfully.');
+      await messageService.markAsRead(messageId);
+      setMessages((prev) => prev.map((message) => 
+        message.id === messageId ? { ...message, is_read: true } : message
+      ));
+      setModalMessage((prev) => prev ? { ...prev, is_read: true } : null);
+      void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to send AI screening email.');
-    } finally {
-      setIsEmailSending(false);
-    }
-  };
-
-  const fetchCvUrl = async (applicantId: string) => {
-    if (!modalApplicant?.cvPath) {
-      throw new Error('CV path not available.');
-    }
-    return await storageService.getSignedCVUrl(modalApplicant.cvPath, 900);
-  };
-
-  const openCv = async (applicant: ApplicantRecord) => {
-    if (!applicant.cvPath) {
-      setAssignmentNotice('CV not available.');
-      return;
-    }
-
-    try {
-      const url = await fetchCvUrl(applicant.id);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to open CV.');
-    }
-  };
-
-  const downloadCv = async (applicant: ApplicantRecord) => {
-    if (!applicant.cvPath) {
-      setAssignmentNotice('CV not available.');
-      return;
-    }
-
-    try {
-      const url = await fetchCvUrl(applicant.id);
-      const safeName = `${applicant.lastName}_${applicant.firstName}_CV`.replace(/\s+/g, '_');
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Unable to download CV.');
-      }
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = `${safeName}.pdf`;
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(objectUrl);
-    } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to download CV.');
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to mark as read.');
     }
   };
 
@@ -478,9 +337,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                 setIsSidebarOpen(false);
                 navigateTo?.('admin-manage-applicants');
               }}
-              className="flex items-center gap-3 rounded-xl bg-lifewood-green px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-lifewood-green/30"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
             >
-              <ClipboardList className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
               Applicants
             </button>
             <button
@@ -488,9 +347,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                 setIsSidebarOpen(false);
                 navigateTo?.('admin-manage-inquiries');
               }}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-3 rounded-xl bg-lifewood-green px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-lifewood-green/30"
             >
-              <ClipboardList className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
               Inquiries
             </button>
             <button
@@ -558,29 +417,29 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
             </div>
 
             <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5 shadow-[0_16px_50px_rgba(19,48,32,0.08)]">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-lifewood-green">Recruitment</p>
-              <h1 className="mt-1 text-2xl font-black text-lifewood-serpent md:text-3xl">Applicants</h1>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-lifewood-green">Support</p>
+              <h1 className="mt-1 text-2xl font-black text-lifewood-serpent md:text-3xl">Inquiries</h1>
               <p className="mt-2 text-sm text-lifewood-serpent/65">
-                Track applicant status, school details, and CV uploads across the hiring pipeline.
+                Manage support tickets and customer inquiries from the Contact Us form.
               </p>
 
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Pending</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Total</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-serpent">
-                    {isSummaryLoading ? '-' : summary.pending}
+                    {isSummaryLoading ? '-' : summary.total}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-green/10 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Hired</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Today</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-serpent">
-                    {isSummaryLoading ? '-' : summary.hired}
+                    {isSummaryLoading ? '-' : summary.today}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-4 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Rejected</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Unread</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-yellow">
-                    {isSummaryLoading ? '-' : summary.rejected}
+                    {isSummaryLoading ? '-' : summary.unread}
                   </p>
                 </div>
               </div>
@@ -594,15 +453,15 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
 
             <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-lg font-bold text-lifewood-serpent">Applicant Pipeline</h3>
-                <Calendar className="h-5 w-5 text-lifewood-green" />
+                <h3 className="text-lg font-bold text-lifewood-serpent">Support Tickets</h3>
+                <Mail className="h-5 w-5 text-lifewood-green" />
               </div>
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name..."
+                  placeholder="Search by name, email, or subject..."
                   className="min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
                 />
                 <div className="relative">
@@ -657,29 +516,6 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                             />
                           </div>
                         </div>
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">
-                            Designation
-                          </p>
-                          <select
-                            value={designationFilter}
-                            onChange={(e) => setDesignationFilter(e.target.value)}
-                            className="mt-2 w-full rounded-lg border border-lifewood-serpent/10 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent"
-                          >
-                            <option value="">All Designations</option>
-                            <option value="1">Intern</option>
-                            <option value="2">Employee</option>
-                          </select>
-                        </div>
-                        <label className="flex items-center gap-2 rounded-lg border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 px-3 py-2 text-xs font-semibold text-lifewood-serpent">
-                          <input
-                            type="checkbox"
-                            checked={newOnly}
-                            onChange={(e) => setNewOnly(e.target.checked)}
-                            className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
-                          />
-                          New applicants only
-                        </label>
                         <p className="text-[11px] text-lifewood-serpent/50">
                           Specific date overrides the range.
                         </p>
@@ -735,50 +571,50 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                         <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
                           <input
                             type="checkbox"
-                            checked={sortOrder === 'first_name_asc'}
+                            checked={sortOrder === 'name_asc'}
                             onChange={() => {
-                              setSortOrder('first_name_asc');
+                              setSortOrder('name_asc');
                               setIsSortOpen(false);
                             }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
-                          A-Z (First name)
+                          A-Z (Name)
                         </label>
                         <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
                           <input
                             type="checkbox"
-                            checked={sortOrder === 'first_name_desc'}
+                            checked={sortOrder === 'name_desc'}
                             onChange={() => {
-                              setSortOrder('first_name_desc');
+                              setSortOrder('name_desc');
                               setIsSortOpen(false);
                             }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
-                          Z-A (First name)
+                          Z-A (Name)
                         </label>
                         <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
                           <input
                             type="checkbox"
-                            checked={sortOrder === 'last_name_asc'}
+                            checked={sortOrder === 'subject_asc'}
                             onChange={() => {
-                              setSortOrder('last_name_asc');
+                              setSortOrder('subject_asc');
                               setIsSortOpen(false);
                             }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
-                          A-Z (Last name)
+                          A-Z (Subject)
                         </label>
                         <label className="flex items-center gap-2 font-semibold text-lifewood-serpent">
                           <input
                             type="checkbox"
-                            checked={sortOrder === 'last_name_desc'}
+                            checked={sortOrder === 'subject_desc'}
                             onChange={() => {
-                              setSortOrder('last_name_desc');
+                              setSortOrder('subject_desc');
                               setIsSortOpen(false);
                             }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
-                          Z-A (Last name)
+                          Z-A (Subject)
                         </label>
                       </div>
                     </div>
@@ -833,15 +669,15 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
               {!loadError && isLoading && (
                 <div className="mb-3 flex items-center gap-3 text-sm font-semibold text-lifewood-serpent/70">
                   <span className="h-6 w-6 animate-spin rounded-full border-4 border-lifewood-serpent/20 border-t-lifewood-green" />
-                  Loading applicants...
+                  Loading inquiries...
                 </div>
               )}
-              {!loadError && !isLoading && filteredApplicants.length === 0 && (
+              {!loadError && !isLoading && filteredMessages.length === 0 && (
                 <p className="mb-3 text-xs font-semibold text-lifewood-serpent/60">
-                  No applicants found.
+                  No inquiries found.
                 </p>
               )}
-              {assignmentNotice && !modalApplicant && (
+              {assignmentNotice && !modalMessage && (
                 <p className="mb-3 text-xs font-semibold text-lifewood-green">
                   {assignmentNotice}
                 </p>
@@ -855,60 +691,64 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                           <input type="checkbox" checked={areAllFilteredSelected} onChange={toggleSelectAll} />
                         </th>
                       )}
-                      <th className="px-4 py-3">Applicant</th>
-                      <th className="px-4 py-3">Position Applied</th>
-                      <th className="px-4 py-3">Applying As</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">CV</th>
+                      <th className="px-4 py-3">Customer</th>
+                      <th className="px-4 py-3">Subject</th>
+                      <th className="px-4 py-3">Message</th>
+                      <th className="px-4 py-3">Date</th>
                       {isSelectMode && <th className="px-4 py-3">Actions</th>}
-                      <th className="px-4 py-3 text-right" aria-label="New applicant indicator" />
                     </tr>
                   </thead>
                   <tbody className="text-sm">
-                    {filteredApplicants.map((applicant) => (
+                    {filteredMessages.map((message) => (
                       <tr
-                        key={applicant.id}
+                        key={message.id}
                         onClick={() => {
                           setAssignmentNotice('');
-                          setModalApplicant(applicant);
+                          setModalMessage(message);
                         }}
                         className={[
                           'cursor-pointer border-t border-lifewood-serpent/10 transition',
-                          applicant.newApplicantStatus
-                            ? 'bg-lifewood-green/10 hover:bg-lifewood-green/15'
-                            : 'odd:bg-white even:bg-lifewood-seaSalt/35 hover:bg-lifewood-seaSalt/60'
+                          message.is_read 
+                            ? 'odd:bg-white even:bg-lifewood-seaSalt/35 hover:bg-lifewood-seaSalt/60'
+                            : 'bg-lifewood-green/10 hover:bg-lifewood-green/15'
                         ].join(' ')}
                       >
                         {isSelectMode && (
                           <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
-                              checked={selectedIds.includes(applicant.id)}
-                              onChange={() => toggleSelectRow(applicant.id)}
+                              checked={selectedIds.includes(message.id)}
+                              onChange={() => toggleSelectRow(message.id)}
                             />
                           </td>
                         )}
                         <td className="px-4 py-4 font-semibold text-lifewood-serpent">
-                          <p>{applicant.firstName} {applicant.lastName}</p>
-                          <p className="mt-1 text-xs font-medium text-lifewood-serpent/60">
-                            Applied: {formatAppliedDate(applicant.createdAt)}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p>{formatPersonName(message.name)}</p>
+                            {!message.is_read && (
+                              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-lifewood-green shadow-[0_0_0_4px_rgba(34,197,94,0.12)]" />
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs font-medium text-lifewood-serpent/60">{message.email}</p>
                         </td>
-                        <td className="px-4 py-4 text-lifewood-serpent">{applicant.positionApplied}</td>
-                        <td className="px-4 py-4 text-lifewood-serpent">{formatTitleCase(applicant.designationName) || '—'}</td>
-                        <td className="px-4 py-4">
-                          <span className="rounded-full bg-lifewood-green/10 px-2.5 py-1 text-xs font-semibold text-lifewood-green">
-                            {formatStatusLabel(applicant.statusName)}
-                          </span>
+                        <td className="px-4 py-4 text-lifewood-serpent">{formatTitleCase(message.subject)}</td>
+                        <td className="px-4 py-4 text-lifewood-serpent">
+                          {message.message.length > 100 
+                            ? `${message.message.substring(0, 100)}...` 
+                            : message.message
+                          }
                         </td>
                         <td className="px-4 py-4 text-lifewood-serpent">
-                          {applicant.cvPath ? 'Uploaded' : 'Missing'}
+                          <div>
+                            <p>{formatMessageDate(message.created_at)}</p>
+                            <p className="mt-1 text-xs text-lifewood-serpent/60">{formatMessageTime(message.created_at)}</p>
+                          </div>
                         </td>
                         {isSelectMode && (
                           <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                             <button
                               type="button"
-                              onClick={() => deleteOne(applicant.id, `${applicant.firstName} ${applicant.lastName}`)}
+                              onClick={() => deleteOne(message.id, message.name)}
                               className="inline-flex items-center gap-1 rounded-lg bg-red-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-600"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -916,11 +756,6 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                             </button>
                           </td>
                         )}
-                        <td className="px-4 py-4 text-right">
-                          {applicant.newApplicantStatus && (
-                            <span className="inline-flex h-2.5 w-2.5 rounded-full bg-lifewood-green shadow-[0_0_0_4px_rgba(34,197,94,0.12)]" />
-                          )}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -928,7 +763,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-lifewood-serpent/70">
                 <span>
-                  Showing {pageOffset + 1}–{pageOffset + applicants.length}
+                  Showing {messages.length === 0 ? 0 : pageOffset + 1}–{pageOffset + messages.length}
                 </span>
                 <div className="flex gap-2">
                   <button
@@ -971,7 +806,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       />
 
       <AnimatePresence>
-        {modalApplicant && (
+        {modalMessage && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -986,125 +821,59 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-lifewood-serpent/10 bg-white p-5"
             >
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-lifewood-serpent">Applicant Details: {modalApplicant.firstName} {modalApplicant.lastName}</h3>
-              <button
-                type="button"
-                onClick={() => setModalApplicant(null)}
-                className="rounded-lg border border-lifewood-serpent/15 px-3 py-1 text-xs font-semibold text-lifewood-serpent"
-              >
-                Close
-              </button>
-            </div>
-
-            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-              <div className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">First Name:</span> {modalApplicant.firstName}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Last Name:</span> {modalApplicant.lastName}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Middle Name:</span> {modalApplicant.middleName || '?'}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Gender:</span> {modalApplicant.gender}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Age:</span> {modalApplicant.age}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Phone Number:</span> {modalApplicant.phoneNumber}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Email Address:</span> {modalApplicant.emailAddress}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Position Applied:</span> {modalApplicant.positionApplied}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Applying as:</span> {formatTitleCase(modalApplicant.designationName) || '—'}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">School:</span> {modalApplicant.schoolName || '?'}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Country:</span> {modalApplicant.country}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Status:</span> {formatStatusLabel(modalApplicant.statusName)}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">New Applicant:</span> {modalApplicant.newApplicantStatus ? 'Yes' : 'No'}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent"><span className="font-semibold">Applied Date:</span> {formatAppliedDate(modalApplicant.createdAt)}</div>
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent sm:col-span-2"><span className="font-semibold">Current Address:</span> {formatTitleCase(modalApplicant.currentAddress)}</div>
-                </div>
-
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-lifewood-serpent">Inquiry Details</h3>
+                <button
+                  type="button"
+                  onClick={() => setModalMessage(null)}
+                  className="rounded-lg border border-lifewood-serpent/15 px-3 py-1 text-xs font-semibold text-lifewood-serpent"
+                >
+                  Close
+                </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
-                  <p className="text-sm font-semibold text-lifewood-serpent">Update Applicant Status</p>
-                  <p className="mt-1 text-xs text-lifewood-serpent/60">
-                    Set the final decision for this applicant.
-                  </p>
-                  <div className="mt-3 flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() => markAsHired(modalApplicant)}
-                      disabled={modalApplicant.statusName?.toLowerCase() === 'hired'}
-                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                        modalApplicant.statusName?.toLowerCase() === 'hired'
-                          ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                          : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
-                      }`}
-                    >
-                      Mark as Hired
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => markAsRejected(modalApplicant)}
-                      disabled={modalApplicant.statusName?.toLowerCase() === 'rejected'}
-                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                        modalApplicant.statusName?.toLowerCase() === 'rejected'
-                          ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                          : 'bg-red-500 text-white hover:bg-red-600'
-                      }`}
-                    >
-                      Mark as Rejected
-                    </button>
-                  </div>
-
-                  <div className="mt-4 border-t border-lifewood-serpent/10 pt-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">Email Templates</p>
-                    <div className="mt-2 flex flex-col gap-2">
-                      <button
-                        type="button"
-                        onClick={sendAIScreeningEmail}
-                        disabled={isEmailSending}
-                        className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                          isEmailSending
-                            ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                            : 'border border-lifewood-serpent/20 bg-lifewood-seaSalt text-lifewood-serpent hover:bg-lifewood-seaSalt/80'
-                        }`}
-                      >
-                        Email Applicant for AI Screening
-                      </button>
+              <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
+                      <span className="font-semibold">Name:</span> {modalMessage.name}
+                    </div>
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
+                      <span className="font-semibold">Email:</span> {modalMessage.email}
+                    </div>
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
+                      <span className="font-semibold">Subject:</span> {modalMessage.subject}
+                    </div>
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
+                      <span className="font-semibold">Date and Time:</span> {formatMessageDate(modalMessage.created_at)} at {formatMessageTime(modalMessage.created_at)}
                     </div>
                   </div>
-                  {assignmentNotice && <p className="mt-3 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
+
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
+                    <span className="font-semibold">Message:</span>
+                    <p className="mt-2 whitespace-pre-wrap">{modalMessage.message}</p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4">
-                  <p className="text-sm font-semibold text-lifewood-serpent">CV Upload</p>
-                  <p className="mt-1 text-xs text-lifewood-serpent/70">
-                    {modalApplicant.cvPath ? 'Uploaded' : 'Not uploaded'}
-                  </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openCv(modalApplicant)}
-                      disabled={!modalApplicant.cvPath}
-                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                        modalApplicant.cvPath
-                          ? 'bg-lifewood-green text-white hover:bg-lifewood-green/90'
-                          : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                      }`}
-                    >
-                      View CV
-                    </button>
-                  <button
-                    type="button"
-                    onClick={() => downloadCv(modalApplicant)}
-                    disabled={!modalApplicant.cvPath}
-                    className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                      modalApplicant.cvPath
-                        ? 'bg-lifewood-serpent text-white hover:bg-lifewood-serpent/90'
-                        : 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                    }`}
-                  >
-                    Download CV
-                  </button>
+
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
+                    <p className="text-sm font-semibold text-lifewood-serpent">Actions</p>
+                    <p className="mt-1 text-xs text-lifewood-serpent/60">
+                      Manage this inquiry.
+                    </p>
+                    <div className="mt-3 flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => deleteMessage(modalMessage.id)}
+                        className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"
+                      >
+                        Delete Inquiry
+                      </button>
+                    </div>
+                    {assignmentNotice && <p className="mt-3 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
+                  </div>
                 </div>
               </div>
-            </div>
-            </div>
             </motion.div>
           </motion.div>
         )}
@@ -1125,28 +894,28 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="w-full max-w-md rounded-2xl border border-lifewood-serpent/10 bg-white p-5"
             >
-            <h4 className="text-lg font-bold text-lifewood-serpent">Confirm Delete</h4>
-            <p className="mt-2 text-sm text-lifewood-serpent/70">
-              {confirmDelete.mode === 'single'
-                ? `Are you sure you want to delete ${confirmDelete.name}?`
-                : `Are you sure you want to delete ${selectedIds.length} selected applicant(s)?`}
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={closeDeleteModal}
-                className="rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-xs font-semibold text-lifewood-serpent"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDeleteAction}
-                className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"
-              >
-                Delete
-              </button>
-            </div>
+              <h4 className="text-lg font-bold text-lifewood-serpent">Confirm Delete</h4>
+              <p className="mt-2 text-sm text-lifewood-serpent/70">
+                {confirmDelete.mode === 'single'
+                  ? `Are you sure you want to delete the inquiry from ${confirmDelete.name}?`
+                  : `Are you sure you want to delete ${selectedIds.length} selected inquiry(ies)?`}
+              </p>
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
+                  className="rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-xs font-semibold text-lifewood-serpent"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteAction}
+                  className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -1155,6 +924,4 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   );
 };
 
-export default AdminManageApplicants;
-
-
+export default AdminManageInquiries;

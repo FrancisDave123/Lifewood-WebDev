@@ -28,6 +28,7 @@ export type PageRoute =
   | 'admin-manage-interns'
   | 'admin-manage-applicants'
   | 'admin-manage-employees'
+  | 'admin-manage-inquiries'
   | 'admin-access-denied'
   | 'intern-dashboard'
   | 'employee-dashboard'

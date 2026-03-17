@@ -30,6 +30,7 @@ import { JoinUsAs } from '../components/JoinUsAs';
 import { AdminDashboard } from '../components/AdminDashboard';
 import { AdminReports } from '../components/AdminReports';
 import { AdminManageApplicants } from '../components/AdminManageApplicants';
+import { AdminManageInquiries } from '../components/AdminManageInquiries';
 import { AdminAccessDenied } from '../components/AdminAccessDenied';
 import { RoleDashboard } from '../components/RoleDashboard';
 import { PageRoute } from './routeTypes';
@@ -68,6 +69,7 @@ const PAGE_PATHS: Record<PageRoute, string> = {
   'admin-manage-interns': '/admin-manage-interns',
   'admin-manage-applicants': '/admin-manage-applicants',
   'admin-manage-employees': '/admin-manage-employees',
+  'admin-manage-inquiries': '/admin-manage-inquiries',
   'admin-access-denied': '/admin-access-denied',
   'intern-dashboard': '/intern-dashboard',
   'employee-dashboard': '/employee-dashboard',
@@ -111,7 +113,8 @@ const ADMIN_PAGES = new Set<PageRoute>([
   'admin-reports',
   'admin-manage-interns',
   'admin-manage-applicants',
-  'admin-manage-employees'
+  'admin-manage-employees',
+  'admin-manage-inquiries'
 ]);
 
 const AdminBackground: React.FC = () => (
@@ -340,6 +343,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route
             path="/admin-manage-applicants"
             element={renderAdmin(<AdminManageApplicants navigateTo={navigateTo} />)}
+          />
+          <Route
+            path="/admin-manage-inquiries"
+            element={renderAdmin(<AdminManageInquiries navigateTo={navigateTo} />)}
           />
           <Route path="/admin-access-denied" element={<AdminAccessDenied navigateTo={navigateTo} />} />
           <Route path="/intern-dashboard" element={renderRoleDashboard('Intern', 'intern-dashboard')} />
