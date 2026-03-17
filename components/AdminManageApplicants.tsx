@@ -16,6 +16,7 @@ import { LOGO_URL } from '../constants';
 import { supabase } from '../services/supabaseClient';
 import { applicantService } from '../services/applicantService';
 import { storageService } from '../services/storageService';
+import { emailService } from '../services/emailService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
@@ -311,6 +312,16 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       'hired',
       `${applicant.firstName} ${applicant.lastName} marked as hired.`
     );
+    // Send hired email
+    void emailService
+      .sendHiredEmail(
+        applicant.emailAddress,
+        `${applicant.firstName} ${applicant.lastName}`,
+        applicant.positionApplied
+      )
+      .catch((error) => {
+        console.error('Email sending failed:', error);
+      });
   };
 
   const markAsRejected = (applicant: ApplicantRecord) => {
@@ -319,6 +330,16 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       'rejected',
       `${applicant.firstName} ${applicant.lastName} marked as rejected.`
     );
+    // Send rejected email
+    void emailService
+      .sendRejectedEmail(
+        applicant.emailAddress,
+        `${applicant.firstName} ${applicant.lastName}`,
+        applicant.positionApplied
+      )
+      .catch((error) => {
+        console.error('Email sending failed:', error);
+      });
   };
 
   const sendApplicantEmail = async (template: 'ai_screening' | 'personal_interview') => {
