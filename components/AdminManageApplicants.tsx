@@ -342,15 +342,19 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       });
   };
 
-  const sendApplicantEmail = async (template: 'ai_screening' | 'personal_interview') => {
+  const sendAIScreeningEmail = async () => {
     if (!modalApplicant) return;
     setAssignmentNotice('');
     setIsEmailSending(true);
     try {
-      // TODO: Implement email sending via Supabase Edge Functions or external email service
-      setAssignmentNotice('Email sending feature coming soon. Please use your email service directly.');
+      await emailService.sendAIScreeningEmail(
+        modalApplicant.emailAddress,
+        `${modalApplicant.firstName} ${modalApplicant.lastName}`,
+        modalApplicant.positionApplied
+      );
+      setAssignmentNotice('AI screening email sent successfully.');
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to send email.');
+      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to send AI screening email.');
     } finally {
       setIsEmailSending(false);
     }
@@ -1043,7 +1047,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                     <div className="mt-2 flex flex-col gap-2">
                       <button
                         type="button"
-                        onClick={() => sendApplicantEmail('ai_screening')}
+                        onClick={sendAIScreeningEmail}
                         disabled={isEmailSending}
                         className={`rounded-xl px-3 py-2 text-xs font-semibold ${
                           isEmailSending
@@ -1052,18 +1056,6 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                         }`}
                       >
                         Email Applicant for AI Screening
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => sendApplicantEmail('personal_interview')}
-                        disabled={isEmailSending}
-                        className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                          isEmailSending
-                            ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50'
-                            : 'border border-lifewood-serpent/20 bg-lifewood-seaSalt text-lifewood-serpent hover:bg-lifewood-seaSalt/80'
-                        }`}
-                      >
-                        Email Applicant for Personal Interview
                       </button>
                     </div>
                   </div>

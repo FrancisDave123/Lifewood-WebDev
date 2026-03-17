@@ -5,7 +5,11 @@ const TEMPLATE_HIRED = import.meta.env.VITE_EMAILJS_TEMPLATE_HIRED || '';
 const TEMPLATE_REJECTED = import.meta.env.VITE_EMAILJS_TEMPLATE_REJECTED || '';
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
 
-// Initialize EmailJS
+const AI_SERVICE_ID = import.meta.env.VITE_EMAILJS_AI_SERVICE_ID || '';
+const AI_TEMPLATE = import.meta.env.VITE_EMAILJS_AI_TEMPLATE || '';
+const AI_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_AI_PUBLIC_KEY || '';
+
+// Initialize EmailJS for regular emails
 if (PUBLIC_KEY) {
   emailjs.init(PUBLIC_KEY);
 }
@@ -94,6 +98,55 @@ export const emailService = {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send rejected email';
       console.error('Error sending rejected email:', errorMessage);
+      console.error('Full error details:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Send an AI screening email to an applicant
+   * @param applicantEmail - Email address of the applicant
+   * @param applicantName - Full name of the applicant
+   * @param position - Position applied for
+   */
+  async sendAIScreeningEmail(
+    applicantEmail: string,
+    applicantName: string,
+    position: string
+  ): Promise<string> {
+    try {
+      if (!AI_SERVICE_ID || !AI_TEMPLATE || !AI_PUBLIC_KEY) {
+        throw new Error('AI EmailJS configuration is incomplete. Please check your environment variables.');
+      }
+
+      // Initialize AI EmailJS if not already initialized
+      if (AI_PUBLIC_KEY) {
+        emailjs.init(AI_PUBLIC_KEY);
+      }
+
+      console.log('AI EmailJS Config Check:', {
+        AI_SERVICE_ID: AI_SERVICE_ID ? 'Set' : 'Missing',
+        AI_TEMPLATE: AI_TEMPLATE ? 'Set' : 'Missing',
+        AI_PUBLIC_KEY: AI_PUBLIC_KEY ? 'Set' : 'Missing'
+      });
+
+      console.log('Sending AI screening email with:', {
+        to_email: applicantEmail,
+        to_name: applicantName,
+        position: position
+      });
+
+      const result = await emailjs.send(AI_SERVICE_ID, AI_TEMPLATE, {
+        to_email: applicantEmail,
+        to_name: applicantName,
+        position: position
+      });
+
+      console.log('AI Email sent successfully:', result);
+      return result.status === 200 ? 'success' : 'failed';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send AI screening email';
+      console.error('Error sending AI screening email:', errorMessage);
       console.error('Full error details:', error);
       throw error;
     }
