@@ -4,6 +4,7 @@ import type { PageRoute } from '../routes/routeTypes';
 import { authService } from '../services/authService';
 import { applicantService } from '../services/applicantService';
 import { storageService } from '../services/storageService';
+import { emailService } from '../services/emailService';
 
 interface JoinUsProps {
   navigateTo?: (page: PageRoute) => void;
@@ -284,6 +285,18 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
           new_applicant_status: true,
           created_at: new Date().toISOString()
         });
+
+        // Send AI screening email to the applicant
+        try {
+          await emailService.sendAIScreeningEmail(
+            form.email.trim(),
+            `${form.firstName.trim()} ${form.lastName.trim()}`,
+            positionApplied.trim()
+          );
+        } catch (emailError) {
+          console.error('Failed to send AI screening email:', emailError);
+          // Continue with success message even if email fails
+        }
 
         setSubmitMessage('Your application has been submitted. Please check your email to continue with the AI pre-screening.');
         setForm(INITIAL_FORM);

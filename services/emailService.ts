@@ -9,10 +9,7 @@ const AI_SERVICE_ID = import.meta.env.VITE_EMAILJS_AI_SERVICE_ID || '';
 const AI_TEMPLATE = import.meta.env.VITE_EMAILJS_AI_TEMPLATE || '';
 const AI_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_AI_PUBLIC_KEY || '';
 
-// Initialize EmailJS for regular emails
-if (PUBLIC_KEY) {
-  emailjs.init(PUBLIC_KEY);
-}
+// Note: EmailJS initialization will be handled per service to avoid conflicts
 
 export const emailService = {
   /**
@@ -36,6 +33,11 @@ export const emailService = {
         TEMPLATE_HIRED: TEMPLATE_HIRED ? 'Set' : 'Missing',
         PUBLIC_KEY: PUBLIC_KEY ? 'Set' : 'Missing'
       });
+
+      // Initialize EmailJS for regular emails
+      if (PUBLIC_KEY) {
+        emailjs.init(PUBLIC_KEY);
+      }
 
       console.log('Sending hired email with:', {
         to_email: applicantEmail,
@@ -80,6 +82,11 @@ export const emailService = {
         TEMPLATE_REJECTED: TEMPLATE_REJECTED ? 'Set' : 'Missing',
         PUBLIC_KEY: PUBLIC_KEY ? 'Set' : 'Missing'
       });
+
+      // Initialize EmailJS for regular emails
+      if (PUBLIC_KEY) {
+        emailjs.init(PUBLIC_KEY);
+      }
 
       console.log('Sending rejected email with:', {
         to_email: applicantEmail,
