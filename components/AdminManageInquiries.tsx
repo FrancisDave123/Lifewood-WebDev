@@ -396,7 +396,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
           />
         )}
 
-        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
+        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto min-w-0">
           <div className="relative z-10 mx-auto max-w-6xl space-y-5">
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
@@ -465,23 +465,45 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                   className="min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
                 />
                 <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsFilterOpen((prev) => !prev);
-                      setIsSortOpen(false);
-                    }}
-                    aria-pressed={isFilterActive}
-                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                      isFilterActive
-                        ? 'border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
-                        : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
-                    }`}
-                  >
-                    <Filter className={`h-4 w-4 ${isFilterActive ? 'text-white' : ''}`} />
-                    Filter
-                    {isFilterActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
-                  </button>
+                  {isFilterOpen && (
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsFilterOpen(false)}
+                    />
+                  )}
+                  <div className="inline-flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFilterOpen((prev) => !prev);
+                        setIsSortOpen(false);
+                      }}
+                      aria-pressed={isFilterActive}
+                      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        isFilterActive
+                          ? 'rounded-r-none border-r-0 border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
+                          : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
+                      }`}
+                    >
+                      <Filter className={`h-4 w-4 ${isFilterActive ? 'text-white' : ''}`} />
+                      Filter
+                      {isFilterActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
+                    </button>
+                    {isFilterActive && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCreatedOn('');
+                          setCreatedFrom('');
+                          setCreatedTo('');
+                          setIsFilterOpen(false);
+                        }}
+                        className="inline-flex items-center rounded-xl rounded-l-none border border-lifewood-green bg-lifewood-green px-2 py-2 text-xs font-bold text-white hover:bg-lifewood-green/80"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                   {isFilterOpen && (
                     <div className="absolute left-0 top-full z-20 mt-2 w-[320px] rounded-2xl border border-lifewood-serpent/15 bg-white p-4 shadow-[0_18px_40px_rgba(19,48,32,0.12)]">
                       <div className="space-y-3 text-xs text-lifewood-serpent/70">
@@ -524,23 +546,43 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                   )}
                 </div>
                 <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSortOpen((prev) => !prev);
-                      setIsFilterOpen(false);
-                    }}
-                    aria-pressed={isSortActive}
-                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                      isSortActive
-                        ? 'border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
-                        : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
-                    }`}
-                  >
-                    <SlidersHorizontal className={`h-4 w-4 ${isSortActive ? 'text-white' : ''}`} />
-                    Sort
-                    {isSortActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
-                  </button>
+                  {isSortOpen && (
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsSortOpen(false)}
+                    />
+                  )}
+                  <div className="inline-flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSortOpen((prev) => !prev);
+                        setIsFilterOpen(false);
+                      }}
+                      aria-pressed={isSortActive}
+                      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        isSortActive
+                          ? 'rounded-r-none border-r-0 border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
+                          : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
+                      }`}
+                    >
+                      <SlidersHorizontal className={`h-4 w-4 ${isSortActive ? 'text-white' : ''}`} />
+                      Sort
+                      {isSortActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
+                    </button>
+                    {isSortActive && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSortOrder('newest');
+                          setIsSortOpen(false);
+                        }}
+                        className="inline-flex items-center rounded-xl rounded-l-none border border-lifewood-green bg-lifewood-green px-2 py-2 text-xs font-bold text-white hover:bg-lifewood-green/80"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                   {isSortOpen && (
                     <div className="absolute left-0 top-full z-20 mt-2 w-[260px] rounded-2xl border border-lifewood-serpent/15 bg-white p-4 shadow-[0_18px_40px_rgba(19,48,32,0.12)]">
                       <div className="space-y-2 text-xs text-lifewood-serpent/70">
@@ -548,10 +590,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                           <input
                             type="checkbox"
                             checked={sortOrder === 'newest'}
-                            onChange={() => {
-                              setSortOrder('newest');
-                              setIsSortOpen(false);
-                            }}
+                            onChange={() => { setSortOrder('newest'); setIsSortOpen(false); }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
                           Newest first
@@ -560,10 +599,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                           <input
                             type="checkbox"
                             checked={sortOrder === 'oldest'}
-                            onChange={() => {
-                              setSortOrder('oldest');
-                              setIsSortOpen(false);
-                            }}
+                            onChange={() => { setSortOrder('oldest'); setIsSortOpen(false); }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
                           Oldest first
@@ -572,10 +608,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                           <input
                             type="checkbox"
                             checked={sortOrder === 'name_asc'}
-                            onChange={() => {
-                              setSortOrder('name_asc');
-                              setIsSortOpen(false);
-                            }}
+                            onChange={() => { setSortOrder('name_asc'); setIsSortOpen(false); }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
                           A-Z (Name)
@@ -584,10 +617,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                           <input
                             type="checkbox"
                             checked={sortOrder === 'name_desc'}
-                            onChange={() => {
-                              setSortOrder('name_desc');
-                              setIsSortOpen(false);
-                            }}
+                            onChange={() => { setSortOrder('name_desc'); setIsSortOpen(false); }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
                           Z-A (Name)
@@ -596,10 +626,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                           <input
                             type="checkbox"
                             checked={sortOrder === 'subject_asc'}
-                            onChange={() => {
-                              setSortOrder('subject_asc');
-                              setIsSortOpen(false);
-                            }}
+                            onChange={() => { setSortOrder('subject_asc'); setIsSortOpen(false); }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
                           A-Z (Subject)
@@ -608,10 +635,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                           <input
                             type="checkbox"
                             checked={sortOrder === 'subject_desc'}
-                            onChange={() => {
-                              setSortOrder('subject_desc');
-                              setIsSortOpen(false);
-                            }}
+                            onChange={() => { setSortOrder('subject_desc'); setIsSortOpen(false); }}
                             className="h-4 w-4 rounded border-lifewood-serpent/30 text-lifewood-green focus:ring-lifewood-green"
                           />
                           Z-A (Subject)
@@ -682,9 +706,9 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                   {assignmentNotice}
                 </p>
               )}
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[860px] table-auto text-left">
-                  <thead className="bg-lifewood-seaSalt/70">
+              <div className="overflow-auto max-h-[480px]">
+                <table className="w-full min-w-[860px] table-auto text-left relative">
+                  <thead className="bg-lifewood-seaSalt/70 sticky top-0 z-10">
                     <tr className="text-xs uppercase tracking-[0.14em] text-lifewood-serpent/55">
                       {isSelectMode && (
                         <th className="px-4 py-3">
