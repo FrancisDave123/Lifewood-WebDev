@@ -80,8 +80,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     if (!statusName) return 'Unassigned';
     return statusName
       .replace(/_/g, ' ')
-      .replace(/ai/gi, 'AI')
-      .replace(/\w/g, (match) => match.toUpperCase());
+      .replace(/\bai\b/gi, 'AI')
+      .replace(/\b\w/g, (match) => match.toUpperCase());
+  };
+
+  const getStatusColorClasses = (statusName?: string | null) => {
+    const status = statusName?.toLowerCase();
+    if (status === 'hired') {
+      return 'bg-[#046241] text-white';
+    } else if (status === 'rejected') {
+      return 'bg-red-500 text-white';
+    } else {
+      return 'bg-[#FFC370] text-lifewood-serpent';
+    }
   };
 
   const formatAppliedDate = (isoDate: string) => {
@@ -314,21 +325,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               )}
 
               <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Pending</p>
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-[#FFC370] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/80">Pending</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-serpent">
                     {isSummaryLoading ? '—' : summary.pending}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-green/10 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Hired</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-serpent">
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-[#046241] p-4 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/80">Hired</p>
+                  <p className="mt-2 text-3xl font-black text-lifewood-yellow">
                     {isSummaryLoading ? '—' : summary.hired}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-4 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Rejected</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-yellow">
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-red-500 p-4 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/80">Rejected</p>
+                  <p className="mt-2 text-3xl font-black text-white">
                     {isSummaryLoading ? '—' : summary.rejected}
                   </p>
                 </div>
@@ -373,7 +384,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-lifewood-serpent/60">
-                      <span className="rounded-full bg-lifewood-green/10 px-2.5 py-1 text-xs font-semibold text-lifewood-green">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusColorClasses(applicant.statusName)} min-w-[80px] text-center`}>
                         {formatStatusLabel(applicant.statusName)}
                       </span>
                       <span>Applied {formatAppliedDate(applicant.createdAt)}</span>

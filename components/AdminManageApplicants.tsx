@@ -72,6 +72,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [createdTo, setCreatedTo] = useState('');
   const [createdOn, setCreatedOn] = useState('');
   const [designationFilter, setDesignationFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [newOnly, setNewOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<
     'newest' | 'oldest' | 'first_name_asc' | 'first_name_desc' | 'last_name_asc' | 'last_name_desc'
@@ -87,7 +88,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [pageLimit] = useState(20);
   const [hasMore, setHasMore] = useState(false);
   const isFilterActive = Boolean(
-    createdOn || createdFrom || createdTo || designationFilter || newOnly
+    createdOn || createdFrom || createdTo || designationFilter || newOnly || statusFilter
   );
   const isSortActive = sortOrder !== 'newest';
 
@@ -179,6 +180,17 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       .replace(/\b\w/g, (match) => match.toUpperCase());
   };
 
+  const getStatusColorClasses = (statusName?: string | null) => {
+    const status = statusName?.toLowerCase();
+    if (status === 'hired') {
+      return 'bg-[#046241] text-white';
+    } else if (status === 'rejected') {
+      return 'bg-red-500 text-white';
+    } else {
+      return 'bg-[#FFC370] text-lifewood-serpent';
+    }
+  };
+
   const formatAppliedDate = (isoDate: string) => {
     if (!isoDate) return '—';
     const parsed = new Date(isoDate);
@@ -196,6 +208,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
         created_on: createdOn || undefined,
         designation_id: designationFilter || undefined,
         new_only: newOnly || undefined,
+        status: statusFilter || undefined,
         sort: sortOrder as any
       });
 
@@ -261,7 +274,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       return;
     }
     void loadApplicants(0);
-  }, [createdFrom, createdTo, createdOn, designationFilter, newOnly, sortOrder]);
+  }, [createdFrom, createdTo, createdOn, designationFilter, newOnly, sortOrder, statusFilter]);
 
   const handleEditProfile = () => {
     setIsProfileOpen(true);
@@ -537,7 +550,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
           />
         )}
 
-        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
+        <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto min-w-0">
           <div className="relative z-10 mx-auto max-w-6xl space-y-5">
             <div className="flex items-center justify-between rounded-2xl border border-lifewood-serpent/10 bg-white p-3 lg:hidden">
               <button
@@ -565,21 +578,21 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
               </p>
 
               <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Pending</p>
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-[#FFC370] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/80">Pending</p>
                   <p className="mt-2 text-3xl font-black text-lifewood-serpent">
                     {isSummaryLoading ? '-' : summary.pending}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-green/10 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/60">Hired</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-serpent">
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-[#046241] p-4 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/80">Hired</p>
+                  <p className="mt-2 text-3xl font-black text-lifewood-yellow">
                     {isSummaryLoading ? '-' : summary.hired}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-serpent p-4 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/65">Rejected</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-yellow">
+                <div className="rounded-2xl border border-lifewood-serpent/10 bg-red-500 p-4 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/80">Rejected</p>
+                  <p className="mt-2 text-3xl font-black text-white">
                     {isSummaryLoading ? '-' : summary.rejected}
                   </p>
                 </div>
@@ -606,23 +619,48 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   className="min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
                 />
                 <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsFilterOpen((prev) => !prev);
-                      setIsSortOpen(false);
-                    }}
-                    aria-pressed={isFilterActive}
-                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                      isFilterActive
-                        ? 'border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
-                        : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
-                    }`}
-                  >
-                    <Filter className={`h-4 w-4 ${isFilterActive ? 'text-white' : ''}`} />
-                    Filter
-                    {isFilterActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
-                  </button>
+                  {isFilterOpen && (
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsFilterOpen(false)}
+                    />
+                  )}
+                  <div className="inline-flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFilterOpen((prev) => !prev);
+                        setIsSortOpen(false);
+                      }}
+                      aria-pressed={isFilterActive}
+                      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        isFilterActive
+                          ? 'rounded-r-none border-r-0 border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
+                          : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
+                      }`}
+                    >
+                      <Filter className={`h-4 w-4 ${isFilterActive ? 'text-white' : ''}`} />
+                      Filter
+                      {isFilterActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
+                    </button>
+                    {isFilterActive && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCreatedOn('');
+                          setCreatedFrom('');
+                          setCreatedTo('');
+                          setDesignationFilter('');
+                          setStatusFilter('');
+                          setNewOnly(false);
+                          setIsFilterOpen(false);
+                        }}
+                        className="inline-flex items-center rounded-xl rounded-l-none border border-lifewood-green bg-lifewood-green px-2 py-2 text-xs font-bold text-white hover:bg-lifewood-green/80"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                   {isFilterOpen && (
                     <div className="absolute left-0 top-full z-20 mt-2 w-[320px] rounded-2xl border border-lifewood-serpent/15 bg-white p-4 shadow-[0_18px_40px_rgba(19,48,32,0.12)]">
                       <div className="space-y-3 text-xs text-lifewood-serpent/70">
@@ -671,6 +709,21 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                             <option value="2">Employee</option>
                           </select>
                         </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">
+                            Status
+                          </p>
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="mt-2 w-full rounded-lg border border-lifewood-serpent/10 bg-white px-3 py-2 text-xs font-semibold text-lifewood-serpent"
+                          >
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="hired">Hired</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
+                        </div>
                         <label className="flex items-center gap-2 rounded-lg border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 px-3 py-2 text-xs font-semibold text-lifewood-serpent">
                           <input
                             type="checkbox"
@@ -688,23 +741,43 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   )}
                 </div>
                 <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSortOpen((prev) => !prev);
-                      setIsFilterOpen(false);
-                    }}
-                    aria-pressed={isSortActive}
-                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                      isSortActive
-                        ? 'border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
-                        : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
-                    }`}
-                  >
-                    <SlidersHorizontal className={`h-4 w-4 ${isSortActive ? 'text-white' : ''}`} />
-                    Sort
-                    {isSortActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
-                  </button>
+                  {isSortOpen && (
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsSortOpen(false)}
+                    />
+                  )}
+                  <div className="inline-flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSortOpen((prev) => !prev);
+                        setIsFilterOpen(false);
+                      }}
+                      aria-pressed={isSortActive}
+                      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        isSortActive
+                          ? 'rounded-r-none border-r-0 border-lifewood-green bg-lifewood-green text-white shadow-[0_6px_16px_rgba(4,98,65,0.25)]'
+                          : 'border-lifewood-serpent/15 bg-white text-lifewood-serpent'
+                      }`}
+                    >
+                      <SlidersHorizontal className={`h-4 w-4 ${isSortActive ? 'text-white' : ''}`} />
+                      Sort
+                      {isSortActive && <span className="ml-1 inline-flex h-2 w-2 rounded-full bg-lifewood-yellow" />}
+                    </button>
+                    {isSortActive && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSortOrder('newest');
+                          setIsSortOpen(false);
+                        }}
+                        className="inline-flex items-center rounded-xl rounded-l-none border border-lifewood-green bg-lifewood-green px-2 py-2 text-xs font-bold text-white hover:bg-lifewood-green/80"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                   {isSortOpen && (
                     <div className="absolute left-0 top-full z-20 mt-2 w-[260px] rounded-2xl border border-lifewood-serpent/15 bg-white p-4 shadow-[0_18px_40px_rgba(19,48,32,0.12)]">
                       <div className="space-y-2 text-xs text-lifewood-serpent/70">
@@ -846,9 +919,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   {assignmentNotice}
                 </p>
               )}
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[860px] table-auto text-left">
-                  <thead className="bg-lifewood-seaSalt/70">
+              <div className="overflow-auto max-h-[480px]">
+                <table className="w-full min-w-[860px] table-auto text-left relative">
+                  <thead className="bg-lifewood-seaSalt/70 sticky top-0 z-10">
                     <tr className="text-xs uppercase tracking-[0.14em] text-lifewood-serpent/55">
                       {isSelectMode && (
                         <th className="px-4 py-3">
@@ -897,7 +970,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                         <td className="px-4 py-4 text-lifewood-serpent">{applicant.positionApplied}</td>
                         <td className="px-4 py-4 text-lifewood-serpent">{formatTitleCase(applicant.designationName) || '—'}</td>
                         <td className="px-4 py-4">
-                          <span className="rounded-full bg-lifewood-green/10 px-2.5 py-1 text-xs font-semibold text-lifewood-green">
+                          <span className={`inline-block w-24 rounded-full py-1 text-center text-xs font-semibold ${getStatusColorClasses(applicant.statusName)}`}>
                             {formatStatusLabel(applicant.statusName)}
                           </span>
                         </td>

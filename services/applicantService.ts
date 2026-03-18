@@ -35,6 +35,7 @@ export const applicantService = {
       created_on?: string;
       designation_id?: string;
       new_only?: boolean;
+      status?: string;
       sort?: 'newest' | 'oldest' | 'first_name_asc' | 'first_name_desc' | 'last_name_asc' | 'last_name_desc';
     }
   ) {
@@ -71,6 +72,17 @@ export const applicantService = {
         query = query.eq('new_applicant_status', true);
       }
 
+      if (filters?.status) {
+        const { data: statusRow } = await supabase
+          .from('applicant_statuses')
+          .select('id')
+          .eq('status_name', filters.status)
+          .single();
+
+        if (statusRow) {
+          query = query.eq('status_id', statusRow.id);
+        }
+      }
       // Handle sorting
       if (filters?.sort === 'oldest') {
         query = query.order('created_at', { ascending: true });
