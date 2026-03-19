@@ -46,6 +46,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     rejected: 0
   });
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+  const [designationSummary, setDesignationSummary] = useState({ interns: 0, employees: 0 });
+  const [isDesignationLoading, setIsDesignationLoading] = useState(true);
   const [recentApplicants, setRecentApplicants] = useState<ApplicantRecord[]>([]);
   const [isApplicantsLoading, setIsApplicantsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -119,6 +121,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     }
   };
 
+  const loadDesignationSummary = async () => {
+    setIsDesignationLoading(true);
+    try {
+      const { data, error } = await (await import('../services/supabaseClient')).supabase
+        .from('applicants')
+        .select('designation_id, designations(designation_name)');
+      if (error) throw error;
+      let interns = 0;
+      let employees = 0;
+      for (const row of data || []) {
+        const name = (row as any).designations?.designation_name?.toLowerCase();
+        if (name === 'intern') interns++;
+        else if (name === 'employee') employees++;
+      }
+      setDesignationSummary({ interns, employees });
+    } catch {
+      setDesignationSummary({ interns: 0, employees: 0 });
+    } finally {
+      setIsDesignationLoading(false);
+    }
+  };
+
   const loadRecentApplicants = async () => {
     setIsApplicantsLoading(true);
     try {
@@ -143,6 +167,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   useEffect(() => {
     void loadSummary();
     void loadRecentApplicants();
+    void loadDesignationSummary();
   }, []);
 
   return (
@@ -325,21 +350,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               )}
 
               <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-[#FFC370] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-lifewood-serpent/80">Pending</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-serpent">
+                <div className="rounded-2xl bg-[#133020] p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #3d2a00 100%)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Pending</p>
+                  <p className="mt-2 text-3xl font-black text-[#FFC370]">
                     {isSummaryLoading ? '—' : summary.pending}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-[#046241] p-4 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/80">Hired</p>
-                  <p className="mt-2 text-3xl font-black text-lifewood-yellow">
+                <div className="rounded-2xl bg-[#133020] p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #064d32 100%)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Hired</p>
+                  <p className="mt-2 text-3xl font-black text-[#4ade80]">
                     {isSummaryLoading ? '—' : summary.hired}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-lifewood-serpent/10 bg-red-500 p-4 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/80">Rejected</p>
-                  <p className="mt-2 text-3xl font-black text-white">
+                <div className="rounded-2xl bg-[#133020] p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #4a1010 100%)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Rejected</p>
+                  <p className="mt-2 text-3xl font-black text-red-400">
                     {isSummaryLoading ? '—' : summary.rejected}
                   </p>
                 </div>
@@ -350,11 +375,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                   Loading summary...
                 </div>
               )}
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #1e4a30 100%)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Intern Applicants</p>
+                  <p className="mt-2 text-3xl font-black text-white">
+                    {isDesignationLoading ? '—' : designationSummary.interns}
+                  </p>
+                </div>
+                <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #1e4a30 100%)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Employee Applicants</p>
+                  <p className="mt-2 text-3xl font-black text-white">
+                    {isDesignationLoading ? '—' : designationSummary.employees}
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="rounded-3xl border border-lifewood-serpent/10 bg-white p-5">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-lifewood-serpent">Recent Applicants</h3>
+                <div>
+                  <h3 className="text-lg font-bold text-lifewood-serpent">Recent Applicants</h3>
+                  <p className="mt-0.5 text-xs text-lifewood-serpent/45">Showing 5 most recent</p>
+                </div>
                 <button
                   onClick={() => navigateTo?.('admin-manage-applicants')}
                   className="text-xs font-semibold text-lifewood-green hover:text-lifewood-green/80"
