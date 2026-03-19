@@ -17,6 +17,7 @@ import { messageService } from '../services/messageService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
+import { Toast, useToast } from './Toast';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminManageInquiriesProps {
@@ -65,7 +66,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalMessage, setModalMessage] = useState<MessageRecord | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
-  const [assignmentNotice, setAssignmentNotice] = useState('');
+  const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const [pageOffset, setPageOffset] = useState(0);
   const [pageLimit] = useState(20);
   const [hasMore, setHasMore] = useState(false);
@@ -131,10 +132,10 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
       setMessages((prev) => prev.filter((message) => !ids.includes(message.id)));
       setModalMessage((prev) => (prev && ids.includes(prev.id) ? null : prev));
       setSelectedIds((prev) => prev.filter((selectedId) => !ids.includes(selectedId)));
-      setAssignmentNotice(ids.length > 1 ? `${ids.length} messages deleted.` : 'Message deleted.');
+      showToast(ids.length > 1 ? `${ids.length} messages deleted.` : 'Message deleted.', 'delete');
       void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to delete messages.');
+      showToast(error instanceof Error ? error.message : 'Unable to delete messages.', 'delete');
     }
   };
 
@@ -243,15 +244,14 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   };
 
   const deleteMessage = async (messageId: string) => {
-    setAssignmentNotice('');
     try {
       await messageService.deleteMessage(messageId);
       setMessages((prev) => prev.filter((message) => message.id !== messageId));
       setModalMessage((prev) => (prev && prev.id === messageId ? null : prev));
-      setAssignmentNotice('Message deleted.');
+      showToast('Message deleted.', 'delete');
       void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to delete message.');
+      showToast(error instanceof Error ? error.message : 'Unable to delete message.', 'delete');
     }
   };
 
@@ -264,7 +264,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
       setModalMessage((prev) => prev ? { ...prev, is_read: true } : null);
       void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to mark as read.');
+      showToast(error instanceof Error ? error.message : 'Unable to mark as read.', 'delete');
     }
   };
 
@@ -701,11 +701,6 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                   No inquiries found.
                 </p>
               )}
-              {assignmentNotice && !modalMessage && (
-                <p className="mb-3 text-xs font-semibold text-lifewood-green">
-                  {assignmentNotice}
-                </p>
-              )}
               <div className="overflow-auto max-h-[480px]">
                 <table className="w-full min-w-[860px] table-auto text-left relative">
                   <thead className="bg-lifewood-seaSalt/70 sticky top-0 z-10">
@@ -727,7 +722,6 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                       <tr
                         key={message.id}
                         onClick={() => {
-                          setAssignmentNotice('');
                           setModalMessage(message);
                         }}
                         className={[
@@ -891,7 +885,6 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                           Delete Inquiry
                         </button>
                       </div>
-                      {assignmentNotice && <p className="mt-3 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
                     </div>
                   </div>
                 </div>
@@ -944,6 +937,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
           </motion.div>
         )}
       </AnimatePresence>
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </section>
   );
 };

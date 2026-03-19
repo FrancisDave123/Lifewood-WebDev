@@ -20,6 +20,7 @@ import { emailService } from '../services/emailService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useAdminProfile } from './adminProfile';
+import { Toast, useToast } from './Toast';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminManageApplicantsProps {
@@ -82,7 +83,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalApplicant, setModalApplicant] = useState<ApplicantRecord | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
-  const [assignmentNotice, setAssignmentNotice] = useState('');
+  const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const [isEmailSending, setIsEmailSending] = useState(false);
   const [pageOffset, setPageOffset] = useState(0);
   const [pageLimit] = useState(20);
@@ -149,10 +150,10 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       setApplicants((prev) => prev.filter((applicant) => !ids.includes(applicant.id)));
       setModalApplicant((prev) => (prev && ids.includes(prev.id) ? null : prev));
       setSelectedIds((prev) => prev.filter((selectedId) => !ids.includes(selectedId)));
-      setAssignmentNotice(ids.length > 1 ? `${ids.length} applicants deleted.` : 'Applicant deleted.');
+      showToast(ids.length > 1 ? `${ids.length} applicants deleted.` : 'Applicant deleted.', 'delete');
       void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to delete applicants.');
+      showToast(error instanceof Error ? error.message : 'Unable to delete applicants.', 'delete');
     }
   };
 
@@ -280,8 +281,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     setIsProfileOpen(true);
   };
 
-  const updateApplicantStatus = async (applicantId: string, statusName: string, successMessage: string) => {
-    setAssignmentNotice('');
+  const updateApplicantStatus = async (applicantId: string, statusName: string, successMessage: string, toastVariant: import('./Toast').ToastVariant) => {
     try {
       const { data: allStatuses } = await supabase
         .from('applicant_statuses')
@@ -312,10 +312,10 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
           ? { ...prev, statusName, newApplicantStatus: false }
           : prev
       );
-      setAssignmentNotice(successMessage);
+      showToast(successMessage, toastVariant);
       void loadSummary();
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to update applicant status.');
+      showToast(error instanceof Error ? error.message : 'Unable to update applicant status.', 'delete');
     }
   };
 
@@ -323,7 +323,8 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     void updateApplicantStatus(
       applicant.id,
       'hired',
-      `${applicant.firstName} ${applicant.lastName} marked as hired.`
+      `${applicant.firstName} ${applicant.lastName} marked as hired. Applicant notified via email.`,
+      'hired'
     );
     // Send hired email
     void emailService
@@ -341,7 +342,8 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     void updateApplicantStatus(
       applicant.id,
       'rejected',
-      `${applicant.firstName} ${applicant.lastName} marked as rejected.`
+      `${applicant.firstName} ${applicant.lastName} marked as rejected. Applicant notified via email.`,
+      'rejected'
     );
     // Send rejected email
     void emailService
@@ -357,7 +359,6 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
 
   const sendAIScreeningEmail = async () => {
     if (!modalApplicant) return;
-    setAssignmentNotice('');
     setIsEmailSending(true);
     try {
       await emailService.sendAIScreeningEmail(
@@ -365,9 +366,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
         `${modalApplicant.firstName} ${modalApplicant.lastName}`,
         modalApplicant.positionApplied
       );
-      setAssignmentNotice('AI screening email sent successfully.');
+      showToast('AI screening email sent successfully.', 'ai-screening');
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to send AI screening email.');
+      showToast(error instanceof Error ? error.message : 'Unable to send AI screening email.', 'delete');
     } finally {
       setIsEmailSending(false);
     }
@@ -382,7 +383,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
 
   const openCv = async (applicant: ApplicantRecord) => {
     if (!applicant.cvPath) {
-      setAssignmentNotice('CV not available.');
+      showToast('CV not available.', 'delete');
       return;
     }
 
@@ -390,13 +391,13 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       const url = await fetchCvUrl(applicant.id);
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to open CV.');
+      showToast(error instanceof Error ? error.message : 'Unable to open CV.', 'delete');
     }
   };
 
   const downloadCv = async (applicant: ApplicantRecord) => {
     if (!applicant.cvPath) {
-      setAssignmentNotice('CV not available.');
+      showToast('CV not available.', 'delete');
       return;
     }
 
@@ -418,7 +419,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       link.remove();
       URL.revokeObjectURL(objectUrl);
     } catch (error) {
-      setAssignmentNotice(error instanceof Error ? error.message : 'Unable to download CV.');
+      showToast(error instanceof Error ? error.message : 'Unable to download CV.', 'delete');
     }
   };
 
@@ -914,11 +915,6 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   No applicants found.
                 </p>
               )}
-              {assignmentNotice && !modalApplicant && (
-                <p className="mb-3 text-xs font-semibold text-lifewood-green">
-                  {assignmentNotice}
-                </p>
-              )}
               <div className="overflow-auto max-h-[480px]">
                 <table className="w-full min-w-[860px] table-auto text-left relative">
                   <thead className="bg-lifewood-seaSalt/70 sticky top-0 z-10">
@@ -942,7 +938,6 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                       <tr
                         key={applicant.id}
                         onClick={() => {
-                          setAssignmentNotice('');
                           setModalApplicant(applicant);
                         }}
                         className={[
@@ -1097,7 +1092,22 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
 
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
-                    <p className="text-sm font-semibold text-lifewood-serpent">Update Applicant Status</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-lifewood-serpent">Update Applicant Status</p>
+                      <div className="group relative flex items-center">
+                        <button
+                          type="button"
+                          aria-label="Email notification info"
+                          className="flex h-4 w-4 items-center justify-center rounded-full border border-lifewood-serpent/30 text-[9px] font-bold text-lifewood-serpent/50 transition hover:border-lifewood-green hover:text-lifewood-green"
+                        >
+                          i
+                        </button>
+                        <div className="pointer-events-none absolute top-full right-0 z-50 mt-2 w-56 scale-95 rounded-xl border border-lifewood-serpent/10 bg-lifewood-serpent px-3 py-2 text-xs font-medium leading-snug text-white opacity-0 shadow-lg transition-all duration-150 group-hover:scale-100 group-hover:opacity-100">
+                          Marking as hired or rejected will automatically notify the applicant via email.
+                          <span className="absolute right-1.5 bottom-full border-4 border-transparent border-b-lifewood-serpent" />
+                        </div>
+                      </div>
+                    </div>
                     <p className="mt-1 text-xs text-lifewood-serpent/60">
                       Set the final decision for this applicant.
                     </p>
@@ -1145,8 +1155,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                         </button>
                       </div>
                     </div>
-                    {assignmentNotice && <p className="mt-3 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
-                  </div>
+                    </div>
                   <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4">
                     <p className="text-sm font-semibold text-lifewood-serpent">CV Upload</p>
                     <p className="mt-1 text-xs text-lifewood-serpent/70">
@@ -1230,10 +1239,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
           </motion.div>
         )}
       </AnimatePresence>
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </section>
   );
 };
 
 export default AdminManageApplicants;
-
-
