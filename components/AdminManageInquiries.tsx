@@ -837,15 +837,17 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             className="fixed inset-0 z-[180] flex items-center justify-center bg-black/45 p-4"
+            onClick={() => setModalMessage(null)}
           >
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 14, scale: 0.97 }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-lifewood-serpent/10 bg-white p-5"
+              className="max-h-[90vh] w-full max-w-3xl flex flex-col rounded-3xl border border-lifewood-serpent/10 bg-white overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-3 flex items-center justify-between">
+              <div className="flex shrink-0 items-center justify-between border-b border-lifewood-serpent/10 px-5 py-4">
                 <h3 className="text-lg font-bold text-lifewood-serpent">Inquiry Details</h3>
                 <button
                   type="button"
@@ -856,45 +858,41 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                 </button>
               </div>
 
-              <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-                <div className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
-                      <span className="font-semibold">Name:</span> {modalMessage.name}
+              <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+                  <div className="space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Name</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{modalMessage.name}</p></div>
+                      <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Email</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent break-all">{modalMessage.email}</p></div>
+                      <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Subject</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{modalMessage.subject}</p></div>
+                      <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Date and Time</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{formatMessageDate(modalMessage.created_at)} at {formatMessageTime(modalMessage.created_at)}</p></div>
                     </div>
-                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
-                      <span className="font-semibold">Email:</span> {modalMessage.email}
-                    </div>
-                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
-                      <span className="font-semibold">Subject:</span> {modalMessage.subject}
-                    </div>
-                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
-                      <span className="font-semibold">Date and Time:</span> {formatMessageDate(modalMessage.created_at)} at {formatMessageTime(modalMessage.created_at)}
+
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Message</p>
+                      <p className="mt-2 text-sm font-semibold text-lifewood-serpent whitespace-pre-wrap">{modalMessage.message}</p>
                     </div>
                   </div>
 
-                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 text-sm text-lifewood-serpent">
-                    <span className="font-semibold">Message:</span>
-                    <p className="mt-2 whitespace-pre-wrap">{modalMessage.message}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
-                    <p className="text-sm font-semibold text-lifewood-serpent">Actions</p>
-                    <p className="mt-1 text-xs text-lifewood-serpent/60">
-                      Manage this inquiry.
-                    </p>
-                    <div className="mt-3 flex flex-col gap-2">
-                      <button
-                        type="button"
-                        onClick={() => deleteMessage(modalMessage.id)}
-                        className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"
-                      >
-                        Delete Inquiry
-                      </button>
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
+                      <p className="text-sm font-semibold text-lifewood-serpent">Actions</p>
+                      <p className="mt-1 text-xs text-lifewood-serpent/60">
+                        Manage this inquiry.
+                      </p>
+                      <div className="mt-3 flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setConfirmDelete({ mode: 'single', id: modalMessage.id, name: modalMessage.name });
+                          }}
+                          className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600"
+                        >
+                          Delete Inquiry
+                        </button>
+                      </div>
+                      {assignmentNotice && <p className="mt-3 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
                     </div>
-                    {assignmentNotice && <p className="mt-3 text-xs font-semibold text-lifewood-green">{assignmentNotice}</p>}
                   </div>
                 </div>
               </div>
@@ -910,6 +908,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
             exit={{ opacity: 0 }}
             transition={{ duration: 0.16 }}
             className="fixed inset-0 z-[190] flex items-center justify-center bg-black/45 p-4"
+            onClick={closeDeleteModal}
           >
             <motion.div
               initial={{ opacity: 0, y: 16, scale: 0.97 }}
@@ -917,6 +916,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
               exit={{ opacity: 0, y: 10, scale: 0.97 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="w-full max-w-md rounded-2xl border border-lifewood-serpent/10 bg-white p-5"
+              onClick={(e) => e.stopPropagation()}
             >
               <h4 className="text-lg font-bold text-lifewood-serpent">Confirm Delete</h4>
               <p className="mt-2 text-sm text-lifewood-serpent/70">
