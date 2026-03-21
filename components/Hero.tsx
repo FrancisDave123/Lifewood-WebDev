@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, Play, Globe, X as CloseIcon } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
+import Prism from './Prism';
 
 interface HeroProps {
   navigateTo?: (page: PageRoute) => void;
@@ -25,21 +26,21 @@ export const Hero: React.FC<HeroProps> = ({ navigateTo }) => {
       id="home" 
       className={`sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#020804] transition-colors duration-700 ${isVideoOpen ? 'z-[10000]' : 'z-0'} pt-20 md:pt-24`}
     >
-      {/* Video Background Layer */}
+      {/* Prism Background Layer */}
       <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source 
-            src="https://www.pexels.com/download/video/10922866/" 
-            type="video/mp4" 
+        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+          <Prism
+            animationType="rotate"
+            timeScale={0.5}
+            height={3.5}
+            baseWidth={5.5}
+            scale={3.6}
+            hueShift={0}
+            colorFrequency={1}
+            noise={0}
+            glow={1}
           />
-          Your browser does not support the video tag.
-        </video>
+        </div>
         {/* Dynamic Overlay to maintain contrast and blend with theme */}
         <div className="absolute inset-0 bg-white/40 dark:bg-[#020804]/75 backdrop-blur-[1px]"></div>
         
