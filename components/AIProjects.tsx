@@ -17,6 +17,7 @@ import { StickyPageTitle } from './StickyPageTitle';
 
 interface AIProjectsProps {
   theme?: 'light' | 'dark';
+  navigateTo?: (page: import('../routes/routeTypes').PageRoute) => void;
 }
 
 interface ProjectAccordionItem {
@@ -26,18 +27,8 @@ interface ProjectAccordionItem {
   icon: React.ReactNode;
 }
 
-export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light' }) => {
+export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light', navigateTo }) => {
   const [expandedId, setExpandedId] = useState<string | null>('2.1');
-
-  const scrollToContact = () => {
-    const el = document.getElementById('contact');
-    if (el) {
-      const offset = 80;
-      const elementPosition = el.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-  };
 
   const projectItems: ProjectAccordionItem[] = [
     {
@@ -101,7 +92,7 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light' }) => {
           </p>
 
           <button 
-            onClick={scrollToContact}
+            onClick={() => navigateTo?.('contact-us')}
             className="group relative px-8 py-3 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-sm flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(19,48,32,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             Contact Us 

@@ -1,18 +1,14 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { PageRoute } from '../routes/routeTypes';
 
-export const PhilanthropyImpact: React.FC = () => {
+interface PhilanthropyImpactProps {
+  navigateTo?: (page: PageRoute) => void;
+}
+
+export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigateTo }) => {
   const frameUrl = 'https://lifewoodworldwidemap.vercel.app/';
-
-  const scrollToContact = () => {
-    const el = document.getElementById('contact');
-    if (!el) return;
-    const offset = 80;
-    const elementPosition = el.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.pageYOffset - offset;
-    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-  };
 
   return (
     <section id="impact" className="py-16 md:py-20 relative overflow-x-hidden bg-lifewood-seaSalt dark:bg-[#020804] animate-pop-out opacity-0">
@@ -36,7 +32,7 @@ export const PhilanthropyImpact: React.FC = () => {
             </p>
 
             <button
-              onClick={scrollToContact}
+              onClick={() => navigateTo?.('contact-us')}
               className="group relative px-8 py-3 bg-lifewood-green text-white rounded-full font-bold text-sm inline-flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(4,98,65,0.25)]"
             >
               Contact Us
@@ -68,7 +64,7 @@ export const PhilanthropyImpact: React.FC = () => {
               Our vision is of a world where financial investment plays a central role in solving the social and environmental challenges facing the global community, specifically in Africa and the Indian sub-continent
             </p>
             <button
-              onClick={scrollToContact}
+              onClick={() => navigateTo?.('about-us')}
               className="mt-7 group px-6 py-3 bg-lifewood-green text-white rounded-full text-sm font-bold inline-flex items-center gap-2 hover:scale-105 hover:shadow-[0_15px_35px_rgba(4,98,65,0.3)] transition-all"
             >
               Know Us Better

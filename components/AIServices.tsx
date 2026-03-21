@@ -17,6 +17,10 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigat
     navigateTo?.('contact-us');
   };
 
+  const handleJoinUsClick = () => {
+    navigateTo?.('join-us');
+  };
+
   const services = [
     {
       title: 'Image',
@@ -165,11 +169,11 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigat
               Comprehensive <br /> 
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-lifewood-green to-lifewood-saffron">Data Solutions</span>
             </h2>
-            <button 
-              onClick={handleContactClick}
-              className="inline-flex items-center gap-4 px-8 py-4 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-bold group hover:scale-105 transition-all shadow-2xl"
-            >
-              Get started now
+          <button 
+            onClick={handleJoinUsClick}
+            className="inline-flex items-center gap-4 px-8 py-4 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-bold group hover:scale-105 transition-all shadow-2xl"
+          >
+            Get started now
               <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
             </button>
           </div>

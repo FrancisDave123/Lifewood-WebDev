@@ -397,11 +397,11 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         <Routes>
           <Route path="/" element={<HomeContent navigateTo={navigateTo} />} />
           <Route path="/ai-services" element={<AIServices theme={theme} navigateTo={navigateTo} />} />
-          <Route path="/ai-projects" element={<AIProjects theme={theme} />} />
+          <Route path="/ai-projects" element={<AIProjects theme={theme} navigateTo={navigateTo} />} />
           <Route path="/contact-us" element={<Contact theme={theme} navigateTo={navigateTo} />} />
           <Route path="/about-us" element={<AboutUs theme={theme} navigateTo={navigateTo} />} />
           <Route path="/offices" element={<Offices theme={theme} />} />
-          <Route path="/philanthropy-impact" element={<PhilanthropyImpact />} />
+          <Route path="/philanthropy-impact" element={<PhilanthropyImpact navigateTo={navigateTo} />} />
           <Route path="/careers" element={<Careers navigateTo={navigateTo} />} />
           <Route path="/join-us" element={<Navigate to={PAGE_PATHS['join-us-as']} replace />} />
           <Route path="/join-us-as" element={<JoinUsAs navigateTo={navigateTo} />} />
