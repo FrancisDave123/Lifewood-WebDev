@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles, X, Folder, Layers, Share2, MousePointer2, ShieldCheck, Database, Search, Target } from 'lucide-react';
 import { LOGO_URL, LOGO_DARK_URL } from '../constants';
 import type { PageRoute } from '../routes/routeTypes';
+import { StickyPageTitle } from './StickyPageTitle';
 
 interface AIServicesProps {
   theme?: 'light' | 'dark';
@@ -58,17 +59,12 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigat
       <div className="container mx-auto px-6">
         {/* Header Section */}
         <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex gap-2">
-              <div className="w-4 h-4 rounded-full bg-lifewood-saffron"></div>
-              <div className="w-4 h-4 rounded-full border-2 border-lifewood-serpent dark:border-white"></div>
-            </div>
-            <div className="w-24 h-px bg-lifewood-serpent/30 dark:bg-white/30 border-dashed border-t"></div>
-          </div>
-          
-          <h1 className="text-6xl md:text-7xl font-heading font-black mb-10 tracking-tight text-lifewood-serpent dark:text-white uppercase">
-            AI DATA SERVICES
-          </h1>
+          <StickyPageTitle
+            id="ai-services-page-title"
+            wrapperClassName="mb-10"
+            titleClassName="text-6xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase"
+            title="AI DATA SERVICES"
+          />
           
           <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-3xl font-medium">
             Lifewood delivers end-to-end AI data solutions—from multi-language data collection and annotation to model training and generative AI content. Leveraging our global workforce, industrialized methodology, and proprietary LIFT platform, we enable organizations to scale efficiently, reduce costs, and accelerate decision-making with high-quality, domain-specific datasets.

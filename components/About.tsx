@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
+import { PageRoute } from '../routes/routeTypes';
 
-export const About: React.FC = () => {
+export const About: React.FC<{ navigateTo: (page: PageRoute) => void }> = ({ navigateTo }) => {
   return (
     <section id="company" className="py-32 relative z-10 bg-lifewood-seaSalt dark:bg-[#020804] overflow-hidden shadow-[0_-50px_100px_rgba(0,0,0,0.1)]">
       {/* Section Background Decoration */}
@@ -25,7 +26,11 @@ export const About: React.FC = () => {
               <p className="text-xl opacity-70 leading-relaxed mb-10 max-w-xl">
                 At <span className="font-bold text-lifewood-green">Lifewood</span>, we empower our company and our clients to realize the transformative power of AI: bringing big data to life: launching new ways of thinking, learning and doing; for the good of humankind.
               </p>
-              <button className="group px-10 py-4 glass border-lifewood-green/20 rounded-full font-bold hover:bg-lifewood-green hover:text-white transition-all duration-500 flex items-center gap-2 hover:glow-green">
+              <button
+                type="button"
+                onClick={() => navigateTo('about-us')}
+                className="group px-10 py-4 glass border-lifewood-green/20 rounded-full font-bold hover:bg-lifewood-green hover:text-white transition-all duration-500 flex items-center gap-2 hover:glow-green"
+              >
                 Know Us Better <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>

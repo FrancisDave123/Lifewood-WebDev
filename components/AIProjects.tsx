@@ -13,6 +13,7 @@ import {
   X,
   ArrowUpRight
 } from 'lucide-react';
+import { StickyPageTitle } from './StickyPageTitle';
 
 interface AIProjectsProps {
   theme?: 'light' | 'dark';
@@ -88,17 +89,12 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light' }) => {
       <div className="container mx-auto px-6">
         {/* Header Section */}
         <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex gap-2">
-              <div className="w-4 h-4 rounded-full bg-lifewood-saffron"></div>
-              <div className="w-4 h-4 rounded-full border-2 border-lifewood-serpent dark:border-white"></div>
-            </div>
-            <div className="w-24 h-px bg-lifewood-serpent/30 dark:bg-white/30 border-dashed border-t"></div>
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-heading font-black mb-10 tracking-tight text-lifewood-serpent dark:text-white uppercase">
-            AI Projects
-          </h1>
+          <StickyPageTitle
+            id="ai-projects-page-title"
+            title="AI PROJECTS"
+            wrapperClassName="mb-10"
+            titleClassName="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase"
+          />
           
           <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">
             From building AI datasets in diverse languages and environments, to developing platforms that enhance productivity and open new opportunities in under-resourced economies, you'll see how Lifewood is shaping the future with innovation, integrity and a focus on people.

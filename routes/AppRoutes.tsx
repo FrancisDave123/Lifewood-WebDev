@@ -1,4 +1,4 @@
-import React, { Dispatch, ReactNode, SetStateAction, useCallback } from 'react';
+import React, { Dispatch, ReactNode, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { Navbar } from '../components/Navbar';
@@ -154,12 +154,96 @@ interface AppRoutesProps {
 
 type NavigateTo = (page: PageRoute) => void;
 
+const CompactPageTitle: React.FC<{ title: string; sourceId: string }> = ({ title, sourceId }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
+  const [sourceOffset, setSourceOffset] = useState({ x: 0, y: 0 });
+  const isCompactRef = useRef(false);
+  const isVisibleRef = useRef(false);
+  const rafRef = useRef(0);
+
+  const handleBackToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const updateState = () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = window.requestAnimationFrame(() => {
+        const shouldCompact = window.scrollY > 110;
+
+        if (shouldCompact && !isCompactRef.current) {
+          const source = document.getElementById(sourceId);
+          if (source) {
+            const rect = source.getBoundingClientRect();
+            const targetLeft = 24;
+            const targetTop = 96;
+            setSourceOffset({
+              x: rect.left - targetLeft,
+              y: rect.top - targetTop
+            });
+          }
+          isCompactRef.current = true;
+          isVisibleRef.current = true;
+          setIsVisible(true);
+          setIsEntering(true);
+          window.requestAnimationFrame(() => setIsEntering(false));
+        } else if (!shouldCompact && isCompactRef.current) {
+          isCompactRef.current = false;
+          isVisibleRef.current = false;
+          setIsVisible(false);
+          setIsEntering(false);
+        } else if (shouldCompact && !isVisibleRef.current) {
+          isVisibleRef.current = true;
+          setIsVisible(true);
+          setIsEntering(false);
+        }
+      });
+    };
+
+    updateState();
+    window.addEventListener('scroll', updateState, { passive: true });
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('scroll', updateState);
+    };
+  }, [sourceId]);
+
+  const currentTransform = !isVisible
+    ? `translate(${sourceOffset.x}px, ${sourceOffset.y}px) scale(1.6)`
+    : isEntering
+      ? `translate(${sourceOffset.x}px, ${sourceOffset.y}px) scale(1.6)`
+      : 'translate(0px, 0px) scale(1)';
+
+  return (
+    <button
+      type="button"
+      onClick={handleBackToTop}
+      aria-label={`Back to top from ${title}`}
+      className="fixed left-6 top-24 z-[130] pointer-events-auto text-left transition-all duration-700 ease-out cursor-pointer"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: currentTransform
+      }}
+    >
+      <div
+        className="flex items-center gap-3 rounded-full glass border border-lifewood-green/25 px-4 py-2 shadow-xl motion-safe:animate-pulse-slow hover:border-lifewood-saffron/60 hover:shadow-2xl transition-all duration-300"
+      >
+        <div className="h-5 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron" />
+        <span className="text-[11px] md:text-xs font-black tracking-[0.25em] uppercase text-lifewood-serpent dark:text-white">
+          {title}
+        </span>
+      </div>
+    </button>
+  );
+};
+
 const HomeContent: React.FC<{ navigateTo: NavigateTo }> = ({ navigateTo }) => (
   <>
     <div key="home-page-wrapper">
       <Hero navigateTo={navigateTo} />
       <div className="relative z-10 bg-lifewood-seaSalt dark:bg-[#020804]">
-        <About />
+        <About navigateTo={navigateTo} />
         <Stats />
         <Clients />
         <Innovation />
@@ -279,6 +363,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           isAdminAuthenticated={isAdminUser}
         />
       )}
+
+      {currentPage === 'ai-services' && <CompactPageTitle title="AI DATA SERVICES" sourceId="ai-services-page-title" />}
+      {currentPage === 'ai-projects' && <CompactPageTitle title="AI PROJECTS" sourceId="ai-projects-page-title" />}
 
       <main className="relative">
         <Routes>
