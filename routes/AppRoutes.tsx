@@ -364,6 +364,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         />
       )}
 
+      {currentPage === 'home' && <CompactPageTitle title="HOME" sourceId="home-page-title" />}
       {currentPage === 'ai-services' && <CompactPageTitle title="AI DATA SERVICES" sourceId="ai-services-page-title" />}
       {currentPage === 'ai-projects' && <CompactPageTitle title="AI PROJECTS" sourceId="ai-projects-page-title" />}
 

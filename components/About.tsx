@@ -17,7 +17,7 @@ export const About: React.FC<{ navigateTo: (page: PageRoute) => void }> = ({ nav
                 <Sparkles className="w-4 h-4 text-lifewood-green" />
                 <span className="text-xs font-bold uppercase tracking-[0.3em]">About Us</span>
               </div>
-              <h3 className="text-4xl md:text-6xl font-heading font-extrabold mb-8 leading-[1.15]">
+              <h3 id="home-page-title" className="text-4xl md:text-6xl font-heading font-extrabold mb-8 leading-[1.15]">
                 Empowering the future <br /> through <span className="text-lifewood-green relative">
                   data-driven
                   <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" fill="none"><path d="M1 5.5C40 2.5 120 2.5 199 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
