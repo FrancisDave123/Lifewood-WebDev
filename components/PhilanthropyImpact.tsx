@@ -23,17 +23,12 @@ export const PhilanthropyImpact: React.FC = () => {
       <div className="container mx-auto px-6">
         <div className="w-full">
           <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex gap-2">
-                <div className="w-4 h-4 rounded-full bg-lifewood-saffron"></div>
-                <div className="w-4 h-4 rounded-full border-2 border-lifewood-serpent dark:border-white"></div>
-              </div>
-              <div className="w-24 h-px bg-lifewood-serpent/30 dark:bg-white/30 border-dashed border-t"></div>
-            </div>
-
-            <h2 className="text-6xl md:text-7xl font-heading font-black mb-10 tracking-tight text-lifewood-serpent dark:text-white uppercase">
+          <div className="flex items-start gap-4 mb-10">
+            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
+            <h2 id="philanthropy-impact-page-title" className="text-6xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
               Philanthropy and Impact
             </h2> 
+          </div>
 
             <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-3xl font-medium">
               We direct resources into education and developmental projects that create lasting change. Our approach goes beyond giving:

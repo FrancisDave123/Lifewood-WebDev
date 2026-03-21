@@ -142,11 +142,14 @@ export const Careers: React.FC<CareersProps> = ({ navigateTo }) => {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-end mb-16 md:mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
             <div>
-              <h1 className="text-5xl md:text-7xl font-heading font-black tracking-tight leading-[0.95] text-lifewood-serpent dark:text-white mb-8">
-                Careers in
-                <br />
-                Lifewood
-              </h1>
+              <div className="flex items-start gap-4 mb-8">
+                <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
+                <h1 id="careers-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight leading-[0.95] text-lifewood-serpent dark:text-white">
+                  Careers in
+                  <br />
+                  Lifewood
+                </h1>
+              </div>
               <button
                 onClick={() => navigateTo?.('join-us')}
                 className="group px-8 py-3 bg-lifewood-saffron text-lifewood-serpent rounded-full text-lg font-bold inline-flex items-center gap-3 hover:scale-105 transition-transform"

@@ -118,14 +118,17 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Header Section */}
-        <div className="text-center mb-20">
-          <div className="inline-block px-4 py-1.5 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-black text-xs uppercase tracking-widest mb-6 animate-fade-in">
+        <div className="mb-20 max-w-4xl animate-fade-in">
+          <div className="inline-block px-4 py-1.5 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-black text-xs uppercase tracking-widest mb-6">
             Get In Touch
           </div>
-          <h1 className="text-5xl md:text-7xl font-heading font-black mb-6 tracking-tight text-lifewood-serpent dark:text-white uppercase animate-fade-in">
-            Contact Us
-          </h1>
-          <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed max-w-2xl mx-auto font-medium animate-fade-in">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
+            <h1 id="contact-us-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
+              Contact Us
+            </h1>
+          </div>
+          <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed max-w-2xl font-medium">
             Have a question or project in mind? We'd love to hear from you. Reach out and let's discuss how we can help transform your data into AI advantages.
           </p>
         </div>

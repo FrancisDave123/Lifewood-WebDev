@@ -172,14 +172,6 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
       <div className="container mx-auto px-6 relative z-10">
         {/* Header Section */}
         <div className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex gap-2">
-              <div className="w-4 h-4 rounded-full bg-lifewood-saffron"></div>
-              <div className="w-4 h-4 rounded-full border-2 border-lifewood-serpent dark:border-white"></div>
-            </div>
-            <div className="w-24 h-px bg-lifewood-serpent/30 dark:bg-white/30 border-dashed border-t"></div>
-          </div>
-
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass border border-lifewood-green/20 mb-6">
             <Sparkles className="w-4 h-4 text-lifewood-green" />
             <span className="text-xs font-black uppercase tracking-[0.24em] text-lifewood-serpent/70 dark:text-white/70">
@@ -187,9 +179,12 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
             </span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-heading font-black mb-10 tracking-tight text-lifewood-serpent dark:text-white uppercase">
-            About our company
-          </h1>
+          <div className="flex items-start gap-4 mb-10">
+            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
+            <h1 id="about-us-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
+              About our company
+            </h1>
+          </div>
 
           <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">
             While we are motivated by business and economic objectives, we remain committed to our core business beliefs that shape our corporate and individual behaviour around the world.

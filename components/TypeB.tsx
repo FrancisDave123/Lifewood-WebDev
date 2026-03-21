@@ -85,7 +85,7 @@ export const TypeB: React.FC<TypeBProps> = ({ theme = 'light', navigateTo }) => 
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-            <div className="relative z-10">
+            <div id="type-b-page-title" className="relative z-10">
               {/* Animated Accent Line */}
               <motion.div
                 initial={{ width: 0 }}

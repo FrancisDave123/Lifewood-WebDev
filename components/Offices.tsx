@@ -19,21 +19,17 @@ export const Offices: React.FC<OfficesProps> = ({ theme = 'light' }) => {
       <div className="container mx-auto px-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex gap-2">
-                <div className="w-4 h-4 rounded-full bg-lifewood-saffron"></div>
-                <div className="w-4 h-4 rounded-full border-2 border-lifewood-serpent dark:border-white"></div>
-              </div>
-              <div className="w-24 h-px bg-lifewood-serpent/30 dark:bg-white/30 border-dashed border-t"></div>
-            </div>
           </div>
 
           <div className="flex flex-col gap-10 mb-10 lg:flex-row lg:items-center lg:justify-between">
-            <h1 className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor} animate-pop-out opacity-0`} style={{ animationDelay: '200ms' }}>
-              Largest Global Data Collection
-              <br />
-              Resources Distribution
-            </h1>
+            <div className="flex items-start gap-4 animate-pop-out opacity-0" style={{ animationDelay: '200ms' }}>
+              <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
+              <h1 id="offices-page-title" className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor}`}>
+                Largest Global Data Collection
+                <br />
+                Resources Distribution
+              </h1>
+            </div>
 
             <div className="hidden lg:flex justify-end mb-0 animate-pop-out opacity-0" style={{ animationDelay: '300ms' }}>
               <div className="relative w-48 h-64 flex flex-col items-center">

@@ -154,6 +154,28 @@ interface AppRoutesProps {
 
 type NavigateTo = (page: PageRoute) => void;
 
+const COMPACT_PAGE_TITLES: Partial<Record<PageRoute, { title: string; sourceId: string }>> = {
+  home: { title: 'HOME', sourceId: 'home-page-title' },
+  'ai-services': { title: 'AI DATA SERVICES', sourceId: 'ai-services-page-title' },
+  'ai-projects': { title: 'AI PROJECTS', sourceId: 'ai-projects-page-title' },
+  'contact-us': { title: 'CONTACT US', sourceId: 'contact-us-page-title' },
+  'about-us': { title: 'ABOUT US', sourceId: 'about-us-page-title' },
+  'philanthropy-impact': { title: 'PHILANTHROPY & IMPACT', sourceId: 'philanthropy-impact-page-title' },
+  offices: { title: 'OFFICES', sourceId: 'offices-page-title' },
+  careers: { title: 'CAREERS', sourceId: 'careers-page-title' },
+  'join-us-as': { title: 'JOIN US', sourceId: 'join-us-as-page-title' },
+  'join-us-as-employee': { title: 'APPLY AS EMPLOYEE', sourceId: 'join-us-employee-page-title' },
+  'join-us-as-intern': { title: 'APPLY AS INTERN', sourceId: 'join-us-intern-page-title' },
+  'type-a-data-servicing': { title: 'TYPE A DATA SERVICING', sourceId: 'type-a-page-title' },
+  'type-b-horizontal-llm-data': { title: 'TYPE B HORIZONTAL LLM DATA', sourceId: 'type-b-page-title' },
+  'type-c-vertical-llm-data': { title: 'TYPE C VERTICAL LLM DATA', sourceId: 'type-c-page-title' },
+  'type-d-aigc': { title: 'TYPE D AIGC', sourceId: 'type-d-page-title' },
+  'internal-news': { title: 'INTERNAL NEWS', sourceId: 'internal-news-page-title' },
+  'privacy-policy': { title: 'PRIVACY POLICY', sourceId: 'privacy-policy-page-title' },
+  'cookie-policy': { title: 'COOKIE POLICY', sourceId: 'cookie-policy-page-title' },
+  'terms-and-conditions': { title: 'TERMS AND CONDITIONS', sourceId: 'terms-conditions-page-title' }
+};
+
 const CompactPageTitle: React.FC<{ title: string; sourceId: string }> = ({ title, sourceId }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
@@ -364,9 +386,12 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         />
       )}
 
-      {currentPage === 'home' && <CompactPageTitle title="HOME" sourceId="home-page-title" />}
-      {currentPage === 'ai-services' && <CompactPageTitle title="AI DATA SERVICES" sourceId="ai-services-page-title" />}
-      {currentPage === 'ai-projects' && <CompactPageTitle title="AI PROJECTS" sourceId="ai-projects-page-title" />}
+      {COMPACT_PAGE_TITLES[currentPage] && (
+        <CompactPageTitle
+          title={COMPACT_PAGE_TITLES[currentPage]!.title}
+          sourceId={COMPACT_PAGE_TITLES[currentPage]!.sourceId}
+        />
+      )}
 
       <main className="relative">
         <Routes>

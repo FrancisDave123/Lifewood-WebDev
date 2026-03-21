@@ -52,9 +52,12 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ navigateTo }) => {
             </span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-heading font-black mb-6 tracking-tight text-lifewood-serpent dark:text-white uppercase">
-            Privacy Policy
-          </h1>
+          <div className="flex items-start gap-4 mb-6">
+            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
+            <h1 id="privacy-policy-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
+              Privacy Policy
+            </h1>
+          </div>
           <p className="text-xl text-lifewood-serpent/60 dark:text-white/60 max-w-3xl">
             This Privacy Policy has been duly approved and adopted by Lifewood Data Technology Limited and shall be effective from 3 November 2025.
           </p>
