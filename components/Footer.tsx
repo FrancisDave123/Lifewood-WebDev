@@ -20,7 +20,7 @@ export const Footer: React.FC<FooterProps> = ({ navigateTo }) => {
   ];
 
   return (
-    <footer id="contact" className="relative overflow-hidden bg-gradient-to-b from-lifewood-seaSalt via-lifewood-seaSalt to-lifewood-serpent/10 pt-32 pb-16">
+    <footer id="contact" className="relative overflow-hidden bg-gradient-to-b from-lifewood-seaSalt via-lifewood-seaSalt to-lifewood-serpent/10 pt-20 md:pt-24 pb-16">
       {/* Background Decoration */}
       <div className="absolute bottom-0 left-0 right-0 h-[600px] bg-gradient-to-t from-lifewood-green/10 to-transparent pointer-events-none"></div>
       

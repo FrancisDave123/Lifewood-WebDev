@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Linkedin, Facebook, Instagram, Youtube, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import type { PageRoute } from '../routes/routeTypes';
 
@@ -101,13 +101,6 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
     }
   ];
 
-  const socialLinks = [
-    { icon: <Linkedin className="w-5 h-5" />, href: '#', label: 'LinkedIn' },
-    { icon: <Facebook className="w-5 h-5" />, href: '#', label: 'Facebook' },
-    { icon: <Instagram className="w-5 h-5" />, href: '#', label: 'Instagram' },
-    { icon: <Youtube className="w-5 h-5" />, href: '#', label: 'YouTube' }
-  ];
-
   return (
     <div className="pt-32 pb-20 relative overflow-hidden">
       {/* Animated background elements */}
@@ -164,24 +157,6 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
               ))}
             </div>
 
-            {/* Social Links */}
-            <div className="pt-8 border-t border-lifewood-serpent/10 dark:border-white/10">
-              <h4 className="text-lg font-bold text-lifewood-serpent dark:text-white mb-6">
-                Find Us On
-              </h4>
-              <div className="flex gap-4">
-                {socialLinks.map((social, idx) => (
-                  <a
-                    key={idx}
-                    href={social.href}
-                    aria-label={social.label}
-                    className="w-12 h-12 rounded-xl glass flex items-center justify-center text-lifewood-serpent dark:text-white hover:text-lifewood-green dark:hover:text-lifewood-yellow hover:scale-110 transition-all duration-300 hover:shadow-lg"
-                  >
-                    {social.icon}
-                  </a>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right Side - Contact Form */}
@@ -302,7 +277,7 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
         </div>
 
         {/* Bottom CTA Section */}
-        <div className="mt-24 p-12 rounded-3xl glass-alt border border-white/20 text-center">
+        <div className="mt-12 md:mt-16 p-10 md:p-12 rounded-3xl glass-alt border border-white/20 text-center">
           <h3 className="text-3xl md:text-4xl font-heading font-bold text-lifewood-serpent dark:text-white mb-4">
             Looking for Something Specific?
           </h3>
