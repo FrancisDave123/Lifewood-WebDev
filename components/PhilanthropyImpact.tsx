@@ -40,6 +40,7 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
+
         </div>
       </div>
 
@@ -109,11 +110,13 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
             />
           </div>
 
-          <div className="border-t border-lifewood-serpent/15 dark:border-white/15 pt-10 pb-4">
-            <div className="flex items-center gap-3 text-lifewood-serpent/65 dark:text-white/65 text-lg">
-              <span className="w-10 h-px bg-lifewood-serpent/30 dark:bg-white/30"></span>
+          <div className="mb-10 text-center max-w-4xl mx-auto px-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-lifewood-serpent/45 dark:text-white/45 mb-3">
               Impact
-            </div>
+            </p>
+            <p className="text-lg md:text-2xl font-heading font-medium leading-relaxed text-lifewood-serpent dark:text-white">
+              Through purposeful partnerships and sustainable investment, we empower communities across Africa and the Indian sub-continent to create lasting economic and social transformation.
+            </p>
           </div>
 
           <div className="relative pb-12 md:pb-16 animate-pop-out opacity-0 overflow-hidden rounded-[2rem]" style={{ animationDelay: '520ms' }}>
