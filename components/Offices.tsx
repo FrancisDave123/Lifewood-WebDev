@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface OfficesProps {
   theme?: 'light' | 'dark';
@@ -22,13 +23,12 @@ export const Offices: React.FC<OfficesProps> = ({ theme = 'light' }) => {
           </div>
 
           <div className="flex flex-col gap-10 mb-10 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-4 animate-pop-out opacity-0" style={{ animationDelay: '200ms' }}>
-              <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-              <h1 id="offices-page-title" className={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor}`}>
-                Largest Global Data Collection
-                <br />
-                Resources Distribution
-              </h1>
+            <div className="animate-pop-out opacity-0" style={{ animationDelay: '200ms' }}>
+              <PageTitleBanner
+                id="offices-page-title"
+                title="Largest Global Data Collection\nResources Distribution"
+                titleClassName={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor} uppercase whitespace-pre-line`}
+              />
             </div>
 
             <div className="hidden lg:flex justify-end mb-0 animate-pop-out opacity-0" style={{ animationDelay: '300ms' }}>

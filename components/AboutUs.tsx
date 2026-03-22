@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Sparkles, X } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface AboutUsProps {
   theme?: 'light' | 'dark';
@@ -179,12 +180,11 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
             </span>
           </div>
 
-          <div className="flex items-start gap-4 mb-10">
-            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-            <h1 id="about-us-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
-              About our company
-            </h1>
-          </div>
+          <PageTitleBanner
+            id="about-us-page-title"
+            title="About our company"
+            className="mb-10"
+          />
 
           <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">
             While we are motivated by business and economic objectives, we remain committed to our core business beliefs that shape our corporate and individual behaviour around the world.

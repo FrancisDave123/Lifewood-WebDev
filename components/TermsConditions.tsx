@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ArrowLeft, Sparkles, FileText, UserCheck, Edit, Shield, Lock, Globe, AlertCircle, Scale, MessageSquare } from 'lucide-react';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface TermsConditionsProps {
   navigateTo?: (page: any) => void;
@@ -54,12 +55,11 @@ export const TermsConditions: React.FC<TermsConditionsProps> = ({ navigateTo }) 
             </span>
           </div>
           
-          <div className="flex items-start gap-4 mb-6">
-            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-            <h1 id="terms-conditions-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
-              Terms and Conditions
-            </h1>
-          </div>
+          <PageTitleBanner
+            id="terms-conditions-page-title"
+            title="Terms and Conditions"
+            className="mb-6"
+          />
           <p className="text-xl text-lifewood-serpent/60 dark:text-white/60 max-w-3xl">
             Please read these terms carefully before using our services. By accessing or using the Site, you agree to be bound by these Terms.
           </p>

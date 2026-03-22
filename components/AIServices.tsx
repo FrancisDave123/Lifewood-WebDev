@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles, X, Layers, Share2, ShieldCheck, Database, Search, Target } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
-import { StickyPageTitle } from './StickyPageTitle';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface AIServicesProps {
   theme?: 'light' | 'dark';
@@ -117,11 +117,11 @@ export const AIServices: React.FC<AIServicesProps> = ({ navigateTo }) => {
       <div className="container mx-auto px-6">
         {/* Header Section */}
         <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <StickyPageTitle
+          <PageTitleBanner
             id="ai-services-page-title"
-            wrapperClassName="mb-10"
             titleClassName="text-6xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase"
             title="AI DATA SERVICES"
+            className="mb-10"
           />
           
           <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-3xl font-medium">

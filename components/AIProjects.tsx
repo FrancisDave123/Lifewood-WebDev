@@ -13,7 +13,7 @@ import {
   X,
   ArrowUpRight
 } from 'lucide-react';
-import { StickyPageTitle } from './StickyPageTitle';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface AIProjectsProps {
   theme?: 'light' | 'dark';
@@ -80,11 +80,11 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ theme = 'light', navigat
       <div className="container mx-auto px-6">
         {/* Header Section */}
         <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <StickyPageTitle
+          <PageTitleBanner
             id="ai-projects-page-title"
             title="AI PROJECTS"
-            wrapperClassName="mb-10"
             titleClassName="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase"
+            className="mb-10"
           />
           
           <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">

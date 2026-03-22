@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface InternalNewsProps {
   navigateTo?: (page: PageRoute) => void;
@@ -30,12 +31,11 @@ export const InternalNews: React.FC<InternalNewsProps> = ({ navigateTo }) => {
             </span>
           </div>
           
-          <div className="flex items-start gap-4 mb-10">
-            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-            <h1 id="internal-news-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
-              Rootstech 2026
-            </h1>
-          </div>
+          <PageTitleBanner
+            id="internal-news-page-title"
+            title="Rootstech 2026"
+            className="mb-10"
+          />
           
           <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">
             Coming Soon! Stay tuned for more updates on our participation in Rootstech 2026. We are excited to showcase our latest innovations in AI data solutions and global research capabilities.

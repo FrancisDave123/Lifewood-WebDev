@@ -5,6 +5,7 @@ import { authService } from '../services/authService';
 import { applicantService } from '../services/applicantService';
 import { storageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface JoinUsProps {
   navigateTo?: (page: PageRoute) => void;
@@ -372,15 +373,12 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lifewood-serpent/60">
             Welcome to
           </p>
-          <div className="flex items-start gap-4 mb-2">
-            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-            <h1
-              id={variant === 'intern' ? 'join-us-intern-page-title' : 'join-us-employee-page-title'}
-              className="text-3xl md:text-4xl font-heading font-black text-lifewood-serpent dark:text-white"
-            >
-              Apply as {roleLabel}
-            </h1>
-          </div>
+          <PageTitleBanner
+            id={variant === 'intern' ? 'join-us-intern-page-title' : 'join-us-employee-page-title'}
+            title={`Apply as ${roleLabel}`}
+            className="mb-2"
+            titleClassName="text-3xl md:text-4xl font-heading font-black text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
+          />
           <p className="text-sm md:text-base text-lifewood-serpent/70 dark:text-white/70 max-w-2xl">
             Join the world&apos;s leading provider of AI-powered data solutions. This application is currently in
             beta—features and functionality may evolve while we refine the experience.

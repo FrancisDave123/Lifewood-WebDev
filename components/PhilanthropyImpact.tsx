@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface PhilanthropyImpactProps {
   navigateTo?: (page: PageRoute) => void;
@@ -19,12 +20,12 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
       <div className="container mx-auto px-6">
         <div className="w-full">
           <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-start gap-4 mb-10">
-            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-            <h2 id="philanthropy-impact-page-title" className="text-6xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
-              Philanthropy and Impact
-            </h2> 
-          </div>
+          <PageTitleBanner
+            id="philanthropy-impact-page-title"
+            title="Philanthropy and Impact"
+            className="mb-10"
+            titleClassName="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
+          />
 
             <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-3xl font-medium">
               We direct resources into education and developmental projects that create lasting change. Our approach goes beyond giving:

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface TypeDProps {
   navigateTo?: (page: PageRoute) => void;
@@ -19,12 +20,12 @@ export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
           viewport={{ once: true }}
           className="mb-16"
         >
-          <div className="flex items-start gap-4 mb-6">
-            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-            <h1 id="type-d-page-title" className="text-4xl md:text-6xl font-heading font-bold tracking-tight text-lifewood-serpent dark:text-white">
-              AI Generated Content (AIGC)
-            </h1>
-          </div>
+          <PageTitleBanner
+            id="type-d-page-title"
+            title="AI Generated Content (AIGC)"
+            className="mb-6"
+            titleClassName="text-4xl md:text-6xl font-heading font-bold tracking-tight text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
+          />
 
           <p className="text-base md:text-lg text-lifewood-serpent/70 dark:text-white/70 max-w-5xl leading-relaxed mb-8">
             Lifewood&apos;s early adoption of AI tools has seen the company rapidly evolve the use of AI generated content, which has been integrated into video production for the company&apos;s communication requirements. This has been enormously successful, and these text, voice, image and video skills that comprise AIGC production, combined with more traditional production methods and our story development skills, are now being sought by other companies.

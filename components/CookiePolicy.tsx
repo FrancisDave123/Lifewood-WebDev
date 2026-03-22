@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ArrowLeft, Sparkles, Shield, Eye, Globe, Info, Settings, Bell, MessageSquare } from 'lucide-react';
+import { PageTitleBanner } from './PageTitleBanner';
 
 interface CookiePolicyProps {
   navigateTo?: (page: any) => void;
@@ -43,12 +44,11 @@ export const CookiePolicy: React.FC<CookiePolicyProps> = ({ navigateTo }) => {
             </span>
           </div>
           
-          <div className="flex items-start gap-4 mb-6">
-            <div className="mt-3 h-14 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron"></div>
-            <h1 id="cookie-policy-page-title" className="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase">
-              Cookie Policy
-            </h1>
-          </div>
+          <PageTitleBanner
+            id="cookie-policy-page-title"
+            title="Cookie Policy"
+            className="mb-6"
+          />
           <p className="text-xl text-lifewood-serpent/60 dark:text-white/60 max-w-3xl">
             At Lifewood Data Technology Ltd., we use cookies and similar tracking technologies to enhance your experience, analyze site usage, and personalize content. This Cookie Policy explains what cookies are, how we use them, and how you can manage your preferences.
           </p>
