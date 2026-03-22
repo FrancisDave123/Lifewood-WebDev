@@ -133,10 +133,19 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
               </h3>
               
               {contactInfo.map((info, idx) => (
-                <a
+                <button
                   key={idx}
-                  href={info.href}
-                  className="group flex items-start gap-4 p-6 rounded-2xl glass hover:glass-alt transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  type="button"
+                  onClick={() => {
+                    if (info.label === 'Location') {
+                      navigateTo?.('offices');
+                    }
+                  }}
+                  className={`group flex items-start gap-4 p-6 rounded-2xl glass transition-all duration-300 text-left w-full ${
+                    info.label === 'Location'
+                      ? 'hover:glass-alt hover:scale-105 hover:shadow-lg cursor-pointer'
+                      : 'cursor-default'
+                  }`}
                 >
                   <div className="w-12 h-12 rounded-xl bg-lifewood-green/10 dark:bg-lifewood-yellow/10 flex items-center justify-center text-lifewood-green dark:text-lifewood-yellow flex-shrink-0 group-hover:scale-110 transition-transform">
                     {info.icon}
@@ -149,7 +158,7 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
                       {info.value}
                     </p>
                   </div>
-                </a>
+                </button>
               ))}
             </div>
 
