@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NAV_ITEMS } from '../constants';
 import { Menu, X, ChevronDown, Sparkles, Layers, Database, Mic, Car } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
@@ -38,16 +37,57 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
     }
   };
 
+  const spawnParticles = (element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    element.style.position = 'relative';
+
+    const particleCount = 14;
+    const colors = ['#046241', '#0f5132', '#f0b347', '#ffffff'];
+    const particleHost = document.createElement('span');
+    particleHost.className = 'nav-particles';
+    particleHost.style.left = `${centerX}px`;
+    particleHost.style.top = `${centerY}px`;
+    element.appendChild(particleHost);
+
+    for (let index = 0; index < particleCount; index++) {
+      const angle = (Math.PI * 2 * index) / particleCount + (Math.random() * 0.35 - 0.175);
+      const distance = 14 + Math.random() * 20;
+      const particle = document.createElement('span');
+      const point = document.createElement('span');
+
+      particle.className = 'nav-particle';
+      point.className = 'nav-point';
+
+      particle.style.setProperty('--dx', `${Math.cos(angle) * distance}px`);
+      particle.style.setProperty('--dy', `${Math.sin(angle) * distance}px`);
+      particle.style.setProperty('--time', `${520 + Math.random() * 320}ms`);
+      particle.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)] || '#046241');
+      particle.style.setProperty('--scale', `${0.85 + Math.random() * 0.55}`);
+      particle.appendChild(point);
+      particleHost.appendChild(particle);
+
+      window.setTimeout(() => {
+        particle.remove();
+      }, 1000);
+    }
+
+    window.setTimeout(() => {
+      particleHost.remove();
+    }, 1100);
+  };
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: any) => {
     e.preventDefault();
-    
+
     if (item.subItems && !e.currentTarget.dataset.isSub) {
       return;
     }
 
     const href = item.href;
     const targetId = href.replace('#', '');
-    
+
     if (targetId === 'home') {
       if (currentPage === 'home') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -88,7 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
       setMobileMenuOpen(false);
       return;
     }
-    
+
     if (targetId === 'impact') {
       navigateTo('philanthropy-impact');
       setMobileMenuOpen(false);
@@ -142,39 +182,102 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
   };
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
-        isScrolled ? 'py-3' : 'py-6'
-      }`}
-    >
+    <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isScrolled ? 'py-3' : 'py-6'}`}>
+      <style>{`
+        .nav-particles {
+          position: absolute;
+          width: 0;
+          height: 0;
+          pointer-events: none;
+          overflow: visible;
+        }
+
+        .nav-particle {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 16px;
+          height: 16px;
+          transform: translate(-50%, -50%);
+          animation: nav-particle-burst var(--time) ease-out forwards;
+        }
+
+        .nav-point {
+          display: block;
+          width: 100%;
+          height: 100%;
+          border-radius: 9999px;
+          background: var(--color);
+          transform: scale(0);
+          opacity: 0;
+          animation: nav-point-pop var(--time) ease-out forwards;
+          filter: blur(0.5px);
+        }
+
+        @keyframes nav-particle-burst {
+          0% {
+            transform: translate(-50%, -50%) translate(0, 0);
+            opacity: 1;
+          }
+          70% {
+            transform: translate(-50%, -50%) translate(var(--dx), var(--dy));
+            opacity: 1;
+          }
+          100% {
+            transform: translate(-50%, -50%) translate(calc(var(--dx) * 1.4), calc(var(--dy) * 1.4));
+            opacity: 0;
+          }
+        }
+
+        @keyframes nav-point-pop {
+          0% {
+            transform: scale(0);
+            opacity: 0;
+          }
+          20% {
+            opacity: 1;
+          }
+          55% {
+            transform: scale(var(--scale));
+            opacity: 1;
+          }
+          100% {
+            transform: scale(0);
+            opacity: 0;
+          }
+        }
+      `}</style>
       <div className="container mx-auto px-6">
         <div className={`mx-auto max-w-7xl rounded-full transition-all duration-500 px-6 py-3 flex items-center justify-between ${
           isScrolled ? 'glass shadow-xl translate-y-2' : 'bg-transparent'
         }`}>
-          <a 
-            href="#home" 
+          <a
+            href="#home"
             onClick={(e) => handleNavClick(e, { href: '#home' })}
             className="flex items-center gap-2 group"
           >
-            <img 
-              src={NAVBAR_LOGO_URL} 
-              alt="Lifewood" 
-              className={`${logoSizeClass} w-auto object-contain transition-transform group-hover:scale-105`} 
+            <img
+              src={NAVBAR_LOGO_URL}
+              alt="Lifewood"
+              className={`${logoSizeClass} w-auto object-contain transition-transform group-hover:scale-105`}
             />
           </a>
 
-          <div className="hidden lg:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-6 relative">
             {NAV_ITEMS.map((item) => (
-              <div 
-                key={item.label} 
+              <div
+                key={item.label}
                 className="relative group py-2"
                 onMouseEnter={() => item.subItems && setActiveDropdown(item.label)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
                 <a
                   href={item.href}
-                  onClick={(e) => handleNavClick(e, item)}
-                  className={`text-sm font-bold flex items-center gap-1.5 text-black dark:text-white hover:text-lifewood-green dark:hover:text-lifewood-yellow transition-colors relative ${
+                  onClick={(e) => {
+                    spawnParticles(e.currentTarget);
+                    handleNavClick(e, item);
+                  }}
+                  className={`text-sm font-bold flex items-center gap-1.5 text-black dark:text-white hover:text-lifewood-green dark:hover:text-lifewood-yellow transition-colors relative overflow-visible ${
                     item.subItems ? 'cursor-default' : ''
                   }`}
                 >
@@ -193,11 +296,14 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
                           key={sub.label}
                           href={sub.href}
                           data-is-sub="true"
-                          onClick={(e) => handleNavClick(e, sub)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-black dark:text-white rounded-2xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all"
+                          onClick={(e) => {
+                            spawnParticles(e.currentTarget);
+                            handleNavClick(e, sub);
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-black dark:text-white rounded-2xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all relative overflow-visible"
                         >
                           <div className="w-8 h-8 rounded-xl bg-lifewood-green/5 flex items-center justify-center">
-                            {sub.label.includes('Type A') ? <Database className="w-4 h-4" /> : 
+                            {sub.label.includes('Type A') ? <Database className="w-4 h-4" /> :
                              sub.label.includes('Type B') ? <Mic className="w-4 h-4" /> :
                              sub.label.includes('Type C') ? <Car className="w-4 h-4" /> :
                              sub.label.includes('Type D') ? <Sparkles className="w-4 h-4" /> :
@@ -214,7 +320,7 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
           </div>
 
           <div className="flex items-center gap-4">
-            <button 
+            <button
               className="lg:hidden p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -265,7 +371,7 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
                       className="text-lg font-bold text-black dark:text-white opacity-60 hover:opacity-100 transition-opacity flex items-center gap-3"
                     >
                       <div className="w-6 h-6 rounded-lg bg-lifewood-green/10 flex items-center justify-center">
-                        {sub.label.includes('Type A') ? <Database className="w-3 h-3" /> : 
+                        {sub.label.includes('Type A') ? <Database className="w-3 h-3" /> :
                          sub.label.includes('Type B') ? <Mic className="w-3 h-3" /> :
                          sub.label.includes('Type C') ? <Car className="w-3 h-3" /> :
                          sub.label.includes('Type D') ? <Sparkles className="w-3 h-3" /> :
@@ -287,7 +393,7 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
           >
             {isAdminAuthenticated ? 'Dashboard' : 'Sign In'}
           </button>
-          <a 
+          <a
             href="#contact"
             onClick={(e) => handleNavClick(e, { href: '#contact' })}
             className="group relative mt-8 px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
