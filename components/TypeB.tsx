@@ -135,52 +135,30 @@ export const TypeB: React.FC<TypeBProps> = ({ theme = 'light', navigateTo }) => 
               </motion.button>
             </div>
 
-            <div className="relative h-[400px] lg:h-[600px] hidden lg:block">
-              {/* Floating 3D Shapes from Screenshot */}
-              <motion.img 
-                src="https://framerusercontent.com/images/Es0UNVEZFUO6pTmc3NI38eovew.png"
-                initial={{ opacity: 0, scale: 0.72, rotate: -170 }}
-                animate={{ opacity: 1, scale: [1.05, 1, 1.03], x: [0, 20, 0], y: [0, -16, 0], rotate: [-170, 560, 760, 1080] }}
-                transition={{
-                  opacity: { duration: 0.7 },
-                  scale: { duration: 6.8, repeat: Infinity, ease: "easeInOut" },
-                  x: { duration: 9.2, repeat: Infinity, ease: "easeInOut" },
-                  y: { duration: 8.4, repeat: Infinity, ease: "easeInOut" },
-                  rotate: { duration: 12.4, repeat: Infinity, ease: "linear", times: [0, 0.1, 0.48, 1] }
-                }}
-                whileHover={{ scale: 1.15, filter: "drop-shadow(0 25px 25px rgba(0, 0, 0, 0.3))" }}
-                className="absolute top-[6%] right-[-2%] w-56 h-56 object-contain drop-shadow-2xl cursor-pointer transition-all duration-300"
-                alt=""
-              />
-              <motion.img 
-                src="https://framerusercontent.com/images/Tq3lgO9Qy66CFuDaYW99KQ5xoLM.png"
-                initial={{ opacity: 0, scale: 0.72, rotate: 140 }}
-                animate={{ opacity: 1, y: [0, 20, 0], x: [0, -16, 0], rotate: [140, -520, -720, -1020] }}
-                transition={{
-                  opacity: { duration: 0.7, delay: 0.1 },
-                  y: { duration: 8.6, repeat: Infinity, ease: "easeInOut", delay: 0.6 },
-                  x: { duration: 10.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 },
-                  rotate: { duration: 13.2, repeat: Infinity, ease: "linear", times: [0, 0.12, 0.52, 1], delay: 0.1 }
-                }}
-                whileHover={{ scale: 1.15, filter: "drop-shadow(0 25px 25px rgba(0, 0, 0, 0.3))" }}
-                className="absolute bottom-[-2%] right-[24%] w-72 h-72 object-contain drop-shadow-2xl cursor-pointer transition-all duration-300"
-                alt=""
-              />
-              <motion.img 
-                src="https://framerusercontent.com/images/LFAxsa4CpX7e4qBI72ijOV2sHg.png"
-                initial={{ opacity: 0, scale: 0.74, rotate: -130 }}
-                animate={{ opacity: 1, scale: [1, 1.08, 1], y: [0, -12, 0], x: [0, 12, 0], rotate: [-130, 500, 650, 920] }}
-                transition={{
-                  opacity: { duration: 0.7, delay: 0.2 },
-                  scale: { duration: 7.4, repeat: Infinity, ease: "easeInOut", delay: 0.4 },
-                  y: { duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.4 },
-                  x: { duration: 9, repeat: Infinity, ease: "easeInOut", delay: 0.4 },
-                  rotate: { duration: 11.8, repeat: Infinity, ease: "linear", times: [0, 0.09, 0.45, 1], delay: 0.2 }
-                }}
-                whileHover={{ scale: 1.2, filter: "drop-shadow(0 25px 25px rgba(0, 0, 0, 0.3))" }}
-                className="absolute top-[38%] left-[-4%] w-64 h-64 object-contain drop-shadow-2xl cursor-pointer transition-all duration-300"
-                alt=""
-              />
+            <div className="relative hidden h-[400px] lg:block lg:h-[600px]">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 24 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                className="relative h-full rounded-[3rem] overflow-hidden shadow-[0_35px_90px_-35px_rgba(0,0,0,0.45)] border border-white/20 dark:border-white/10"
+              >
+                <img
+                  src="https://images.pexels.com/photos/8197290/pexels-photo-8197290.jpeg?cs=srgb&dl=pexels-rdne-8197290.jpg&fm=jpg"
+                  className="h-full w-full object-cover"
+                  alt="Audio transcription workstation"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/45 via-black/10 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
+                  <div className="max-w-xs rounded-[1.5rem] border border-white/20 bg-white/85 px-5 py-4 backdrop-blur-md dark:bg-black/35">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-lifewood-serpent/55 dark:text-white/55 mb-2">
+                      Audio acquisition
+                    </p>
+                    <p className="text-sm leading-relaxed text-lifewood-serpent dark:text-white">
+                      Transcription, speech capture, and studio-grade data collection.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </motion.div>

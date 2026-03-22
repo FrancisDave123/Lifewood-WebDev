@@ -1,12 +1,135 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
 import { PageTitleBanner } from './PageTitleBanner';
+import PixelTransition from './PixelTransition';
 
 interface TypeDProps {
   navigateTo?: (page: PageRoute) => void;
 }
+
+interface DraggableElectricImageProps {
+  src: string;
+  alt: string;
+  className: string;
+  initialX: number;
+  initialY: number;
+  rotation: number;
+}
+
+interface PixelRevealImageProps {
+  src: string;
+  alt: string;
+  className: string;
+  overlayContent?: React.ReactNode;
+}
+
+const DraggableElectricImage: React.FC<DraggableElectricImageProps> = ({
+  src,
+  alt,
+  className,
+  initialX,
+  initialY,
+  rotation
+}) => {
+  const [position, setPosition] = useState({ x: initialX, y: initialY });
+  const [dragging, setDragging] = useState(false);
+  const dragState = useRef({ startX: 0, startY: 0, baseX: initialX, baseY: initialY });
+
+  useEffect(() => {
+    if (!dragging) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      setPosition({
+        x: dragState.current.baseX + (event.clientX - dragState.current.startX),
+        y: dragState.current.baseY + (event.clientY - dragState.current.startY)
+      });
+    };
+
+    const handlePointerUp = () => {
+      setDragging(false);
+      setPosition({ x: initialX, y: initialY });
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [dragging, position.x, position.y]);
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragState.current.startX = event.clientX;
+    dragState.current.startY = event.clientY;
+    dragState.current.baseX = position.x;
+    dragState.current.baseY = position.y;
+    setDragging(true);
+  };
+
+  return (
+    <div
+      className={`absolute select-none cursor-grab active:cursor-grabbing ${className}`}
+      style={{
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        zIndex: dragging ? 40 : 10,
+        touchAction: 'none',
+        transition: dragging ? 'none' : 'transform 650ms cubic-bezier(0.22, 1, 0.36, 1)'
+      }}
+      onPointerDown={handlePointerDown}
+    >
+      <motion.div
+        initial={false}
+        animate={{ rotate: [0, 360] }}
+        transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+        style={{ opacity: 1, scale: 1, transformOrigin: 'center center' }}
+        className="relative h-full w-full"
+      >
+        <motion.div
+          initial={false}
+          animate={{ rotate: [rotation - 3, rotation + 3, rotation - 3] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ transformOrigin: 'center center' }}
+          className="relative h-full w-full overflow-hidden rounded-[32px] shadow-[0_24px_70px_-30px_rgba(0,0,0,0.45)]"
+        >
+          <img src={src} alt={alt} className="h-full w-full object-cover" draggable={false} />
+        </motion.div>
+        <div
+          className={`pointer-events-none absolute inset-0 -z-10 rounded-[2rem] blur-xl transition-opacity duration-300 ${
+            dragging ? 'opacity-100' : 'opacity-60'
+          }`}
+          style={{ background: 'radial-gradient(circle, rgba(4,98,65,0.25), transparent 70%)' }}
+        />
+      </motion.div>
+    </div>
+  );
+};
+
+const PixelRevealImage: React.FC<PixelRevealImageProps> = ({ src, alt, className, overlayContent }) => {
+  return (
+    <PixelTransition
+      className={`shadow-[0_24px_70px_-30px_rgba(0,0,0,0.45)] ${className}`}
+      gridSize={10}
+      pixelColor="#020804"
+      firstContent={
+        <div className="relative h-full w-full">
+          <img src={src} alt={alt} className="h-full w-full object-cover blur-sm scale-[1.03]" loading="lazy" />
+          <div className="absolute inset-0 bg-black/25" />
+        </div>
+      }
+      secondContent={
+        <div className="relative h-full w-full">
+          <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+          {overlayContent}
+        </div>
+      }
+    />
+  );
+};
 
 export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
   const scrollToContact = () => navigateTo?.('contact-us');
@@ -73,22 +196,39 @@ export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
             </p>
           </div>
 
-          <div className="relative h-[430px] md:h-[520px]">
-            <img
-              src="https://framerusercontent.com/images/1Pnyjmjwo7FWEAoCcEszS2Fngns.jpeg?scale-down-to=1024&width=1600&height=897"
-              alt=""
-              className="absolute top-2 right-8 w-[54%] rounded-xl shadow-2xl rotate-[4deg] hover:-translate-y-2 transition-transform"
-            />
-            <img
-              src="https://framerusercontent.com/images/ptHrgNDD082Sa0EZcDea0FYhulM.jpeg?scale-down-to=1024&width=1600&height=897"
-              alt=""
-              className="absolute top-24 right-2 w-[58%] rounded-xl shadow-2xl -rotate-[8deg] hover:-translate-y-2 transition-transform"
-            />
-            <img
-              src="https://framerusercontent.com/images/2uF9Ksrf98DxfWsjGrIvBbyRWs.jpeg?scale-down-to=1024&width=1456&height=816"
-              alt=""
-              className="absolute bottom-10 left-14 w-[66%] rounded-xl shadow-2xl -rotate-[8deg] hover:-translate-y-2 transition-transform"
-            />
+          <div className="relative h-[460px] md:h-[560px]">
+            <motion.div
+              initial={false}
+              animate={{ rotate: [0, -360] }}
+              transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+              style={{ transformOrigin: 'center center' }}
+              className="absolute inset-0"
+            >
+              <DraggableElectricImage
+                src="https://framerusercontent.com/images/1Pnyjmjwo7FWEAoCcEszS2Fngns.jpeg?scale-down-to=1024&width=1600&height=897"
+                alt="Film crew camera setup"
+                className="top-4 left-6 w-[58%] h-[56%]"
+                initialX={0}
+                initialY={0}
+                rotation={5}
+              />
+              <DraggableElectricImage
+                src="https://framerusercontent.com/images/ptHrgNDD082Sa0EZcDea0FYhulM.jpeg?scale-down-to=1024&width=1600&height=897"
+                alt="Video editor workspace"
+                className="top-20 right-4 w-[48%] h-[46%]"
+                initialX={0}
+                initialY={0}
+                rotation={-8}
+              />
+              <DraggableElectricImage
+                src="https://framerusercontent.com/images/2uF9Ksrf98DxfWsjGrIvBbyRWs.jpeg?scale-down-to=1024&width=1456&height=816"
+                alt="Film crew in studio"
+                className="bottom-6 left-14 w-[54%] h-[44%]"
+                initialX={0}
+                initialY={0}
+                rotation={-6}
+              />
+            </motion.div>
           </div>
         </motion.section>
 
@@ -100,7 +240,6 @@ export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
         >
           <div className="grid lg:grid-cols-[1fr_1.15fr] gap-10 items-start">
             <div>
-              <div className="w-6 h-6 text-lifewood-serpent/30 dark:text-white/30 text-3xl leading-none mb-6">8</div>
               <p className="text-2xl md:text-3xl leading-tight font-heading font-medium text-lifewood-serpent/90 dark:text-white/90 max-w-2xl">
                 We use advanced film, video and editing techniques, combined with generative AI, to create cinematic worlds for your videos, advertisements and corporate communications.
               </p>
@@ -108,45 +247,43 @@ export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
 
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
-                <img
+                <PixelRevealImage
                   src="https://framerusercontent.com/images/pW4xMuxSlAXuophJZT96Q4LO0.jpeg?scale-down-to=512&width=800&height=386"
                   alt=""
-                  className="h-40 w-full object-cover rounded-xl shadow-xl hover:-translate-y-1 transition-transform"
+                  className="h-40 w-full rounded-xl shadow-xl hover:-translate-y-1 transition-transform"
                 />
-                <img
+                <PixelRevealImage
                   src="https://framerusercontent.com/images/3CdZeNunHzqH9P7TcEFjG2Imb4.jpg?scale-down-to=1024&width=4000&height=6000"
                   alt=""
-                  className="h-40 w-full object-cover rounded-xl shadow-xl hover:-translate-y-1 transition-transform"
+                  className="h-40 w-full rounded-xl shadow-xl hover:-translate-y-1 transition-transform"
                 />
-                <img
+                <PixelRevealImage
                   src="https://framerusercontent.com/images/ifVOmevTJG4uimv3rRPBuoDvYM.jpg?scale-down-to=1024&width=5245&height=7867"
                   alt=""
-                  className="h-40 w-full object-cover rounded-xl shadow-xl hover:-translate-y-1 transition-transform"
+                  className="h-40 w-full rounded-xl shadow-xl hover:-translate-y-1 transition-transform"
                 />
               </div>
 
               <div className="grid grid-cols-[2fr_1fr_0.8fr] gap-4">
-                <div className="relative rounded-xl overflow-hidden shadow-xl hover:-translate-y-1 transition-transform">
-                  <img
-                    src="https://framerusercontent.com/images/8USU1OFCcARiIIvcdJBJlzA8EA4.jpg?scale-down-to=512&width=5184&height=3456"
-                    alt=""
-                    className="w-full h-64 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/55 to-transparent"></div>
-                  <p className="absolute left-5 bottom-5 text-white font-semibold text-xl max-w-[70%] leading-tight">
-                    the culture and language of your video to suit different world markets.
-                  </p>
-                </div>
+                <PixelRevealImage
+                  src="https://framerusercontent.com/images/8USU1OFCcARiIIvcdJBJlzA8EA4.jpg?scale-down-to=512&width=5184&height=3456"
+                  alt=""
+                  className="relative rounded-xl overflow-hidden shadow-xl hover:-translate-y-1 transition-transform h-64"
+                  overlayContent={
+                    <p className="absolute left-5 bottom-5 text-white font-semibold text-xl max-w-[70%] leading-tight">
+                      the culture and language of your video to suit different world markets.
+                    </p>
+                  }
+                />
 
-                <div className="relative rounded-xl overflow-hidden shadow-xl hover:-translate-y-1 transition-transform">
-                  <img
-                    src="https://framerusercontent.com/images/UZnPJgTru2Os9pqnz20ckvASCI8.jpg?scale-down-to=1024&width=4160&height=6240"
-                    alt=""
-                    className="w-full h-64 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/35"></div>
-                  <p className="absolute left-3 bottom-4 text-white text-sm font-bold">Multiple Languages</p>
-                </div>
+                <PixelRevealImage
+                  src="https://framerusercontent.com/images/UZnPJgTru2Os9pqnz20ckvASCI8.jpg?scale-down-to=1024&width=4160&height=6240"
+                  alt=""
+                  className="relative rounded-xl overflow-hidden shadow-xl hover:-translate-y-1 transition-transform h-64"
+                  overlayContent={
+                    <p className="absolute left-3 bottom-4 text-white text-sm font-bold">Multiple Languages</p>
+                  }
+                />
 
                 <div className="bg-black/5 dark:bg-white/10 rounded-xl h-64 flex items-center justify-center text-center shadow-xl hover:-translate-y-1 transition-transform">
                   <div>

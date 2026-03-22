@@ -1,0 +1,49 @@
+.pixelated-image-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  width: 100%;
+  background-color: #020804;
+  color: #fff;
+}
+
+.pixelated-image-card__default,
+.pixelated-image-card__active,
+.pixelated-image-card__pixels {
+  position: absolute;
+  inset: 0;
+}
+
+.pixelated-image-card__default {
+  z-index: 1;
+}
+
+.pixelated-image-card__active {
+  z-index: 2;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 520ms ease;
+}
+
+.pixelated-image-card__active.is-visible {
+  opacity: 1;
+}
+
+.pixelated-image-card__pixels {
+  z-index: 3;
+  display: grid;
+  pointer-events: none;
+}
+
+.pixelated-image-card__pixel {
+  position: absolute;
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 1100ms ease, transform 1100ms ease;
+}
+
+.pixelated-image-card__pixels.is-hiding .pixelated-image-card__pixel {
+  opacity: 0;
+  transform: scale(0.45);
+}
