@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
 import { PageTitleBanner } from './PageTitleBanner';
+import DecryptedText from './DecryptedText';
 
 interface CareersProps {
   navigateTo?: (page: PageRoute) => void;
@@ -145,7 +146,7 @@ export const Careers: React.FC<CareersProps> = ({ navigateTo }) => {
           <div>
               <PageTitleBanner
                 id="careers-page-title"
-                title="Careers in\nLifewood"
+                title="Careers in Lifewood"
                 className="mb-8"
                 titleClassName="text-4xl md:text-6xl font-heading font-black tracking-tight leading-[0.95] text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
               />
@@ -191,10 +192,15 @@ export const Careers: React.FC<CareersProps> = ({ navigateTo }) => {
           </div>
 
           <div className="text-center max-w-6xl mx-auto animate-pop-out opacity-0" style={{ animationDelay: '520ms' }}>
-            <p className="text-3xl md:text-5xl font-heading text-lifewood-serpent dark:text-white leading-tight">
-              If you&apos;re looking to turn the page on a new chapter in your career, make contact with us today.
-              At Lifewood, the adventure is always before you, it&apos;s why we&apos;ve been described as <span className="text-lifewood-green">&quot;always on, never off.&quot;</span>
-            </p>
+            <DecryptedText
+              text={'If you\'re looking to turn the page on a new chapter in your career, make contact with us today. At Lifewood, the adventure is always before you, it\'s why we\'ve been described as "always on, never off."'}
+              animateOn="view"
+              speed={35}
+              maxIterations={8}
+              className="text-3xl md:text-5xl font-heading text-lifewood-serpent dark:text-white leading-tight"
+              parentClassName="inline-block"
+              encryptedClassName="text-lifewood-serpent/60 dark:text-white/60"
+            />
           </div>
         </div>
       </div>
