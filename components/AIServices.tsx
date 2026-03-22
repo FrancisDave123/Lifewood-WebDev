@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles, X, Folder, Layers, Share2, MousePointer2, ShieldCheck, Database, Search, Target } from 'lucide-react';
-import { LOGO_URL, LOGO_DARK_URL } from '../constants';
+import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles, X, Layers, Share2, ShieldCheck, Database, Search, Target } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
 import { StickyPageTitle } from './StickyPageTitle';
 
@@ -10,7 +9,7 @@ interface AIServicesProps {
   navigateTo?: (page: PageRoute) => void;
 }
 
-export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigateTo }) => {
+export const AIServices: React.FC<AIServicesProps> = ({ navigateTo }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleContactClick = () => {
@@ -50,13 +49,68 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigat
   ];
 
   const marqueeItems = [...services, ...services];
-  const currentLogo = theme === 'dark' ? LOGO_DARK_URL : LOGO_URL;
-
   const videoId = "g_JvAVL0WY4";
   const si = "elnNvCuWEU_tuvzZ";
   const embedUrl = `https://www.youtube.com/embed/${videoId}?si=${si}&autoplay=1`;
   const thumbnailUrl = "https://i.ytimg.com/vi_webp/g_JvAVL0WY4/sddefault.webp";
-  const dataValidationImg = "https://framerusercontent.com/images/ZywE1VmIeWyUjcGlRI6E373zLc.png?width=668&height=791";
+
+  const solutionFolders = [
+    {
+      title: 'Data Validation',
+      icon: <ShieldCheck className="w-6 h-6" />,
+      description: 'Integrity checks that keep datasets consistent, accurate, and complete before they move downstream.',
+      color: '#046241',
+      cards: [
+        { title: 'Rule Checks', description: 'Schema validation, duplicate detection, and constraint enforcement.' },
+        { title: 'Quality Review', description: 'Exception handling and human oversight for critical datasets.' },
+        { title: 'Audit Readiness', description: 'Traceability and reporting built into every validation pass.' }
+      ]
+    },
+    {
+      title: 'Data Collection',
+      icon: <Database className="w-6 h-6" />,
+      description: 'Multi-modal capture for text, audio, image, and video across diverse enterprise workflows.',
+      color: '#FFB347',
+      cards: [
+        { title: 'Multi-Channel Capture', description: 'Text, audio, image, and video collection in one workflow.' },
+        { title: 'Categorization', description: 'Fast tagging and labeling to organize incoming content.' },
+        { title: 'Global Coverage', description: 'Flexible delivery across languages, regions, and time zones.' }
+      ]
+    },
+    {
+      title: 'Data Acquisition',
+      icon: <Share2 className="w-6 h-6" />,
+      description: 'End-to-end acquisition pipelines for large-scale, diverse datasets with simple handoff and control.',
+      color: '#133020',
+      cards: [
+        { title: 'Capture Pipelines', description: 'Capture, process, and manage large-scale data at speed.' },
+        { title: 'Source Integration', description: 'Link systems and teams through consistent acquisition flows.' },
+        { title: 'Delivery Control', description: 'Structured handoff for downstream AI training and ops.' }
+      ]
+    },
+    {
+      title: 'Data Curation',
+      icon: <Layers className="w-6 h-6" />,
+      description: 'Sifting, selecting, and indexing data so it remains reliable, accessible, and easy to classify.',
+      color: '#0e4b34',
+      cards: [
+        { title: 'Indexing', description: 'Organize and structure content for future retrieval.' },
+        { title: 'Selection', description: 'Choose only the most relevant and trustworthy records.' },
+        { title: 'Metadata', description: 'Attach context that improves search and interpretation.' }
+      ]
+    },
+    {
+      title: 'Data Annotation',
+      icon: <Target className="w-6 h-6" />,
+      description: 'Precise labelling for AI systems that need high-quality supervised and multimodal training data.',
+      color: '#5227FF',
+      cards: [
+        { title: 'Precision Labelling', description: 'Bounding, tagging, and classification with detailed review.' },
+        { title: 'CV Workflows', description: 'Object detection and computer vision annotation at scale.' },
+        { title: 'Model Support', description: 'Training-ready datasets for downstream machine learning.' }
+      ]
+    }
+  ];
 
   return (
     <div className="pt-32 pb-20 animate-pop-out opacity-0">
@@ -157,228 +211,76 @@ export const AIServices: React.FC<AIServicesProps> = ({ theme = 'light', navigat
 
         {/* Comprehensive Solutions Section */}
         <div className="py-20 relative overflow-hidden">
-          {/* Decorative background pulse */}
           <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-lifewood-green/5 blur-[150px] rounded-full animate-pulse-slow pointer-events-none"></div>
 
           <div className="text-center mb-20 animate-pop-out opacity-0" style={{ animationDelay: '500ms' }}>
             <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border border-lifewood-serpent/5 mb-6 shadow-sm">
-              <Sparkles className="w-4 h-4 text-lifewood-saffron animate-pulse" /> 
+              <Sparkles className="w-4 h-4 text-lifewood-saffron animate-pulse" />
               <span className="text-xs font-black uppercase tracking-[0.3em] text-lifewood-serpent dark:text-white/60">Modern Enterprise Standards</span>
             </div>
             <h2 className="text-6xl md:text-8xl font-heading font-black mb-10 text-lifewood-serpent dark:text-white leading-tight tracking-tighter">
-              Comprehensive <br /> 
+              Comprehensive <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-lifewood-green to-lifewood-saffron">Data Solutions</span>
             </h2>
-          <button 
-            onClick={handleJoinUsClick}
-            className="inline-flex items-center gap-4 px-8 py-4 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-bold group hover:scale-105 transition-all shadow-2xl"
-          >
-            Get started now
+            <button
+              onClick={handleJoinUsClick}
+              className="inline-flex items-center gap-4 px-8 py-4 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-bold group hover:scale-105 transition-all shadow-2xl"
+            >
+              Get started now
               <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            
-            {/* 1. Data Validation - Glossy Onyx Card */}
-            <div className="lg:col-span-4 group relative overflow-hidden rounded-[3.5rem] bg-[#050c08] border border-white/5 p-10 md:p-12 flex flex-col min-h-[600px] lg:min-h-[750px] shadow-2xl transition-all hover:scale-[1.01] hover:shadow-lifewood-green/10">
-              <div className="absolute inset-0 bg-gradient-to-br from-lifewood-green/20 via-transparent to-transparent opacity-40 group-hover:opacity-60 transition-opacity"></div>
-              
-              {/* Loop animation: Shifting beam */}
-              <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 animate-gradient-flow pointer-events-none"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-8 xl:gap-10">
+            {solutionFolders.map((folder, index) => (
+              <div
+                key={folder.title}
+                className={`group relative overflow-hidden rounded-[2.5rem] border border-lifewood-serpent/8 bg-white/92 dark:bg-[#08110d] p-8 shadow-[0_20px_60px_-30px_rgba(4,98,65,0.28)] backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_80px_-30px_rgba(4,98,65,0.45)] xl:col-span-4 ${index === 3 ? 'xl:col-start-3' : ''} ${index === 4 ? 'xl:col-start-7' : ''}`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/0 to-white/0 transition-opacity duration-500 group-hover:opacity-0" />
+                <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(circle_at_top_left,rgba(255,179,71,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(4,98,65,0.14),transparent_35%)]" />
+                <div className="absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-lifewood-green via-lifewood-saffron to-lifewood-green rounded-[2.5rem] blur-[2px]" />
 
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="w-16 h-16 rounded-2xl bg-lifewood-green/20 flex items-center justify-center mb-10 border border-white/10 group-hover:scale-110 group-hover:rotate-[-12deg] transition-all duration-500">
-                  <ShieldCheck className="w-8 h-8 text-lifewood-green" />
-                </div>
-                <h3 className="text-4xl font-heading font-black text-white mb-8 tracking-tight">Data <br />Validation</h3>
-                <div className="space-y-6 text-white/70 leading-relaxed font-medium">
-                  <p className="text-lg">The goal is to create data that is consistent, accurate and complete, preventing data loss or errors in transfer, code or configuration.</p>
-                  <p className="text-base opacity-60">We verify that data conforms to predefined standards, rules or constraints, ensuring the information is trustworthy and fit for its intended purpose.</p>
-                </div>
-                
-                <div className="mt-auto pt-10">
-                  <div className="relative w-full overflow-hidden rounded-3xl bg-transparent">
-                    {/* Animated Data Visualization Layer */}
-                    <div className="absolute inset-0 z-10 opacity-30 pointer-events-none">
-                      {[...Array(15)].map((_, i) => (
-                        <div 
-                          key={i} 
-                          className="absolute h-px bg-white animate-marquee"
-                          style={{ 
-                            top: `${i * 7}%`, 
-                            left: 0, 
-                            width: '100%', 
-                            animationDelay: `${i * 0.15}s`,
-                            animationDuration: '4s'
-                          }}
-                        />
+                <div className="relative z-10">
+                  <div className="mb-6 flex items-start gap-4">
+                    <div className="mt-1 h-12 w-12 rounded-2xl bg-lifewood-serpent/5 dark:bg-white/10 flex items-center justify-center text-lifewood-saffron shadow-sm transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                      {folder.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-2xl md:text-3xl font-heading font-black text-lifewood-serpent dark:text-white">
+                        {folder.title}
+                      </h3>
+                      <p className="mt-2 max-w-md text-sm md:text-base text-lifewood-serpent/82 dark:text-white/75 leading-relaxed">
+                        {folder.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-lifewood-serpent/8 bg-white/95 dark:bg-white/5 p-5 shadow-inner">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10 space-y-3">
+                      {folder.cards.map((card, cardIndex) => (
+                        <div
+                          key={card.title}
+                          className="rounded-2xl border border-lifewood-serpent/8 bg-white/95 dark:bg-white/8 p-4 transition-all duration-500 group-hover:translate-y-0 hover:bg-white dark:hover:bg-white/12 shadow-sm"
+                          style={{ transitionDelay: `${cardIndex * 70}ms` }}
+                        >
+                          <div className="mb-2 flex items-center gap-3">
+                            <span className="h-2 w-2 rounded-full bg-gradient-to-r from-lifewood-green to-lifewood-saffron" />
+                            <h4 className="text-sm font-black uppercase tracking-[0.18em] text-lifewood-serpent dark:text-white">
+                              {card.title}
+                            </h4>
+                          </div>
+                          <p className="text-sm leading-relaxed text-lifewood-serpent/78 dark:text-white/75">
+                            {card.description}
+                          </p>
+                        </div>
                       ))}
                     </div>
-                    {/* Main Specified Image */}
-                    <img 
-                      src={dataValidationImg} 
-                      className="w-full h-auto object-contain transition-transform duration-[4s] group-hover:scale-110"
-                      alt="Data Validation Asset"
-                    />
-                  </div>
-                  <div className="mt-6 flex justify-between items-center opacity-40 text-[10px] uppercase tracking-widest font-black text-white">
-                    <span>© 2025 Lifewood Data Technology</span>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* 4 Cards Sub-grid */}
-            <div className="lg:col-span-8 grid md:grid-cols-2 gap-10">
-              
-              {/* 2. Data Collection - Glossy White/Glass Card */}
-              <div className="group relative bg-white dark:bg-white/5 rounded-[3.5rem] p-10 flex flex-col border border-lifewood-serpent/5 shadow-xl transition-all hover:-translate-y-2 hover:shadow-2xl overflow-hidden min-h-[480px]">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-lifewood-saffron/10 blur-3xl group-hover:bg-lifewood-saffron/20 transition-colors"></div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-lifewood-saffron/10 flex items-center justify-center text-lifewood-saffron group-hover:rotate-12 transition-transform duration-500">
-                      <Database className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-2xl font-heading font-black dark:text-white">Data Collection</h3>
-                  </div>
-                  <p className="text-[0.95rem] text-lifewood-serpent/70 dark:text-white/50 leading-relaxed font-semibold mb-10">
-                    Lifewood delivers multi-modal data collection across text, audio, image, and video, supported by advanced workflows for categorization, labeling, tagging, transcription, sentiment analysis, and subtitle generation.
-                  </p>
-                </div>
-
-                <div className="mt-auto bg-[#0a0a0a] rounded-[2.5rem] p-10 relative group/inner overflow-hidden shadow-inner flex flex-col items-center justify-center">
-                  {/* Scanning animation line */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-lifewood-saffron/40 shadow-[0_0_15px_rgba(255,179,71,0.5)] animate-bounce z-20"></div>
-                  
-                  <div className="flex flex-col items-center text-center gap-5">
-                    <div className="relative">
-                      <Folder className="w-14 h-14 text-lifewood-saffron animate-float" />
-                      <div className="absolute -bottom-2 w-full h-1 bg-lifewood-saffron/20 blur-md"></div>
-                    </div>
-                    <p className="text-white text-[11px] font-black uppercase tracking-[0.2em] leading-relaxed opacity-80 max-w-[220px]">
-                      Scalable precision across 30+ Global Regions
-                    </p>
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-br from-lifewood-saffron/5 to-transparent opacity-0 group-hover/inner:opacity-100 transition-opacity"></div>
-                </div>
-              </div>
-
-              {/* 3. Data Acquisition - Live Node Card */}
-              <div className="group relative bg-white dark:bg-white/5 rounded-[3.5rem] p-10 flex flex-col border border-lifewood-serpent/5 shadow-xl transition-all hover:-translate-y-2 hover:shadow-2xl overflow-hidden min-h-[480px]">
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-lifewood-green/10 blur-3xl group-hover:bg-lifewood-green/20 transition-colors"></div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-lifewood-green/10 flex items-center justify-center text-lifewood-green group-hover:scale-110 group-hover:rotate-[20deg] transition-all duration-500">
-                      <Share2 className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-2xl font-heading font-black dark:text-white">Data Acquisition</h3>
-                  </div>
-                  <p className="text-[0.95rem] text-lifewood-serpent/70 dark:text-white/50 leading-relaxed font-semibold mb-10">
-                    We provide end-to-end data acquisition solutions—capturing, processing, and managing large-scale, diverse datasets.
-                  </p>
-                </div>
-
-                <div className="mt-auto relative aspect-[4/3] flex items-center justify-center bg-gray-50/50 dark:bg-black/20 rounded-[2.5rem] overflow-hidden border border-lifewood-serpent/5">
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-1/2 left-0 w-full h-px bg-lifewood-green"></div>
-                    <div className="absolute top-0 left-1/2 w-px h-full bg-lifewood-green"></div>
-                  </div>
-                  
-                  <div className="relative z-10 w-24 h-24 rounded-full border-4 border-lifewood-green/20 bg-white dark:bg-black flex items-center justify-center shadow-2xl group-hover:rotate-180 transition-transform duration-1000">
-                    <img src={currentLogo} className="h-4" alt="Core" />
-                  </div>
-                  
-                  {/* Pulsing Nodes */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    {[0, 120, 240].map((deg) => (
-                      <div 
-                        key={deg}
-                        className="absolute w-3 h-3 bg-lifewood-green rounded-full animate-ping"
-                        style={{ 
-                          top: '50%', 
-                          left: '50%', 
-                          transform: `rotate(${deg}deg) translate(70px) rotate(-${deg}deg)` 
-                        }}
-                      />
-                    ))}
-                    <div className="absolute w-[180px] h-[180px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-dashed border-lifewood-green/10 rounded-full animate-spin-slow"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Data Curation - Vibrant Glass Gradient Card */}
-              <div className="group relative bg-white dark:bg-white/5 rounded-[3.5rem] p-10 flex flex-col border border-lifewood-serpent/5 shadow-xl transition-all hover:-translate-y-2 hover:shadow-2xl overflow-hidden min-h-[480px]">
-                <div className="absolute inset-0 bg-gradient-to-br from-lifewood-saffron/5 to-lifewood-green/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-lifewood-serpent/5 dark:bg-white/10 flex items-center justify-center text-lifewood-serpent dark:text-white group-hover:rotate-[45deg] transition-all duration-500">
-                      <Search className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-2xl font-heading font-black dark:text-white">Data Curation</h3>
-                  </div>
-                  <div className="space-y-4 text-[0.95rem] text-lifewood-serpent/70 dark:text-white/50 leading-relaxed font-semibold mb-10">
-                    <p>We sift, select and index data to ensure reliability, accessibility and ease of classification.</p>
-                    <p>Data can be curated to support business decisions, academic research, genealogies, scientific research and more.</p>
-                  </div>
-                </div>
-
-                <div className="mt-auto flex items-center justify-center gap-5 py-10 relative">
-                  {/* Floating Bubbles */}
-                  <div className="flex gap-3">
-                    {[
-                      { color: '#046241', delay: '0s' },
-                      { color: '#FFB347', delay: '0.2s' },
-                      { color: '#133020', delay: '0.4s' },
-                      { color: '#FFC370', delay: '0.6s' }
-                    ].map((dot, i) => (
-                      <div 
-                        key={i} 
-                        className="w-12 h-12 rounded-2xl shadow-xl animate-float group-hover:scale-110 transition-transform"
-                        style={{ backgroundColor: dot.color, animationDelay: dot.delay }}
-                      />
-                    ))}
-                  </div>
-                  <div className="absolute inset-x-0 bottom-4 text-center">
-                    <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-20">Intelligent Sifting Systems</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 5. Data Annotation - Dark Precise Card */}
-              <div className="group relative bg-[#133020] rounded-[3.5rem] p-10 flex flex-col border border-white/5 shadow-2xl transition-all hover:-translate-y-2 hover:shadow-lifewood-green/20 overflow-hidden min-h-[480px]">
-                <div className="absolute -top-20 -right-20 w-64 h-64 bg-lifewood-green/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-lifewood-green group-hover:text-lifewood-saffron group-hover:rotate-12 transition-all duration-500">
-                      <Target className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-2xl font-heading font-black text-white">Data Annotation</h3>
-                  </div>
-                  <p className="text-[0.95rem] text-white/60 leading-relaxed font-semibold mb-10">
-                    In the age of AI, data is the fuel for all analytic and machine learning. With our in-depth library of services, we’re here to be an integral part of your digital strategy, accelerating your organization’s cognitive systems development.
-                  </p>
-                </div>
-
-                <div className="mt-auto">
-                   <div className="bg-white rounded-[2rem] px-8 py-5 flex items-center gap-5 mb-8 transform -rotate-2 group-hover:rotate-0 transition-transform shadow-2xl border border-white/20">
-                      <div className="w-10 h-10 rounded-xl bg-lifewood-serpent flex items-center justify-center animate-pulse">
-                        <MousePointer2 className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="text-[11px] text-lifewood-serpent font-black uppercase tracking-tight leading-none">Precision CV Labelling Active</span>
-                   </div>
-                   <div className="relative h-28 rounded-[2rem] overflow-hidden opacity-40 group-hover:opacity-100 transition-all duration-500">
-                      <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover grayscale brightness-150 transition-transform duration-[3s] group-hover:scale-110" />
-                      <div className="absolute inset-0 bg-lifewood-green/20 mix-blend-overlay"></div>
-                   </div>
-                </div>
-              </div>
-
-            </div>
+            ))}
           </div>
         </div>
       </div>
