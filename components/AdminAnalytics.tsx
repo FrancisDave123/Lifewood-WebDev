@@ -18,6 +18,7 @@ import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useProfile } from './ProfileContext';
+import { ROLE_OPTIONS } from './adminProfile';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminAnalyticsProps {

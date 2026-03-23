@@ -12,6 +12,7 @@ import { applicantService } from '../services/applicantService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useProfile } from './ProfileContext';
+import { ROLE_OPTIONS } from './adminProfile';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminDashboardProps {
@@ -36,7 +37,7 @@ type ApplicantRecord = {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) => {
   const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
-  const { profile, saveProfile, adminGmail, authUserId } = useProfile();
+  const { profile, adminGmail, saveProfile } = useProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [redirectNotice, setRedirectNotice] = useState('');
@@ -196,21 +197,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   {profile.avatarUrl ? (
-                    <img
-                      src={profile.avatarUrl}
-                      alt="Admin avatar"
-                      className="h-12 w-12 rounded-full border border-white/20 object-cover"
-                    />
+                    <img src={profile.avatarUrl} alt="Admin avatar" className="h-12 w-12 rounded-full border border-white/20 object-cover" />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
                       <UserCircle2 className="h-7 w-7" />
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-white">
-                      {profile.firstName} {profile.lastName}
-                    </p>
-                    {['', 'Admin', 'Intern', 'Employee', 'Applicant'][profile.roleId] ?? 'Internal Access'}
+                    <p className="truncate text-sm font-semibold text-white">{profile.firstName} {profile.lastName}</p>
+                    <p className="truncate text-xs text-white/65">{ROLE_OPTIONS.find(r => r.id === profile.roleId)?.label || 'Internal Access'}</p>
                   </div>
                 </div>
                 <button
@@ -445,8 +440,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         adminGmail={adminGmail}
-        authUserId={authUserId}      // ← new: from useAdminProfile()
-        onSave={saveProfile}         // ← new: async DB save, not setProfile
+        authUserId={null}
+        onSave={saveProfile}
       />
     </section>
   );

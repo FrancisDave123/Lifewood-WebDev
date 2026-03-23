@@ -14,6 +14,7 @@ import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useProfile } from './ProfileContext';
+import { ROLE_OPTIONS } from './adminProfile';
 import { generateApplicantsExcel } from '../services/generateApplicantsExcel';
 import type { PageRoute } from '../routes/routeTypes';
 
@@ -81,8 +82,8 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  {profile.avatarDataUrl ? (
-                    <img src={profile.avatarDataUrl} alt="Admin avatar" className="h-12 w-12 rounded-full border border-white/20 object-cover" />
+                  {profile.avatarUrl ? (
+                    <img src={profile.avatarUrl} alt="Admin avatar" className="h-12 w-12 rounded-full border border-white/20 object-cover" />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
                       <UserCircle2 className="h-7 w-7" />
@@ -90,7 +91,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-white">{profile.firstName} {profile.lastName}</p>
-                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                    <p className="truncate text-xs text-white/65">{ROLE_OPTIONS.find(r => r.id === profile.roleId)?.label || 'Internal Access'}</p>
                   </div>
                 </div>
                 <button

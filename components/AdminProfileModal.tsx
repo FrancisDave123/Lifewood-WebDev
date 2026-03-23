@@ -27,6 +27,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
   const [draft, setDraft] = useState<AdminProfileData>(profile);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const { toasts, show: showToast, dismiss } = useToast();
 
   useEffect(() => {
@@ -122,11 +123,17 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
               {/* Avatar */}
               <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
                 {draft.avatarUrl ? (
-                  <img
-                    src={draft.avatarUrl}
-                    alt="Profile preview"
-                    className="mx-auto h-20 w-20 rounded-full border border-white/20 object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowImagePreview(true)}
+                    className="mx-auto block h-20 w-20 rounded-full border border-white/20 overflow-hidden focus:outline-none focus:ring-2 focus:ring-lifewood-green"
+                  >
+                    <img
+                      src={draft.avatarUrl}
+                      alt="Profile preview"
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
                 ) : (
                   <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-lifewood-green/20">
                     <UserCircle2 className="h-10 w-10 text-lifewood-yellow" />
@@ -246,6 +253,77 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
           </motion.div>
         </motion.div>
       )}
+
+      {/* Image Preview Modal */}
+      <AnimatePresence>
+        {showImagePreview && draft.avatarUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+            onClick={() => setShowImagePreview(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.97 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full max-w-md rounded-3xl border border-white/20 bg-lifewood-serpent p-6 text-white shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-4 flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-black">Profile Image</h3>
+                  <p className="text-sm text-white/60">Preview and manage your profile picture</p>
+                </div>
+                <button
+                  onClick={() => setShowImagePreview(false)}
+                  className="rounded-lg bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <img
+                    src={draft.avatarUrl}
+                    alt="Profile preview"
+                    className="h-48 w-48 rounded-full border-4 border-white/20 object-cover"
+                  />
+                  <div className="absolute inset-0 rounded-full bg-black/20"></div>
+                </div>
+              </div>
+
+              <div className="flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowImagePreview(false);
+                    avatarInputRef.current?.click();
+                  }}
+                  disabled={uploadingAvatar}
+                  className="inline-flex items-center gap-2 rounded-xl bg-lifewood-green px-4 py-2 text-sm font-bold text-white transition hover:bg-lifewood-green/90 disabled:opacity-60"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Change Profile
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowImagePreview(false)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                >
+                  <X className="h-4 w-4" />
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Toast toasts={toasts} onDismiss={dismiss} />
     </AnimatePresence>
   );

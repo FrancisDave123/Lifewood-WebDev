@@ -19,7 +19,8 @@ import { storageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
-import { useAdminProfile } from './adminProfile';
+import { useProfile } from './ProfileContext';
+import { ROLE_OPTIONS } from './adminProfile';
 import { Toast, useToast } from './Toast';
 import type { PageRoute } from '../routes/routeTypes';
 
@@ -57,7 +58,7 @@ type ApplicantSummary = {
 export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
+  const { profile, adminGmail, saveProfile } = useProfile();
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [applicants, setApplicants] = useState<ApplicantRecord[]>([]);
   const [summary, setSummary] = useState<ApplicantSummary>({
@@ -443,8 +444,8 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  {profile.avatarDataUrl ? (
-                    <img src={profile.avatarDataUrl} alt="Admin avatar" className="h-12 w-12 rounded-full border border-white/20 object-cover" />
+                  {profile.avatarUrl ? (
+                    <img src={profile.avatarUrl} alt="Admin avatar" className="h-12 w-12 rounded-full border border-white/20 object-cover" />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
                       <UserCircle2 className="h-7 w-7" />
@@ -452,7 +453,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-white">{profile.firstName} {profile.lastName}</p>
-                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                    <p className="truncate text-xs text-white/65">{ROLE_OPTIONS.find(r => r.id === profile.roleId)?.label || 'Internal Access'}</p>
                   </div>
                 </div>
                 <button onClick={handleEditProfile} className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10">Edit</button>
