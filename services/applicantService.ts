@@ -48,7 +48,8 @@ export const applicantService = {
           schools(school_name),
           applicant_statuses(status_name)`,
           { count: 'exact' }
-        );
+        )
+        .eq('is_deleted', 0);
 
       if (filters?.created_from) {
         query = query.gte('created_at', filters.created_from);
@@ -160,7 +161,7 @@ export const applicantService = {
     try {
       const { error } = await supabase
         .from('applicants')
-        .delete()
+        .update({ is_deleted: 1 })
         .in('id', ids);
 
       if (error) throw error;
@@ -178,7 +179,8 @@ export const applicantService = {
       // Simple approach - count directly using Supabase aggregation
       const { data: allApplicants, error } = await supabase
         .from('applicants')
-        .select('status_id', { count: 'exact' });
+        .select('status_id', { count: 'exact' })
+        .eq('is_deleted', 0);
 
       if (error) throw error;
 
