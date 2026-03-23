@@ -1,14 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Pencil, UserCircle2, X } from 'lucide-react';
-import { AdminProfileData } from './adminProfile';
+import { AdminProfileData, ROLE_OPTIONS } from './adminProfile';
+import { supabase } from '../services/supabaseClient';
+import { useToast } from './Toast';
+import { Toast } from './Toast';
 
 interface AdminProfileModalProps {
   open: boolean;
   onClose: () => void;
   profile: AdminProfileData;
   adminGmail: string;
-  onSave: (profile: AdminProfileData) => void;
+  authUserId: string | null;
+  onSave: (profile: AdminProfileData) => Promise<{ error: string | null }>;
 }
 
 export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
@@ -16,46 +20,69 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
   onClose,
   profile,
   adminGmail,
-  onSave
+  authUserId,
+  onSave,
 }) => {
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
-  const [profileDraft, setProfileDraft] = useState<AdminProfileData>(profile);
-  const [profileError, setProfileError] = useState('');
+  const [draft, setDraft] = useState<AdminProfileData>(profile);
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const { toasts, show: showToast, dismiss } = useToast();
 
   useEffect(() => {
     if (!open) return;
-    setProfileDraft(profile);
-    setProfileError('');
+    setDraft(profile);
   }, [open, profile]);
 
-  const saveProfile = () => {
-    if (!profileDraft.firstName.trim() || !profileDraft.lastName.trim()) {
-      setProfileError('First name and last name are required.');
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !authUserId) return;
+
+    setUploadingAvatar(true);
+
+    const filePath = `profiles/profile_pics/${authUserId}-${Date.now()}`;
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      showToast('Avatar upload failed: ' + uploadError.message, 'rejected');
+      setUploadingAvatar(false);
       return;
     }
 
-    onSave({
-      ...profileDraft,
-      firstName: profileDraft.firstName.trim(),
-      lastName: profileDraft.lastName.trim(),
-      role: profileDraft.role.trim() || 'Internal Access'
-    });
-    setProfileError('');
-    onClose();
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    setDraft((prev) => ({ ...prev, avatarUrl: urlData.publicUrl }));
+    setUploadingAvatar(false);
   };
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const saveProfile = async () => {
+    if (!draft.firstName.trim() || !draft.lastName.trim()) {
+      showToast('First name and last name are required.', 'rejected');
+      return;
+    }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfileDraft((prev) => ({
-        ...prev,
-        avatarDataUrl: typeof reader.result === 'string' ? reader.result : prev.avatarDataUrl
-      }));
-    };
-    reader.readAsDataURL(file);
+    setSaving(true);
+
+    const result = await onSave({
+      ...draft,
+      firstName: draft.firstName.trim(),
+      lastName:  draft.lastName.trim(),
+    });
+    const { error } = result;
+
+    setSaving(false);
+
+    if (error) {
+      showToast('Failed to save: ' + error, 'rejected');
+      return;
+    }
+
+    showToast('Profile updated successfully!', 'hired');
+    onClose();
   };
 
   return (
@@ -75,146 +102,151 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="w-full max-w-xl rounded-3xl border border-white/20 bg-lifewood-serpent p-6 text-white shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
           >
-        <div className="mb-5 flex items-start justify-between">
-          <div>
-            <h3 className="text-2xl font-black">Edit Profile</h3>
-            <p className="text-sm text-white/60">Update your internal admin details</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+            <div className="mb-5 flex items-start justify-between">
+              <div>
+                <h3 className="text-2xl font-black">Edit Profile</h3>
+                <p className="text-sm text-white/60">Update your internal admin details</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="rounded-lg bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            saveProfile();
-          }}
-          className="grid gap-4 md:grid-cols-[140px_1fr]"
-        >
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
-            {profileDraft.avatarDataUrl ? (
-              <img
-                src={profileDraft.avatarDataUrl}
-                alt="Profile preview"
-                className="mx-auto h-20 w-20 rounded-full border border-white/20 object-cover"
-              />
-            ) : (
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-lifewood-green/20">
-                <UserCircle2 className="h-10 w-10 text-lifewood-yellow" />
-              </div>
-            )}
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => avatarInputRef.current?.click()}
-              className="mx-auto mt-3 flex items-center gap-1 rounded-full bg-lifewood-green px-3 py-1 text-xs font-bold text-white"
+            <form
+              onSubmit={(e) => { e.preventDefault(); saveProfile(); }}
+              className="grid gap-4 md:grid-cols-[140px_1fr]"
             >
-              <Pencil className="h-3 w-3" />
-              Upload
-            </button>
-          </div>
+              {/* Avatar */}
+              <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
+                {draft.avatarUrl ? (
+                  <img
+                    src={draft.avatarUrl}
+                    alt="Profile preview"
+                    className="mx-auto h-20 w-20 rounded-full border border-white/20 object-cover"
+                  />
+                ) : (
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-lifewood-green/20">
+                    <UserCircle2 className="h-10 w-10 text-lifewood-yellow" />
+                  </div>
+                )}
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="mx-auto mt-3 flex items-center gap-1 rounded-full bg-lifewood-green px-3 py-1 text-xs font-bold text-white disabled:opacity-60"
+                >
+                  <Pencil className="h-3 w-3" />
+                  {uploadingAvatar ? 'Uploading…' : 'Upload'}
+                </button>
+              </div>
 
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-semibold text-white/70">Email</label>
-              <p className="mt-1 break-all rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/90">
-                {adminGmail}
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-semibold text-white/70">First Name *</label>
-                <input
-                  required
-                  value={profileDraft.firstName}
-                  onChange={(e) => setProfileDraft((prev) => ({ ...prev, firstName: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
-                />
+              {/* Fields */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-white/70">Email</label>
+                  <p className="mt-1 break-all rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/90">
+                    {adminGmail}
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70">First Name *</label>
+                    <input
+                      required
+                      value={draft.firstName}
+                      onChange={(e) => setDraft((p) => ({ ...p, firstName: e.target.value }))}
+                      className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70">Last Name *</label>
+                    <input
+                      required
+                      value={draft.lastName}
+                      onChange={(e) => setDraft((p) => ({ ...p, lastName: e.target.value }))}
+                      className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70">Birthday</label>
+                    <input
+                      type="date"
+                      value={draft.birthday}
+                      onChange={(e) => setDraft((p) => ({ ...p, birthday: e.target.value }))}
+                      className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white focus:border-lifewood-green focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-white/70">Role</label>
+                    <select
+                      value={draft.roleId}
+                      disabled
+                      className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/60 focus:border-lifewood-green focus:outline-none"
+                    >
+                      {ROLE_OPTIONS.map((r) => (
+                        <option key={r.id} value={r.id}>{r.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/70">Address</label>
+                  <input
+                    value={draft.address}
+                    onChange={(e) => setDraft((p) => ({ ...p, address: e.target.value }))}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/70">School</label>
+                  <input
+                    value={draft.school}
+                    onChange={(e) => setDraft((p) => ({ ...p, school: e.target.value }))}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/70">Short Bio</label>
+                  <textarea
+                    rows={3}
+                    value={draft.shortBio}
+                    onChange={(e) => setDraft((p) => ({ ...p, shortBio: e.target.value }))}
+                    className="mt-1 w-full resize-none rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-white/70">Last Name *</label>
-                <input
-                  required
-                  value={profileDraft.lastName}
-                  onChange={(e) => setProfileDraft((prev) => ({ ...prev, lastName: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-white/70">Birthday</label>
-                <input
-                  type="date"
-                  value={profileDraft.birthday}
-                  onChange={(e) => setProfileDraft((prev) => ({ ...prev, birthday: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white focus:border-lifewood-green focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-white/70">Role</label>
-                <input
-                  value={profileDraft.role}
-                  onChange={(e) => setProfileDraft((prev) => ({ ...prev, role: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-white/70">Address</label>
-              <input
-                value={profileDraft.address}
-                onChange={(e) => setProfileDraft((prev) => ({ ...prev, address: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-white/70">School</label>
-              <input
-                value={profileDraft.school}
-                onChange={(e) => setProfileDraft((prev) => ({ ...prev, school: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-white/70">Short Bio</label>
-              <textarea
-                rows={3}
-                value={profileDraft.shortBio}
-                onChange={(e) => setProfileDraft((prev) => ({ ...prev, shortBio: e.target.value }))}
-                className="mt-1 w-full resize-none rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/45 focus:border-lifewood-green focus:outline-none"
-              />
-            </div>
-            {profileError && <p className="text-xs font-semibold text-lifewood-saffron">{profileError}</p>}
-          </div>
 
-          <div className="md:col-span-2 flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-white/15 px-4 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="rounded-xl bg-lifewood-green px-4 py-2 text-xs font-bold text-white transition hover:bg-lifewood-green/90"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
+              <div className="md:col-span-2 flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-xl border border-white/15 px-4 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || uploadingAvatar}
+                  className="rounded-xl bg-lifewood-green px-4 py-2 text-xs font-bold text-white transition hover:bg-lifewood-green/90 disabled:opacity-60"
+                >
+                  {saving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </motion.div>
       )}
+      <Toast toasts={toasts} onDismiss={dismiss} />
     </AnimatePresence>
   );
 };

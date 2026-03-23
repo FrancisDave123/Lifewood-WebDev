@@ -199,7 +199,7 @@ const readInternRecordsFromStorage = (): InternRecord[] => {
 export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail } = useAdminProfile();
+  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
   const canEditCalendar =
     adminGmail.toLowerCase().includes('admin') || profile.role.toLowerCase().includes('admin');
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -829,7 +829,8 @@ export const AdminManageInterns: React.FC<AdminManageInternsProps> = ({ navigate
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         adminGmail={adminGmail}
-        onSave={setProfile}
+        authUserId={null}
+        onSave={saveProfile}
       />
 
       <AnimatePresence>

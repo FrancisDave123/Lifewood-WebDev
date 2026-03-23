@@ -30,7 +30,7 @@ const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
 export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail } = useAdminProfile();
+  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
 
   const chartPath = useMemo(() => {
     const max = Math.max(...monthlyOutput);
@@ -388,7 +388,8 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({ navigateTo }) =>
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         adminGmail={adminGmail}
-        onSave={setProfile}
+        authUserId={null}
+        onSave={saveProfile}
       />
     </section>
   );

@@ -88,7 +88,7 @@ const initialQueueActivities: QueueActivity[] = [
 export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail } = useAdminProfile();
+  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
   const [isQueueView, setIsQueueView] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [queueItems, setQueueItems] = useState<QueueActivity[]>(initialQueueActivities);
@@ -443,7 +443,8 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         adminGmail={adminGmail}
-        onSave={setProfile}
+        authUserId={null}
+        onSave={saveProfile}
       />
 
       {activityModal && (

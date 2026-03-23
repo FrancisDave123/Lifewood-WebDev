@@ -36,7 +36,7 @@ type ApplicantRecord = {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) => {
   const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
-  const { profile, setProfile, adminGmail } = useAdminProfile();
+  const { profile, saveProfile, adminGmail, authUserId } = useAdminProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [redirectNotice, setRedirectNotice] = useState('');
@@ -195,9 +195,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  {profile.avatarDataUrl ? (
+                  {profile.avatarUrl ? (
                     <img
-                      src={profile.avatarDataUrl}
+                      src={profile.avatarUrl}
                       alt="Admin avatar"
                       className="h-12 w-12 rounded-full border border-white/20 object-cover"
                     />
@@ -210,7 +210,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                     <p className="truncate text-sm font-semibold text-white">
                       {profile.firstName} {profile.lastName}
                     </p>
-                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                    {['', 'Admin', 'Intern', 'Employee', 'Applicant'][profile.roleId] ?? 'Internal Access'}
                   </div>
                 </div>
                 <button
@@ -445,7 +445,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         adminGmail={adminGmail}
-        onSave={setProfile}
+        authUserId={authUserId}      // ← new: from useAdminProfile()
+        onSave={saveProfile}         // ← new: async DB save, not setProfile
       />
     </section>
   );

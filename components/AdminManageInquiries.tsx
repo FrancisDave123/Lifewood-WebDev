@@ -43,7 +43,7 @@ type MessageSummary = {
 export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail } = useAdminProfile();
+  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [summary, setSummary] = useState<MessageSummary>({ total: 0, today: 0, unread: 0 });
@@ -332,7 +332,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
         </main>
       </div>
 
-      <AdminProfileModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} profile={profile} adminGmail={adminGmail} onSave={setProfile} />
+      <AdminProfileModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} profile={profile} adminGmail={adminGmail} authUserId={null} onSave={saveProfile} />
 
       <AnimatePresence>
         {modalMessage && (

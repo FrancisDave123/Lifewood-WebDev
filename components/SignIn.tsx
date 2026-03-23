@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
-import { ADMIN_PROFILE_STORAGE_KEY, DEFAULT_ADMIN_PROFILE } from './adminProfile';
+import { ADMIN_EMAIL_STORAGE_KEY } from './adminProfile';
 import { authService } from '../services/authService';
 
 interface SignInProps {
@@ -21,20 +21,6 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
   const [authMode, setAuthMode] = useState<'signin' | 'forgot'>(initialAuthMode);
   const [authError, setAuthError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const syncAdminRole = (roleName?: string | null) => {
-    if (!roleName) return;
-    try {
-      const raw = localStorage.getItem(ADMIN_PROFILE_STORAGE_KEY);
-      const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-      const nextProfile = {
-        ...DEFAULT_ADMIN_PROFILE,
-        ...parsed,
-        role: roleName
-      };
-      localStorage.setItem(ADMIN_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile));
-    } catch {}
-  };
 
   const resolveDestination = (roleId: number | null, roleName: string | null): PageRoute => {
     if (roleId === 1) return 'admin-dashboard';
@@ -78,7 +64,6 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
 
     try {
     const user = await authService.login(normalizedEmail, trimmedPassword);
-    syncAdminRole(user.role_name);
     onAuthSuccess?.({ email: user.email, roleId: user.role_id, roleName: user.role_name });
     // ✅ navigation is now handled by the parent via onAuthSuccess
   } catch (error) {

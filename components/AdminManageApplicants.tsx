@@ -57,7 +57,7 @@ type ApplicantSummary = {
 export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail } = useAdminProfile();
+  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [applicants, setApplicants] = useState<ApplicantRecord[]>([]);
   const [summary, setSummary] = useState<ApplicantSummary>({
@@ -608,7 +608,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
         </main>
       </div>
 
-      <AdminProfileModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} profile={profile} adminGmail={adminGmail} onSave={setProfile} />
+      <AdminProfileModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} profile={profile} adminGmail={adminGmail} authUserId={null} onSave={saveProfile} />
 
       <AnimatePresence>
         {modalApplicant && (

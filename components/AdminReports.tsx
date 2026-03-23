@@ -26,7 +26,7 @@ type ReportFormat = 'excel' | 'pdf' | 'word';
 export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail } = useAdminProfile();
+  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
   const [selectedFormats, setSelectedFormats] = useState<ReportFormat[]>(['excel']);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState('');
@@ -253,7 +253,8 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         adminGmail={adminGmail}
-        onSave={setProfile}
+        authUserId={null}
+        onSave={saveProfile}
       />
     </section>
   );

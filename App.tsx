@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './routes/AppRoutes';
-import { ADMIN_PROFILE_STORAGE_KEY, DEFAULT_ADMIN_PROFILE } from './components/adminProfile';
 import { supabase } from './services/supabaseClient';
 import { authService } from './services/authService';
 
@@ -51,18 +50,7 @@ const App: React.FC = () => {
         setIsAdminAuthenticated(user.role_id === 1);
         setAuthRoleId(user.role_id);
         setAuthRoleName(user.role_name);
-
-        // Keep profile cache in sync with role (UI-only); auth/role source of truth is Supabase now.
-        try {
-          const raw = localStorage.getItem(ADMIN_PROFILE_STORAGE_KEY);
-          const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-          const nextProfile = {
-            ...DEFAULT_ADMIN_PROFILE,
-            ...parsed,
-            role: user.role_name
-          };
-          localStorage.setItem(ADMIN_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile));
-        } catch {}
+        
       } finally {
         if (!isActive) return;
         setIsAuthLoading(false);
