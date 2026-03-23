@@ -345,62 +345,96 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
         </div>
       </div>
 
-      <div className={`lg:hidden fixed inset-0 z-40 bg-lifewood-seaSalt/95 dark:bg-[#050c08]/95 backdrop-blur-xl transition-all duration-500 ${
-        mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      }`}>
-        <div className="flex flex-col items-center justify-center h-full gap-4 p-6 overflow-y-auto pt-24">
-          {NAV_ITEMS.map((item) => (
-            <div key={item.label} className="flex flex-col items-center gap-2">
-              <a
-                href={item.href}
-                onClick={(e) => handleNavClick(e, item)}
-                className={`text-2xl font-black text-black dark:text-white hover:text-lifewood-green transition-colors ${
-                  item.subItems ? 'cursor-default' : ''
-                }`}
+      <div className={`lg:hidden fixed inset-0 z-40 transition-all duration-500 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <button
+          type="button"
+          aria-label="Close mobile menu"
+          onClick={() => setMobileMenuOpen(false)}
+          className="absolute inset-0 bg-black/45 backdrop-blur-sm"
+        />
+
+        <div className={`absolute inset-y-0 right-0 w-[92vw] max-w-sm transform transition-transform duration-500 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="flex h-full flex-col border-l border-lifewood-serpent/10 bg-[#fbfaf6] shadow-[0_24px_80px_rgba(0,0,0,0.25)] dark:bg-[#07120d]">
+            <div className="flex items-center justify-between border-b border-lifewood-serpent/10 px-5 py-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-lifewood-serpent/45 dark:text-white/45">Navigation</p>
+                <h2 className="mt-0.5 text-lg font-black text-lifewood-serpent dark:text-white">Menu</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-lifewood-serpent/10 bg-white text-lifewood-serpent shadow-sm transition hover:border-lifewood-green hover:text-lifewood-green dark:bg-white/5 dark:text-white"
+                aria-label="Close menu"
               >
-                {item.label}
-              </a>
-              {item.subItems && (
-                <div className="flex flex-col items-center gap-4 py-2 border-l-2 border-lifewood-green/20 pl-4 mb-4">
-                  {item.subItems.map((sub) => (
-                    <a
-                      key={sub.label}
-                      href={sub.href}
-                      data-is-sub="true"
-                      onClick={(e) => handleNavClick(e, sub)}
-                      className="text-lg font-bold text-black dark:text-white opacity-60 hover:opacity-100 transition-opacity flex items-center gap-3"
-                    >
-                      <div className="w-6 h-6 rounded-lg bg-lifewood-green/10 flex items-center justify-center">
-                        {sub.label.includes('Type A') ? <Database className="w-3 h-3" /> :
-                         sub.label.includes('Type B') ? <Mic className="w-3 h-3" /> :
-                         sub.label.includes('Type C') ? <Car className="w-3 h-3" /> :
-                         sub.label.includes('Type D') ? <Sparkles className="w-3 h-3" /> :
-                         <Sparkles className="w-3 h-3" />}
-                      </div>
-                      {sub.label}
-                    </a>
-                  ))}
-                </div>
-              )}
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          ))}
-          <button
-            onClick={() => {
-              navigateTo(isAdminAuthenticated ? 'admin-dashboard' : 'signin');
-              setMobileMenuOpen(false);
-            }}
-            className="mt-4 text-lg font-black text-lifewood-green dark:text-lifewood-yellow"
-          >
-            {isAdminAuthenticated ? 'Dashboard' : 'Sign In'}
-          </button>
-          <a
-            href="#contact"
-            onClick={(e) => handleNavClick(e, { href: '#contact' })}
-            className="group relative mt-8 px-8 py-4 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-base flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_15px_40px_rgba(19,48,32,0.15)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.3)]"
-          >
-            Contact Us
-            <svg className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-          </a>
+
+            <div className="flex-1 overflow-y-auto px-4 py-5">
+              <div className="space-y-3">
+                {NAV_ITEMS.map((item) => (
+                  <div key={item.label} className="overflow-hidden rounded-3xl border border-lifewood-serpent/10 bg-white/80 shadow-[0_10px_30px_rgba(19,48,32,0.06)] dark:bg-white/5">
+                    <a
+                      href={item.href}
+                      onClick={(e) => handleNavClick(e, item)}
+                      className={`flex items-center justify-between px-4 py-4 text-base font-black text-lifewood-serpent transition-colors hover:text-lifewood-green dark:text-white dark:hover:text-lifewood-yellow ${
+                        item.subItems ? 'cursor-default' : ''
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {item.subItems && <ChevronDown className="h-4 w-4 text-lifewood-serpent/35 dark:text-white/35" />}
+                    </a>
+
+                    {item.subItems && (
+                      <div className="border-t border-lifewood-serpent/10 px-3 py-3">
+                        <div className="grid gap-2">
+                          {item.subItems.map((sub) => (
+                            <a
+                              key={sub.label}
+                              href={sub.href}
+                              data-is-sub="true"
+                              onClick={(e) => handleNavClick(e, sub)}
+                              className="flex items-center gap-3 rounded-2xl border border-transparent bg-lifewood-seaSalt/70 px-3 py-3 text-sm font-semibold text-lifewood-serpent transition hover:border-lifewood-green/20 hover:bg-lifewood-green/5 hover:text-lifewood-green dark:bg-white/5 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
+                            >
+                              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-lifewood-green shadow-sm dark:bg-black/20">
+                                {sub.label.includes('Type A') ? <Database className="h-4 w-4" /> :
+                                 sub.label.includes('Type B') ? <Mic className="h-4 w-4" /> :
+                                 sub.label.includes('Type C') ? <Car className="h-4 w-4" /> :
+                                 sub.label.includes('Type D') ? <Sparkles className="h-4 w-4" /> :
+                                 <Sparkles className="h-4 w-4" />}
+                              </div>
+                              <span className="leading-snug">{sub.label}</span>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-lifewood-serpent/10 p-4">
+              <div className="grid gap-2">
+                <button
+                  onClick={() => {
+                    navigateTo(isAdminAuthenticated ? 'admin-dashboard' : 'signin');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="inline-flex items-center justify-center rounded-2xl bg-lifewood-green px-4 py-3 text-sm font-bold text-white shadow-[0_12px_26px_rgba(4,98,65,0.18)] transition hover:bg-lifewood-green/90"
+                >
+                  {isAdminAuthenticated ? 'Dashboard' : 'Sign In'}
+                </button>
+                <a
+                  href="#contact"
+                  onClick={(e) => handleNavClick(e, { href: '#contact' })}
+                  className="inline-flex items-center justify-center rounded-2xl border border-lifewood-serpent/10 bg-white px-4 py-3 text-sm font-bold text-lifewood-serpent transition hover:border-lifewood-green hover:text-lifewood-green dark:bg-white/5 dark:text-white"
+                >
+                  Contact Us
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
