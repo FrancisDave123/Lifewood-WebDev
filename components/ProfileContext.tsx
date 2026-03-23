@@ -126,11 +126,12 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const saveProfile = async (newProfile: AdminProfileData) => {
-    if (!authUserId) {
-      return { error: 'No authenticated user' };
-    }
-
     try {
+      const resolvedUserId = authUserId || (await supabase.auth.getUser()).data.user?.id || '';
+      if (!resolvedUserId) {
+        return { error: 'No authenticated user' };
+      }
+
       const { error } = await supabase
         .from('user_accounts')
         .update({
@@ -143,7 +144,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
           bio: newProfile.shortBio.trim() || null,
           avatar_url: newProfile.avatarUrl || null,
         })
-        .eq('auth_user_id', authUserId);
+        .eq('auth_user_id', resolvedUserId);
 
       if (error) {
         return { error: error.message };

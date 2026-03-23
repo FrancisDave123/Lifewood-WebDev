@@ -3,8 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Pencil, UserCircle2, X } from 'lucide-react';
 import { AdminProfileData, ROLE_OPTIONS } from './adminProfile';
 import { supabase } from '../services/supabaseClient';
-import { useToast } from './Toast';
-import { Toast } from './Toast';
+import { Toast, useToast } from './Toast';
 
 interface AdminProfileModalProps {
   open: boolean;
@@ -24,40 +23,113 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
   onSave,
 }) => {
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
+  const pendingObjectUrlRef = useRef<string | null>(null);
   const [draft, setDraft] = useState<AdminProfileData>(profile);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [closing, setClosing] = useState(false);
   const { toasts, show: showToast, dismiss } = useToast();
 
   useEffect(() => {
     if (!open) return;
+    setClosing(false);
     setDraft(profile);
+    setPendingAvatarFile(null);
+    setShowImagePreview(false);
+    if (pendingObjectUrlRef.current) {
+      URL.revokeObjectURL(pendingObjectUrlRef.current);
+      pendingObjectUrlRef.current = null;
+    }
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = '';
+    }
   }, [open, profile]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+      if (pendingObjectUrlRef.current) {
+        URL.revokeObjectURL(pendingObjectUrlRef.current);
+      }
+    };
+  }, []);
+
+  const closeWithFade = () => {
+    if (closing) return;
+    setClosing(true);
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = window.setTimeout(() => {
+      onClose();
+      closeTimerRef.current = null;
+    }, 320);
+  };
+
+  const setAvatarPreview = (file: File) => {
+    if (pendingObjectUrlRef.current) {
+      URL.revokeObjectURL(pendingObjectUrlRef.current);
+    }
+    const objectUrl = URL.createObjectURL(file);
+    pendingObjectUrlRef.current = objectUrl;
+    setPendingAvatarFile(file);
+    setDraft((prev) => ({ ...prev, avatarUrl: objectUrl }));
+  };
+
+  const resetPendingAvatar = () => {
+    if (pendingObjectUrlRef.current) {
+      URL.revokeObjectURL(pendingObjectUrlRef.current);
+      pendingObjectUrlRef.current = null;
+    }
+    setPendingAvatarFile(null);
+    setDraft((prev) => ({ ...prev, avatarUrl: profile.avatarUrl || '' }));
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = '';
+    }
+  };
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !authUserId) return;
+    if (!file) return;
 
-    setUploadingAvatar(true);
+    setAvatarPreview(file);
+    setShowImagePreview(true);
+  };
 
-    const filePath = `profiles/profile_pics/${authUserId}-${Date.now()}`;
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file, { upsert: true });
-
-    if (uploadError) {
-      showToast('Avatar upload failed: ' + uploadError.message, 'rejected');
-      setUploadingAvatar(false);
-      return;
+  const uploadAvatarIfNeeded = async (): Promise<string> => {
+    if (!pendingAvatarFile) {
+      return draft.avatarUrl;
     }
 
-    const { data: urlData } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
+    const resolvedUserId = authUserId || (await supabase.auth.getUser()).data.user?.id || '';
+    if (!resolvedUserId) {
+      throw new Error('Not authenticated.');
+    }
 
-    setDraft((prev) => ({ ...prev, avatarUrl: urlData.publicUrl }));
-    setUploadingAvatar(false);
+    const file = pendingAvatarFile;
+    const fileExtension = file.name.split('.').pop()?.trim().toLowerCase() || 'png';
+    const filePath = `profiles/profile_pics/${resolvedUserId}-${Date.now()}.${fileExtension}`;
+
+    setUploadingAvatar(true);
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      return data.publicUrl;
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const saveProfile = async () => {
@@ -67,23 +139,36 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
     }
 
     setSaving(true);
+    try {
+      const avatarUrl = await uploadAvatarIfNeeded();
+      const result = await onSave({
+        ...draft,
+        firstName: draft.firstName.trim(),
+        lastName: draft.lastName.trim(),
+        avatarUrl,
+      });
 
-    const result = await onSave({
-      ...draft,
-      firstName: draft.firstName.trim(),
-      lastName:  draft.lastName.trim(),
-    });
-    const { error } = result;
+      if (result.error) {
+        showToast('Failed to save: ' + result.error, 'rejected');
+        return;
+      }
 
-    setSaving(false);
-
-    if (error) {
-      showToast('Failed to save: ' + error, 'rejected');
-      return;
+      showToast('Profile updated successfully!', 'hired');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          closeWithFade();
+        });
+      });
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Failed to save profile.', 'rejected');
+    } finally {
+      setSaving(false);
     }
+  };
 
-    showToast('Profile updated successfully!', 'hired');
-    onClose();
+  const handleCancel = () => {
+    resetPendingAvatar();
+    closeWithFade();
   };
 
   return (
@@ -91,16 +176,16 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
       {open && (
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: closing ? 0 : 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.16 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
         >
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            animate={{ opacity: closing ? 0 : 1, y: closing ? 10 : 0, scale: closing ? 0.985 : 1 }}
             exit={{ opacity: 0, y: 14, scale: 0.97 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
             className="w-full max-w-xl rounded-3xl border border-white/20 bg-lifewood-serpent p-6 text-white shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
           >
             <div className="mb-5 flex items-start justify-between">
@@ -109,7 +194,8 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                 <p className="text-sm text-white/60">Update your internal admin details</p>
               </div>
               <button
-                onClick={onClose}
+                type="button"
+                onClick={handleCancel}
                 className="rounded-lg bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white"
               >
                 <X className="h-4 w-4" />
@@ -117,16 +203,18 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
             </div>
 
             <form
-              onSubmit={(e) => { e.preventDefault(); saveProfile(); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                void saveProfile();
+              }}
               className="grid gap-4 md:grid-cols-[140px_1fr]"
             >
-              {/* Avatar */}
               <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
                 {draft.avatarUrl ? (
                   <button
                     type="button"
                     onClick={() => setShowImagePreview(true)}
-                    className="mx-auto block h-20 w-20 rounded-full border border-white/20 overflow-hidden focus:outline-none focus:ring-2 focus:ring-lifewood-green"
+                    className="mx-auto block h-20 w-20 overflow-hidden rounded-full border border-white/20 focus:outline-none focus:ring-2 focus:ring-lifewood-green"
                   >
                     <img
                       src={draft.avatarUrl}
@@ -139,6 +227,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                     <UserCircle2 className="h-10 w-10 text-lifewood-yellow" />
                   </div>
                 )}
+
                 <input
                   ref={avatarInputRef}
                   type="file"
@@ -146,18 +235,33 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                   onChange={handleAvatarChange}
                   className="hidden"
                 />
+
                 <button
                   type="button"
-                  onClick={() => avatarInputRef.current?.click()}
+                  onClick={() => {
+                    if (avatarInputRef.current) {
+                      avatarInputRef.current.value = '';
+                      avatarInputRef.current.click();
+                    }
+                  }}
                   disabled={uploadingAvatar}
                   className="mx-auto mt-3 flex items-center gap-1 rounded-full bg-lifewood-green px-3 py-1 text-xs font-bold text-white disabled:opacity-60"
                 >
                   <Pencil className="h-3 w-3" />
-                  {uploadingAvatar ? 'Uploading…' : 'Upload'}
+                  {uploadingAvatar ? 'Uploading...' : 'Upload'}
                 </button>
+
+                {pendingAvatarFile && (
+                  <button
+                    type="button"
+                    onClick={resetPendingAvatar}
+                    className="mx-auto mt-2 block text-[11px] font-semibold text-white/65 transition hover:text-white"
+                  >
+                    Cancel change
+                  </button>
+                )}
               </div>
 
-              {/* Fields */}
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-white/70">Email</label>
@@ -236,7 +340,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
               <div className="md:col-span-2 flex justify-end gap-2 pt-1">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleCancel}
                   className="rounded-xl border border-white/15 px-4 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10"
                 >
                   Cancel
@@ -246,7 +350,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                   disabled={saving || uploadingAvatar}
                   className="rounded-xl bg-lifewood-green px-4 py-2 text-xs font-bold text-white transition hover:bg-lifewood-green/90 disabled:opacity-60"
                 >
-                  {saving ? 'Saving…' : 'Save Changes'}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -254,14 +358,13 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
         </motion.div>
       )}
 
-      {/* Image Preview Modal */}
       <AnimatePresence>
         {showImagePreview && draft.avatarUrl && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.16 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
             onClick={() => setShowImagePreview(false)}
           >
@@ -269,7 +372,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
               initial={{ opacity: 0, y: 20, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 14, scale: 0.97 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="w-full max-w-md rounded-3xl border border-white/20 bg-lifewood-serpent p-6 text-white shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
               onClick={(e) => e.stopPropagation()}
             >
@@ -279,6 +382,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                   <p className="text-sm text-white/60">Preview and manage your profile picture</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowImagePreview(false)}
                   className="rounded-lg bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white"
                 >
@@ -286,14 +390,14 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                 </button>
               </div>
 
-              <div className="flex justify-center mb-6">
+              <div className="mb-6 flex justify-center">
                 <div className="relative">
                   <img
                     src={draft.avatarUrl}
                     alt="Profile preview"
                     className="h-48 w-48 rounded-full border-4 border-white/20 object-cover"
                   />
-                  <div className="absolute inset-0 rounded-full bg-black/20"></div>
+                  <div className="absolute inset-0 rounded-full bg-black/20" />
                 </div>
               </div>
 
@@ -302,7 +406,10 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                   type="button"
                   onClick={() => {
                     setShowImagePreview(false);
-                    avatarInputRef.current?.click();
+                    if (avatarInputRef.current) {
+                      avatarInputRef.current.value = '';
+                      avatarInputRef.current.click();
+                    }
                   }}
                   disabled={uploadingAvatar}
                   className="inline-flex items-center gap-2 rounded-xl bg-lifewood-green px-4 py-2 text-sm font-bold text-white transition hover:bg-lifewood-green/90 disabled:opacity-60"
