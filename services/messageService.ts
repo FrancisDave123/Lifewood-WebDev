@@ -37,6 +37,7 @@ export const messageService = {
     let query = supabase
       .from('messages')
       .select('*', { count: 'exact' })
+      .eq('is_deleted', 0)
       .order('created_at', { ascending: false });
 
     // Apply date filters
@@ -110,16 +111,18 @@ export const messageService = {
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
 
-    const { count: total } = await supabase.from('messages').select('*', { count: 'exact', head: true });
+    const { count: total } = await supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_deleted', 0);
     const { count: todayCount } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
+      .eq('is_deleted', 0)
       .gte('created_at', startOfDay.toISOString())
       .lte('created_at', endOfDay.toISOString());
     
     const { count: unreadCount } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
+      .eq('is_deleted', 0)
       .eq('is_read', false);
 
     return {
@@ -135,7 +138,7 @@ export const messageService = {
   async deleteMessages(ids: string[]): Promise<void> {
     if (!ids.length) return;
 
-    const { error } = await supabase.from('messages').delete().in('id', ids);
+    const { error } = await supabase.from('messages').update({ is_deleted: 1 }).in('id', ids);
 
     if (error) {
       throw new Error(error.message);
@@ -146,7 +149,7 @@ export const messageService = {
    * Delete a single message
    */
   async deleteMessage(id: string): Promise<void> {
-    const { error } = await supabase.from('messages').delete().eq('id', id);
+    const { error } = await supabase.from('messages').update({ is_deleted: 1 }).eq('id', id);
 
     if (error) {
       throw new Error(error.message);
