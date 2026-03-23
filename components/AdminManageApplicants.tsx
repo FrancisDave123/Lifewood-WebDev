@@ -98,7 +98,8 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      // Both formatPersonName and formatTitleCase
+      .replace(/(^|[\s\-'])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
 
   const formatTitleCase = (value?: string | null) => {
@@ -106,9 +107,9 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      // Both formatPersonName and formatTitleCase
+      .replace(/(^|[\s\-'])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
-
   const filteredApplicants = useMemo(
     () => applicants.filter((applicant) => `${applicant.firstName} ${applicant.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())),
     [applicants, searchTerm]
