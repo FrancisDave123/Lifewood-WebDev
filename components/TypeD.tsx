@@ -81,29 +81,30 @@ const DraggableElectricImage: React.FC<DraggableElectricImageProps> = ({
       }}
       onPointerDown={handlePointerDown}
     >
-      <motion.div
-        initial={false}
-        animate={{ rotate: [0, 360] }}
-        transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
-        style={{ opacity: 1, scale: 1, transformOrigin: 'center center' }}
-        className="relative h-full w-full"
-      >
-        <motion.div
-          initial={false}
-          animate={{ rotate: [rotation - 3, rotation + 3, rotation - 3] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ transformOrigin: 'center center' }}
-          className="relative h-full w-full overflow-hidden rounded-[32px] shadow-[0_24px_70px_-30px_rgba(0,0,0,0.45)]"
-        >
-          <img src={src} alt={alt} className="h-full w-full object-cover" draggable={false} />
-        </motion.div>
+      <div className="type-d-counter-spin relative h-full w-full" style={{ transformOrigin: 'center center' }}>
         <div
-          className={`pointer-events-none absolute inset-0 -z-10 rounded-[2rem] blur-xl transition-opacity duration-300 ${
-            dragging ? 'opacity-100' : 'opacity-60'
-          }`}
-          style={{ background: 'radial-gradient(circle, rgba(4,98,65,0.25), transparent 70%)' }}
-        />
-      </motion.div>
+          className="relative h-full w-full"
+          style={{ opacity: 1, scale: 1, transformOrigin: 'center center' }}
+        >
+          <div
+            className="type-d-card-wobble relative h-full w-full overflow-hidden rounded-[32px] shadow-[0_24px_70px_-30px_rgba(0,0,0,0.45)]"
+            style={
+              {
+                willChange: 'transform',
+                ['--type-d-base-rotation' as never]: `${rotation}deg`
+              } as React.CSSProperties
+            }
+          >
+            <img src={src} alt={alt} className="h-full w-full object-cover" draggable={false} />
+          </div>
+          <div
+            className={`pointer-events-none absolute inset-0 -z-10 rounded-[2rem] blur-xl transition-opacity duration-300 ${
+              dragging ? 'opacity-100' : 'opacity-60'
+            }`}
+            style={{ background: 'radial-gradient(circle, rgba(4,98,65,0.25), transparent 70%)' }}
+          />
+        </div>
+      </div>
     </div>
   );
 };
@@ -197,13 +198,7 @@ export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
           </div>
 
           <div className="relative h-[460px] md:h-[560px]">
-            <motion.div
-              initial={false}
-              animate={{ rotate: [0, -360] }}
-              transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
-              style={{ transformOrigin: 'center center' }}
-              className="absolute inset-0"
-            >
+            <div className="type-d-orbit absolute inset-0">
               <DraggableElectricImage
                 src="https://framerusercontent.com/images/1Pnyjmjwo7FWEAoCcEszS2Fngns.jpeg?scale-down-to=1024&width=1600&height=897"
                 alt="Film crew camera setup"
@@ -228,7 +223,7 @@ export const TypeD: React.FC<TypeDProps> = ({ navigateTo }) => {
                 initialY={0}
                 rotation={-6}
               />
-            </motion.div>
+            </div>
           </div>
         </motion.section>
 
