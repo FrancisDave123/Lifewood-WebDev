@@ -19,6 +19,7 @@ import { useProfile } from './ProfileContext';
 import { ROLE_OPTIONS } from './adminProfile';
 import { Toast, useToast } from './Toast';
 import type { PageRoute } from '../routes/routeTypes';
+import { emailService } from '../services/emailService';
 
 interface AdminManageInquiriesProps {
   navigateTo?: (page: PageRoute) => void;
@@ -32,6 +33,16 @@ type MessageRecord = {
   message: string;
   created_at: string;
   is_read: boolean;
+  admin_response: boolean;
+  admin_response_to: string | null;
+};
+
+type ReplyDraft = {
+  target: MessageRecord;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
 };
 
 type MessageSummary = {
@@ -59,6 +70,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalMessage, setModalMessage] = useState<MessageRecord | null>(null);
+  const [replyDraft, setReplyDraft] = useState<ReplyDraft | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const [pageOffset, setPageOffset] = useState(0);
@@ -110,6 +122,12 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
     return value.trim().toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
+  const formatReplySubject = (subject?: string | null) => {
+    const trimmed = subject?.trim() || '';
+    if (!trimmed) return 'Re:';
+    return /^re:/i.test(trimmed) ? trimmed : `Re: ${trimmed}`;
+  };
+
   const filteredMessages = useMemo(
     () => messages.filter((message) => `${message.name} ${message.email} ${message.subject}`.toLowerCase().includes(searchTerm.toLowerCase())),
     [messages, searchTerm]
@@ -126,6 +144,77 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   const deleteOne = (id: string, name: string) => setConfirmDelete({ mode: 'single', id, name });
   const deleteSelected = () => { if (!selectedIds.length) return; setConfirmDelete({ mode: 'selected' }); };
   const cancelSelection = () => { setIsSelectMode(false); setSelectedIds([]); };
+
+  const openReplyModal = () => {
+    if (!modalMessage) return;
+
+    const adminName = `${profile.firstName} ${profile.lastName}`.trim() || 'Admin';
+    const adminEmail = adminGmail.trim();
+
+    setReplyDraft({
+      target: modalMessage,
+      name: adminName,
+      email: adminEmail,
+      subject: formatReplySubject(modalMessage.subject),
+      message: ''
+    });
+  };
+
+  const closeReplyModal = () => setReplyDraft(null);
+
+  const sendReply = async () => {
+    if (!replyDraft) return;
+
+    const subject = replyDraft.subject.trim();
+    const message = replyDraft.message.trim();
+    const email = replyDraft.email.trim();
+    const adminName = replyDraft.name.trim();
+    const targetEmail = replyDraft.target.email.trim();
+
+    if (!adminName) {
+      showToast('Admin name is required.', 'delete');
+      return;
+    }
+
+    if (!email) {
+      showToast('Admin email is required.', 'delete');
+      return;
+    }
+
+    if (!subject) {
+      showToast('Subject is required.', 'delete');
+      return;
+    }
+
+    if (!message) {
+      showToast('Reply message is required.', 'delete');
+      return;
+    }
+
+    try {
+      await messageService.createReplyMessage({
+        name: adminName,
+        email,
+        subject,
+        message,
+        admin_response_to: targetEmail
+      });
+      await emailService.sendAdminResponseEmail(
+        targetEmail,
+        targetEmail,
+        subject,
+        message,
+        adminName,
+        email
+      );
+      showToast('Reply sent and emailed.', 'hired');
+      setReplyDraft(null);
+      setModalMessage((prev) => (prev ? { ...prev, is_read: true } : prev));
+      void loadSummary();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Unable to send reply email.', 'delete');
+    }
+  };
 
   const deleteMessagesByIds = async (ids: string[]) => {
     if (!ids.length) return;
@@ -169,7 +258,17 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
     setIsLoading(true); setLoadError('');
     try {
       const result = await messageService.getMessages(pageLimit, offset, { created_from: createdFrom || undefined, created_to: createdTo || undefined, created_on: createdOn || undefined, sort: sortOrder as any });
-      const normalized = (result.messages || []).map((record: any) => ({ id: String(record.id ?? ''), name: formatPersonName(String(record.name ?? '')), email: String(record.email ?? ''), subject: formatTitleCase(String(record.subject ?? '')), message: String(record.message ?? ''), created_at: String(record.created_at ?? ''), is_read: Boolean(record.is_read ?? false) })) as MessageRecord[];
+      const normalized = (result.messages || []).map((record: any) => ({
+        id: String(record.id ?? ''),
+        name: formatPersonName(String(record.name ?? '')),
+        email: String(record.email ?? ''),
+        subject: formatTitleCase(String(record.subject ?? '')),
+        message: String(record.message ?? ''),
+        created_at: String(record.created_at ?? ''),
+        is_read: Boolean(record.is_read ?? false),
+        admin_response: Boolean(record.admin_response ?? false),
+        admin_response_to: record.admin_response_to ? String(record.admin_response_to) : null
+      })) as MessageRecord[];
       setMessages(normalized);
       setHasMore(result.has_more || false);
     } catch (error) {
@@ -377,6 +476,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                       <p className="text-sm font-semibold text-lifewood-serpent">Actions</p>
                       <p className="mt-1 text-xs text-lifewood-serpent/60">Manage this inquiry.</p>
                       <div className="mt-3 flex flex-col gap-2">
+                        <button type="button" onClick={openReplyModal} className="rounded-xl bg-lifewood-green px-3 py-2 text-xs font-semibold text-white hover:bg-lifewood-green/90">Reply</button>
                         <button type="button" onClick={() => setConfirmDelete({ mode: 'single', id: modalMessage.id, name: modalMessage.name })} className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600">Delete Inquiry</button>
                       </div>
                     </div>
@@ -384,6 +484,89 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                 </div>
               </div>
 
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {replyDraft && modalMessage && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="fixed inset-0 z-[185] flex items-center justify-center bg-black/50 p-4" onClick={closeReplyModal}>
+            <motion.div initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.98 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-3xl overflow-hidden rounded-3xl border border-lifewood-serpent/10 bg-white shadow-[0_24px_70px_rgba(19,48,32,0.25)]" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between bg-lifewood-green px-5 py-4 text-white">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Reply</p>
+                  <h3 className="mt-0.5 text-base font-bold">Reply to {modalMessage.name}</h3>
+                </div>
+                <button type="button" onClick={closeReplyModal} className="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20">
+                  Close
+                </button>
+              </div>
+
+              <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Name</p>
+                      <input
+                        type="text"
+                        value={replyDraft.name}
+                        onChange={(e) => setReplyDraft((prev) => (prev ? { ...prev, name: e.target.value } : prev))}
+                        className="mt-1 w-full rounded-lg border border-lifewood-serpent/10 bg-white px-3 py-2 text-sm font-semibold text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                      />
+                    </div>
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Email</p>
+                      <input
+                        type="email"
+                        value={replyDraft.email}
+                        onChange={(e) => setReplyDraft((prev) => (prev ? { ...prev, email: e.target.value } : prev))}
+                        className="mt-1 w-full rounded-lg border border-lifewood-serpent/10 bg-white px-3 py-2 text-sm font-semibold text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                      />
+                    </div>
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 sm:col-span-2">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Subject</p>
+                      <input
+                        type="text"
+                        value={replyDraft.subject}
+                        onChange={(e) => setReplyDraft((prev) => (prev ? { ...prev, subject: e.target.value } : prev))}
+                        className="mt-1 w-full rounded-lg border border-lifewood-serpent/10 bg-white px-3 py-2 text-sm font-semibold text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                      />
+                    </div>
+                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 sm:col-span-2">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Message</p>
+                      <textarea
+                        value={replyDraft.message}
+                        onChange={(e) => setReplyDraft((prev) => (prev ? { ...prev, message: e.target.value } : prev))}
+                        rows={8}
+                        placeholder="Write your reply here..."
+                        className="mt-1 w-full rounded-lg border border-lifewood-serpent/10 bg-white px-3 py-2 text-sm font-medium text-lifewood-serpent focus:border-lifewood-green focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/40 p-4">
+                    <p className="text-sm font-semibold text-lifewood-serpent">Reply target</p>
+                    <p className="mt-1 text-xs text-lifewood-serpent/60">This reply will be stored as an admin response and linked to:</p>
+                    <p className="mt-2 break-all rounded-xl bg-white px-3 py-2 text-sm font-semibold text-lifewood-serpent">{replyDraft.target.email}</p>
+                  </div>
+                  <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
+                    <p className="text-sm font-semibold text-lifewood-serpent">Original inquiry</p>
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-lifewood-serpent/50">From</p>
+                    <p className="mt-1 break-all text-sm text-lifewood-serpent">{replyDraft.target.name} &lt;{replyDraft.target.email}&gt;</p>
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-lifewood-serpent/50">Subject</p>
+                    <p className="mt-1 text-sm text-lifewood-serpent">{replyDraft.target.subject}</p>
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-lifewood-serpent/50">Message</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-lifewood-serpent/80">{replyDraft.target.message}</p>
+                  </div>
+                  <div className="flex items-center justify-end gap-2">
+                    <button type="button" onClick={closeReplyModal} className="rounded-xl border border-lifewood-serpent/15 px-4 py-2 text-xs font-semibold text-lifewood-serpent">Cancel</button>
+                    <button type="button" onClick={sendReply} className="rounded-xl bg-lifewood-green px-4 py-2 text-xs font-semibold text-white hover:bg-lifewood-green/90">Send Reply</button>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}

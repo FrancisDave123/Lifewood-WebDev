@@ -8,6 +8,16 @@ export interface MessageRecord {
   message: string;
   created_at: string;
   is_read: boolean;
+  admin_response: boolean;
+  admin_response_to: string | null;
+}
+
+export interface ReplyMessageInput {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  admin_response_to: string;
 }
 
 export interface MessageSummary {
@@ -38,6 +48,7 @@ export const messageService = {
       .from('messages')
       .select('*', { count: 'exact' })
       .eq('is_deleted', 0)
+      .eq('admin_response', false)
       .order('created_at', { ascending: false });
 
     // Apply date filters
@@ -93,7 +104,9 @@ export const messageService = {
       subject: String(record.subject ?? ''),
       message: String(record.message ?? ''),
       created_at: String(record.created_at ?? ''),
-      is_read: Boolean(record.is_read ?? false)
+      is_read: Boolean(record.is_read ?? false),
+      admin_response: Boolean(record.admin_response ?? false),
+      admin_response_to: record.admin_response_to ? String(record.admin_response_to) : null
     })) as MessageRecord[];
 
     return {
@@ -111,11 +124,16 @@ export const messageService = {
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
 
-    const { count: total } = await supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_deleted', 0);
+    const { count: total } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_deleted', 0)
+      .eq('admin_response', false);
     const { count: todayCount } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
       .eq('is_deleted', 0)
+      .eq('admin_response', false)
       .gte('created_at', startOfDay.toISOString())
       .lte('created_at', endOfDay.toISOString());
     
@@ -123,6 +141,7 @@ export const messageService = {
       .from('messages')
       .select('*', { count: 'exact', head: true })
       .eq('is_deleted', 0)
+      .eq('admin_response', false)
       .eq('is_read', false);
 
     return {
@@ -164,6 +183,27 @@ export const messageService = {
       .from('messages')
       .update({ is_read: true })
       .eq('id', id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  /**
+   * Create an admin reply message
+   */
+  async createReplyMessage(input: ReplyMessageInput): Promise<void> {
+    const { error } = await supabase.from('messages').insert([
+      {
+        name: input.name,
+        email: input.email,
+        subject: input.subject,
+        message: input.message,
+        admin_response: true,
+        admin_response_to: input.admin_response_to,
+        is_read: true
+      }
+    ]);
 
     if (error) {
       throw new Error(error.message);

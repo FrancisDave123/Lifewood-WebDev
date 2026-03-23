@@ -56,7 +56,9 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
             name: formattedName,
             email: formData.email.trim(),
             subject: formattedSubject,
-            message: formData.message.trim()
+            message: formData.message.trim(),
+            admin_response: false,
+            admin_response_to: null
           }
         ]);
 
