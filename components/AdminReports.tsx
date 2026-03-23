@@ -176,7 +176,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
                         <FileSpreadsheet className="h-4 w-4 text-lifewood-green" />
                         Excel (.xlsx)
                       </label>
-                      <label className="flex cursor-not-allowed items-center gap-2 rounded-xl border border-lifewood-serpent/10 bg-lifewood-serpent/5 px-4 py-2.5 text-sm font-semibold text-lifewood-serpent/40 opacity-60">
+                      {/* <label className="flex cursor-not-allowed items-center gap-2 rounded-xl border border-lifewood-serpent/10 bg-lifewood-serpent/5 px-4 py-2.5 text-sm font-semibold text-lifewood-serpent/40 opacity-60">
                         <input type="checkbox" disabled className="h-4 w-4 rounded border-lifewood-serpent/20" />
                         <Download className="h-4 w-4" />
                         PDF — Coming Soon
@@ -185,7 +185,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
                         <input type="checkbox" disabled className="h-4 w-4 rounded border-lifewood-serpent/20" />
                         <Download className="h-4 w-4" />
                         Word — Coming Soon
-                      </label>
+                      </label> */}
                     </div>
                   </div>
 
