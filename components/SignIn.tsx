@@ -77,11 +77,11 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
     setIsSubmitting(true);
 
     try {
-      const user = await authService.login(normalizedEmail, trimmedPassword);
-      syncAdminRole(user.role_name);
-      onAuthSuccess?.({ email: user.email, roleId: user.role_id, roleName: user.role_name });
-      navigateTo?.(resolveDestination(user.role_id, user.role_name));
-    } catch (error) {
+    const user = await authService.login(normalizedEmail, trimmedPassword);
+    syncAdminRole(user.role_name);
+    onAuthSuccess?.({ email: user.email, roleId: user.role_id, roleName: user.role_name });
+    // ✅ navigation is now handled by the parent via onAuthSuccess
+  } catch (error) {
       if (error instanceof Error) {
         setAuthError(error.message);
       } else {

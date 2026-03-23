@@ -430,6 +430,12 @@ const navigateTo = useCallback<NavigateTo>((page) => {
                   setIsAdminAuthenticated(roleId === 1);
                   setAuthRoleId(roleId);
                   setAuthRoleName(roleName);
+                  const label = (roleName || '').toLowerCase();
+                  if (roleId === 1) navigate(PAGE_PATHS['admin-dashboard']);
+                  else if (label.includes('intern')) navigate(PAGE_PATHS['intern-dashboard']);
+                  else if (label.includes('employee')) navigate(PAGE_PATHS['employee-dashboard']);
+                  else if (label.includes('applicant')) navigate(PAGE_PATHS['applicant-dashboard']);
+                  else navigate(PAGE_PATHS['home']);
                 }}
               />
             )}
@@ -444,6 +450,12 @@ const navigateTo = useCallback<NavigateTo>((page) => {
                   setIsAdminAuthenticated(roleId === 1);
                   setAuthRoleId(roleId);
                   setAuthRoleName(roleName);
+                  const label = (roleName || '').toLowerCase();
+                  if (roleId === 1) navigate(PAGE_PATHS['admin-dashboard']);
+                  else if (label.includes('intern')) navigate(PAGE_PATHS['intern-dashboard']);
+                  else if (label.includes('employee')) navigate(PAGE_PATHS['employee-dashboard']);
+                  else if (label.includes('applicant')) navigate(PAGE_PATHS['applicant-dashboard']);
+                  else navigate(PAGE_PATHS['home']);
                 }}
               />
             )}
