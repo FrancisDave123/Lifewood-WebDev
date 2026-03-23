@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
-import { PageTitleBanner } from './PageTitleBanner';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface InternalNewsProps {
   navigateTo?: (page: PageRoute) => void;
@@ -22,31 +22,22 @@ export const InternalNews: React.FC<InternalNewsProps> = ({ navigateTo }) => {
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        {/* Header Section */}
+      {/* Header Section */}
         <div className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass border border-lifewood-green/20 mb-6">
-            <Sparkles className="w-4 h-4 text-lifewood-green" />
-            <span className="text-xs font-black uppercase tracking-[0.24em] text-lifewood-serpent/70 dark:text-white/70">
-              Internal News
-            </span>
-          </div>
-          
-          <PageTitleBanner
+          <PageHeroHeader
             id="internal-news-page-title"
+            eyebrow="Latest update"
             title="Rootstech 2026"
-            className="mb-10"
+            description="Coming Soon! Stay tuned for more updates on our participation in Rootstech 2026. We are excited to showcase our latest innovations in AI data solutions and global research capabilities."
+            cta={
+              <button 
+                onClick={handleContactClick}
+                className="group inline-flex items-center gap-3 rounded-full bg-lifewood-serpent px-8 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(19,48,32,0.15)] transition-transform hover:scale-105 dark:bg-lifewood-seaSalt dark:text-lifewood-serpent"
+              >
+                Contact Us <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            }
           />
-          
-          <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">
-            Coming Soon! Stay tuned for more updates on our participation in Rootstech 2026. We are excited to showcase our latest innovations in AI data solutions and global research capabilities.
-          </p>
-          
-          <button 
-            onClick={handleContactClick}
-            className="group relative px-8 py-3 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-sm flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(19,48,32,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
-          >
-            Contact Us <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
         </div>
 
         {/* Video Section */}

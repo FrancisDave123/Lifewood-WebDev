@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import type { PageRoute } from '../routes/routeTypes';
-import { PageTitleBanner } from './PageTitleBanner';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface ContactProps {
   theme?: 'light' | 'dark';
@@ -112,14 +112,13 @@ export const Contact: React.FC<ContactProps> = ({ theme = 'light', navigateTo })
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Header Section */}
-        <div className="mb-20 max-w-4xl animate-fade-in">
-          <div className="inline-block px-4 py-1.5 bg-lifewood-serpent dark:bg-white text-white dark:text-lifewood-serpent rounded-full font-black text-xs uppercase tracking-widest mb-6">
-            Get In Touch
-          </div>
-          <PageTitleBanner id="contact-us-page-title" title="Contact Us" className="mb-6" />
-          <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed max-w-2xl font-medium">
-            Have a question or project in mind? We'd love to hear from you. Reach out and let's discuss how we can help transform your data into AI advantages.
-          </p>
+        <div className="mb-20 animate-fade-in">
+          <PageHeroHeader
+            id="contact-us-page-title"
+            eyebrow="Start a conversation"
+            title="Contact Us"
+            description="Have a question or project in mind? We'd love to hear from you. Reach out and let's discuss how we can help transform your data into AI advantages."
+          />
         </div>
 
         {/* Main Content Grid */}

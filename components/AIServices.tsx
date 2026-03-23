@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Image as ImageIcon, Mic, FileText, Video as VideoIcon, Play, Sparkles, X, Layers, Share2, ShieldCheck, Database, Search, Target } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
-import { PageTitleBanner } from './PageTitleBanner';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface AIServicesProps {
   theme?: 'light' | 'dark';
@@ -116,24 +116,21 @@ export const AIServices: React.FC<AIServicesProps> = ({ navigateTo }) => {
     <div className="pt-32 pb-20 animate-pop-out opacity-0">
       <div className="container mx-auto px-6">
         {/* Header Section */}
-        <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <PageTitleBanner
+        <div className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
+          <PageHeroHeader
             id="ai-services-page-title"
-            titleClassName="text-6xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase"
+            eyebrow="Industrialized pipelines"
             title="AI DATA SERVICES"
-            className="mb-10"
+            description="Lifewood delivers end-to-end AI data solutions—from multi-language data collection and annotation to model training and generative AI content. Leveraging our global workforce, industrialized methodology, and proprietary LIFT platform, we enable organizations to scale efficiently, reduce costs, and accelerate decision-making with high-quality, domain-specific datasets."
+            cta={
+              <button
+                onClick={handleContactClick}
+                className="group inline-flex items-center gap-3 rounded-full bg-lifewood-serpent px-8 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(19,48,32,0.15)] transition-transform hover:scale-105 dark:bg-lifewood-seaSalt dark:text-lifewood-serpent"
+              >
+                Contact Us <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            }
           />
-          
-          <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-3xl font-medium">
-            Lifewood delivers end-to-end AI data solutions—from multi-language data collection and annotation to model training and generative AI content. Leveraging our global workforce, industrialized methodology, and proprietary LIFT platform, we enable organizations to scale efficiently, reduce costs, and accelerate decision-making with high-quality, domain-specific datasets.
-          </p>
-
-          <button 
-            onClick={handleContactClick}
-            className="group relative px-8 py-3 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-sm flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(19,48,32,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
-          >
-            Contact Us <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
         </div>
 
         {/* Interactive Marquee */}

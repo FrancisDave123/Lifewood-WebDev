@@ -1,6 +1,6 @@
 import React from 'react';
-import { Building2, Globe, MapPin, Sparkles } from 'lucide-react';
-import { PageTitleBanner } from './PageTitleBanner';
+import { Building2, Globe, MapPin } from 'lucide-react';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface OfficesProps {
   theme?: 'light' | 'dark';
@@ -39,75 +39,13 @@ export const Offices: React.FC<OfficesProps> = ({ theme = 'light' }) => {
       <div className="container mx-auto px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-12 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-            <div className="inline-flex items-center gap-3 rounded-full border border-lifewood-green/15 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-lifewood-serpent shadow-sm backdrop-blur-md dark:bg-white/5 dark:text-white">
-              <Sparkles className="h-4 w-4 text-lifewood-green" />
-              Lifewood Offices Worldwide
-            </div>
-            <p className="mt-5 max-w-3xl text-base md:text-lg leading-relaxed text-lifewood-serpent/65 dark:text-white/65">
-              Explore where our teams operate, how our global collection network is organized, and the scale of our worldwide delivery presence.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {officeHighlights.map((highlight) => {
-                const Icon = highlight.icon;
-                return (
-                  <div
-                    key={highlight.title}
-                    className="inline-flex items-center gap-3 rounded-full border border-lifewood-serpent/10 bg-white/80 px-4 py-2 text-sm shadow-sm backdrop-blur-md dark:bg-white/5"
-                  >
-                    <Icon className="h-4 w-4 text-lifewood-green" />
-                    <span className="font-semibold text-lifewood-serpent dark:text-white">{highlight.title}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-10 mb-10 lg:flex-row lg:items-center lg:justify-between">
-            <div className="animate-pop-out opacity-0" style={{ animationDelay: '200ms' }}>
-              <PageTitleBanner
-                id="offices-page-title"
-                title="Largest Global Data Collection\nResources Distribution"
-                titleClassName={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor} uppercase whitespace-pre-line`}
-              />
-            </div>
-
-            <div className="hidden lg:flex justify-end mb-0 animate-pop-out opacity-0" style={{ animationDelay: '300ms' }}>
-              <div className="relative w-48 h-64 flex flex-col items-center">
-                <div className="relative w-40 h-40">
-                  {/* Outer dashed ring */}
-                  <div className="absolute inset-0 rounded-full border border-dashed border-lifewood-serpent/20 dark:border-white/20"></div>
-
-                  {/* Central Dot */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="relative w-8 h-8 rounded-full bg-lifewood-saffron flex items-center justify-center shadow-[0_0_20px_rgba(255,179,71,0.4)]">
-                      <div className="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                  </div>
-
-                  {/* Circular Rotating Text */}
-                  <div className="absolute inset-0 animate-spin-slow" style={{ animationDuration: '20s' }}>
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <defs>
-                        <path
-                          id="circlePath"
-                          d="M 50, 50 m -38, 0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
-                        />
-                      </defs>
-                      <text className="text-[8px] font-bold fill-lifewood-serpent/80 dark:fill-white/80">
-                        <textPath xlinkHref="#circlePath" textLength="238" lengthAdjust="spacing">
-                          amazed . be . amazed . be .
-                        </textPath>
-                      </text>
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Downward Arrow Line */}
-                <div className="h-16 w-px bg-gradient-to-b from-lifewood-saffron to-transparent relative mt-2">
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 border-b border-r border-lifewood-saffron/60 rotate-45"></div>
-                </div>
-              </div>
-            </div>
+            <PageHeroHeader
+              id="offices-page-title"
+              eyebrow="Global footprint"
+              title="Largest Global Data Collection\nResources Distribution"
+              titleClassName={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor} uppercase whitespace-pre-line`}
+              description="Explore where our teams operate, how our global collection network is organized, and the scale of our worldwide delivery presence."
+            />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-6 items-stretch animate-pop-out opacity-0" style={{ animationDelay: '400ms' }}>

@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
-import { PageTitleBanner } from './PageTitleBanner';
+import { PageHeroHeader } from './PageHeroHeader';
 import DecryptedText from './DecryptedText';
 
 interface CareersProps {
@@ -142,26 +142,22 @@ export const Careers: React.FC<CareersProps> = ({ navigateTo }) => {
       `}</style>
       <div className="container mx-auto px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-end mb-16 md:mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <div>
-              <PageTitleBanner
-                id="careers-page-title"
-                title="Careers in Lifewood"
-                className="mb-8"
-                titleClassName="text-4xl md:text-6xl font-heading font-black tracking-tight leading-[0.95] text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
-              />
-              <button
-                onClick={() => navigateTo?.('join-us')}
-                className="group px-8 py-3 bg-lifewood-saffron text-lifewood-serpent rounded-full text-lg font-bold inline-flex items-center gap-3 hover:scale-105 transition-transform"
-              >
-                Join Us
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            <p className="text-lg md:text-3xl text-lifewood-serpent/80 dark:text-white/80 leading-relaxed max-w-xl">
-              Innovation, adaptability and the rapid development of new services separates companies that constantly deliver at the highest level from their competitors.
-            </p>
+          <div className="mb-16 md:mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
+            <PageHeroHeader
+              id="careers-page-title"
+              eyebrow="Build your path"
+              title="Careers in Lifewood"
+              description="Innovation, adaptability and the rapid development of new services separates companies that constantly deliver at the highest level from their competitors."
+              cta={
+                <button
+                  onClick={() => navigateTo?.('join-us')}
+                  className="group inline-flex items-center gap-3 rounded-full bg-lifewood-saffron px-8 py-3 text-lg font-bold text-lifewood-serpent transition-transform hover:scale-105"
+                >
+                  Join Us
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              }
+            />
           </div>
 
           <div className="mb-16 md:mb-20 animate-pop-out opacity-0" style={{ animationDelay: '220ms' }}>

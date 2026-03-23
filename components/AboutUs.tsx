@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Sparkles, X } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
-import { PageTitleBanner } from './PageTitleBanner';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface AboutUsProps {
   theme?: 'light' | 'dark';
@@ -173,22 +173,12 @@ export const AboutUs: React.FC<AboutUsProps> = ({ theme = 'light', navigateTo })
       <div className="container mx-auto px-6 relative z-10">
         {/* Header Section */}
         <div className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass border border-lifewood-green/20 mb-6">
-            <Sparkles className="w-4 h-4 text-lifewood-green" />
-            <span className="text-xs font-black uppercase tracking-[0.24em] text-lifewood-serpent/70 dark:text-white/70">
-              About Lifewood
-            </span>
-          </div>
-
-          <PageTitleBanner
+          <PageHeroHeader
             id="about-us-page-title"
+            eyebrow="Our story"
             title="About our company"
-            className="mb-10"
+            description="While we are motivated by business and economic objectives, we remain committed to our core business beliefs that shape our corporate and individual behaviour around the world."
           />
-
-          <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">
-            While we are motivated by business and economic objectives, we remain committed to our core business beliefs that shape our corporate and individual behaviour around the world.
-          </p>
         </div>
 
         {/* Images Grid Section */}

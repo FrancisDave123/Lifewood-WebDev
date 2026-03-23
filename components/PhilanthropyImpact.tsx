@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
-import { PageTitleBanner } from './PageTitleBanner';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface PhilanthropyImpactProps {
   navigateTo?: (page: PageRoute) => void;
@@ -19,26 +19,22 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
       </div>
       <div className="container mx-auto px-6">
         <div className="w-full">
-          <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <PageTitleBanner
-            id="philanthropy-impact-page-title"
-            title="Philanthropy and Impact"
-            className="mb-10"
-            titleClassName="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
-          />
-
-            <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-3xl font-medium">
-              We direct resources into education and developmental projects that create lasting change. Our approach goes beyond giving:
-              it builds sustainable growth and empowers communities for the future.
-            </p>
-
-            <button
-              onClick={() => navigateTo?.('contact-us')}
-              className="group relative px-8 py-3 bg-lifewood-green text-white rounded-full font-bold text-sm inline-flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(4,98,65,0.25)]"
-            >
-              Contact Us
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+          <div className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
+            <PageHeroHeader
+              id="philanthropy-impact-page-title"
+              eyebrow="Giving back"
+              title="Philanthropy and Impact"
+              description="We direct resources into education and developmental projects that create lasting change. Our approach goes beyond giving: it builds sustainable growth and empowers communities for the future."
+              cta={
+                <button
+                  onClick={() => navigateTo?.('contact-us')}
+                  className="group inline-flex items-center gap-3 rounded-full bg-lifewood-green px-8 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(4,98,65,0.25)] transition-transform hover:scale-105"
+                >
+                  Contact Us
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              }
+            />
           </div>
 
         </div>

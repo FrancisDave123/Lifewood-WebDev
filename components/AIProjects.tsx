@@ -14,7 +14,7 @@ import {
   BarChart3,
   Layers3
 } from 'lucide-react';
-import { PageTitleBanner } from './PageTitleBanner';
+import { PageHeroHeader } from './PageHeroHeader';
 
 interface AIProjectsProps {
   theme?: 'light' | 'dark';
@@ -94,25 +94,22 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
     <div className="pt-32 pb-20 animate-pop-out opacity-0">
       <div className="container mx-auto px-6">
         {/* Header Section */}
-        <div className="mb-20 max-w-4xl animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
-          <PageTitleBanner
+        <div className="mb-20 animate-pop-out opacity-0" style={{ animationDelay: '100ms' }}>
+          <PageHeroHeader
             id="ai-projects-page-title"
+            eyebrow="Research and delivery"
             title="AI PROJECTS"
-            titleClassName="text-5xl md:text-7xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white uppercase"
-            className="mb-10"
+            description="From building AI datasets in diverse languages and environments, to developing platforms that enhance productivity and open new opportunities in under-resourced economies, you'll see how Lifewood is shaping the future with innovation, integrity and a focus on people."
+            cta={
+              <button
+                onClick={() => navigateTo?.('contact-us')}
+                className="group inline-flex items-center gap-3 rounded-full bg-lifewood-serpent px-8 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(19,48,32,0.15)] transition-transform hover:scale-105 dark:bg-lifewood-seaSalt dark:text-lifewood-serpent"
+              >
+                Contact Us
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            }
           />
-          
-          <p className="text-lg md:text-xl text-lifewood-serpent/60 dark:text-white/60 leading-relaxed mb-10 max-w-4xl font-medium">
-            From building AI datasets in diverse languages and environments, to developing platforms that enhance productivity and open new opportunities in under-resourced economies, you'll see how Lifewood is shaping the future with innovation, integrity and a focus on people.
-          </p>
-
-          <button 
-            onClick={() => navigateTo?.('contact-us')}
-            className="group relative px-8 py-3 bg-lifewood-serpent dark:bg-lifewood-seaSalt text-white dark:text-lifewood-serpent rounded-full font-bold text-sm flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(19,48,32,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
-          >
-            Contact Us 
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
         </div>
 
         {/* Handling Section */}
