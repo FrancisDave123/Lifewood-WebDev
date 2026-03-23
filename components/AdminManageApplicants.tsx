@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Mail,
   Menu,
+  Loader2,
   SlidersHorizontal,
   Trash2,
   UserCircle2
@@ -85,6 +86,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const [isEmailSending, setIsEmailSending] = useState(false);
+  const [statusAction, setStatusAction] = useState<'hired' | 'rejected' | null>(null);
   const [pageOffset, setPageOffset] = useState(0);
   const [pageLimit] = useState(20);
   const [hasMore, setHasMore] = useState(false);
@@ -349,48 +351,56 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       showToast(successMessage, toastVariant);
       void loadSummary();
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Unable to update applicant status.', 'delete');
+      throw error;
     }
   };
 
-  const markAsHired = (applicant: ApplicantRecord) => {
-    void updateApplicantStatus(
-      applicant.id,
-      'hired',
-      `${applicant.firstName} ${applicant.lastName} marked as hired. Applicant notified via email.`,
-      'hired'
-    );
-    void emailService
-      .sendHiredEmail(
+  const markAsHired = async (applicant: ApplicantRecord) => {
+    if (statusAction) return;
+    setStatusAction('hired');
+    try {
+      await updateApplicantStatus(
+        applicant.id,
+        'hired',
+        `${applicant.firstName} ${applicant.lastName} marked as hired. Applicant notified via email.`,
+        'hired'
+      );
+      await emailService.sendHiredEmail(
         applicant.emailAddress,
         `${applicant.firstName} ${applicant.lastName}`,
         applicant.positionApplied
-      )
-      .catch((error) => {
-        console.error('Email sending failed:', error);
-      });
+      );
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Unable to send hired email.', 'delete');
+    } finally {
+      setStatusAction(null);
+    }
   };
 
-  const markAsRejected = (applicant: ApplicantRecord) => {
-    void updateApplicantStatus(
-      applicant.id,
-      'rejected',
-      `${applicant.firstName} ${applicant.lastName} marked as rejected. Applicant notified via email.`,
-      'rejected'
-    );
-    void emailService
-      .sendRejectedEmail(
+  const markAsRejected = async (applicant: ApplicantRecord) => {
+    if (statusAction) return;
+    setStatusAction('rejected');
+    try {
+      await updateApplicantStatus(
+        applicant.id,
+        'rejected',
+        `${applicant.firstName} ${applicant.lastName} marked as rejected. Applicant notified via email.`,
+        'rejected'
+      );
+      await emailService.sendRejectedEmail(
         applicant.emailAddress,
         `${applicant.firstName} ${applicant.lastName}`,
         applicant.positionApplied
-      )
-      .catch((error) => {
-        console.error('Email sending failed:', error);
-      });
+      );
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Unable to send rejected email.', 'delete');
+    } finally {
+      setStatusAction(null);
+    }
   };
 
   const sendAIScreeningEmail = async () => {
-    if (!modalApplicant) return;
+    if (!modalApplicant || isEmailSending || statusAction) return;
     setIsEmailSending(true);
     try {
       await emailService.sendAIScreeningEmail(
@@ -647,13 +657,13 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                       </div>
                       <p className="mt-1 text-xs text-lifewood-serpent/60">Set the final decision for this applicant.</p>
                       <div className="mt-3 flex flex-col gap-2">
-                        <button type="button" onClick={() => markAsHired(modalApplicant)} disabled={modalApplicant.statusName?.toLowerCase() === 'hired'} className={`rounded-xl px-3 py-2 text-xs font-semibold ${modalApplicant.statusName?.toLowerCase() === 'hired' ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'}`}>Mark as Hired</button>
-                        <button type="button" onClick={() => markAsRejected(modalApplicant)} disabled={modalApplicant.statusName?.toLowerCase() === 'rejected'} className={`rounded-xl px-3 py-2 text-xs font-semibold ${modalApplicant.statusName?.toLowerCase() === 'rejected' ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'bg-red-500 text-white hover:bg-red-600'}`}>Mark as Rejected</button>
+                        <button type="button" onClick={() => void markAsHired(modalApplicant)} disabled={modalApplicant.statusName?.toLowerCase() === 'hired' || statusAction !== null} className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${modalApplicant.statusName?.toLowerCase() === 'hired' || statusAction !== null ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'}`}>{statusAction === 'hired' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}{statusAction === 'hired' ? 'Processing...' : 'Mark as Hired'}</button>
+                        <button type="button" onClick={() => void markAsRejected(modalApplicant)} disabled={modalApplicant.statusName?.toLowerCase() === 'rejected' || statusAction !== null} className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${modalApplicant.statusName?.toLowerCase() === 'rejected' || statusAction !== null ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'bg-red-500 text-white hover:bg-red-600'}`}>{statusAction === 'rejected' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}{statusAction === 'rejected' ? 'Processing...' : 'Mark as Rejected'}</button>
                       </div>
                       <div className="mt-4 border-t border-lifewood-serpent/10 pt-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">Email Templates</p>
                         <div className="mt-2 flex flex-col gap-2">
-                          <button type="button" onClick={sendAIScreeningEmail} disabled={isEmailSending} className={`rounded-xl px-3 py-2 text-xs font-semibold ${isEmailSending ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'border border-lifewood-serpent/20 bg-lifewood-seaSalt text-lifewood-serpent hover:bg-lifewood-seaSalt/80'}`}>Email Applicant for AI Screening</button>
+                          <button type="button" onClick={sendAIScreeningEmail} disabled={isEmailSending || statusAction !== null} className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${isEmailSending ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'border border-lifewood-serpent/20 bg-lifewood-seaSalt text-lifewood-serpent hover:bg-lifewood-seaSalt/80'}`}>{isEmailSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}{isEmailSending ? 'Sending...' : 'Email Applicant for AI Screening'}</button>
                         </div>
                       </div>
                     </div>

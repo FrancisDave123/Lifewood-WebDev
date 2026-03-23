@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Filter,
   LayoutDashboard,
+  Loader2,
   Mail,
   Menu,
   SlidersHorizontal,
@@ -71,6 +72,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalMessage, setModalMessage] = useState<MessageRecord | null>(null);
   const [replyDraft, setReplyDraft] = useState<ReplyDraft | null>(null);
+  const [isReplySending, setIsReplySending] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const [pageOffset, setPageOffset] = useState(0);
@@ -163,7 +165,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   const closeReplyModal = () => setReplyDraft(null);
 
   const sendReply = async () => {
-    if (!replyDraft) return;
+    if (!replyDraft || isReplySending) return;
 
     const subject = replyDraft.subject.trim();
     const message = replyDraft.message.trim();
@@ -191,6 +193,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
       return;
     }
 
+    setIsReplySending(true);
     try {
       await messageService.createReplyMessage({
         name: adminName,
@@ -213,6 +216,8 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
       void loadSummary();
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Unable to send reply email.', 'delete');
+    } finally {
+      setIsReplySending(false);
     }
   };
 
@@ -562,8 +567,8 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                     <p className="mt-1 whitespace-pre-wrap text-sm text-lifewood-serpent/80">{replyDraft.target.message}</p>
                   </div>
                   <div className="flex items-center justify-end gap-2">
-                    <button type="button" onClick={closeReplyModal} className="rounded-xl border border-lifewood-serpent/15 px-4 py-2 text-xs font-semibold text-lifewood-serpent">Cancel</button>
-                    <button type="button" onClick={sendReply} className="rounded-xl bg-lifewood-green px-4 py-2 text-xs font-semibold text-white hover:bg-lifewood-green/90">Send Reply</button>
+                    <button type="button" onClick={closeReplyModal} disabled={isReplySending} className={`rounded-xl border border-lifewood-serpent/15 px-4 py-2 text-xs font-semibold ${isReplySending ? 'cursor-not-allowed text-lifewood-serpent/40' : 'text-lifewood-serpent'}`}>Cancel</button>
+                    <button type="button" onClick={sendReply} disabled={isReplySending} className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold ${isReplySending ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'}`}>{isReplySending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}{isReplySending ? 'Sending...' : 'Send Reply'}</button>
                   </div>
                 </div>
               </div>
