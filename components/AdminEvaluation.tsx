@@ -18,7 +18,7 @@ import {
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
-import { useAdminProfile } from './adminProfile';
+import { useProfile } from './ProfileContext';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminEvaluationProps {
@@ -88,7 +88,7 @@ const initialQueueActivities: QueueActivity[] = [
 export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
+  const { profile, adminGmail, saveProfile } = useProfile();
   const [isQueueView, setIsQueueView] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [queueItems, setQueueItems] = useState<QueueActivity[]>(initialQueueActivities);
@@ -250,9 +250,9 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  {profile.avatarDataUrl ? (
+                  {profile.avatarUrl ? (
                     <img
-                      src={profile.avatarDataUrl}
+                      src={profile.avatarUrl}
                       alt="Admin avatar"
                       className="h-12 w-12 rounded-full border border-white/20 object-cover"
                     />
@@ -265,7 +265,7 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
                     <p className="truncate text-sm font-semibold text-white">
                       {profile.firstName} {profile.lastName}
                     </p>
-                    <p className="truncate text-xs text-white/65">{profile.role || 'Internal Access'}</p>
+                    {['', 'Admin', 'Intern', 'Employee', 'Applicant'][profile.roleId] ?? 'Internal Access'}
                   </div>
                 </div>
                 <button
@@ -443,8 +443,8 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         adminGmail={adminGmail}
-        authUserId={null}
-        onSave={saveProfile}
+        authUserId={null}      // ← new: from useAdminProfile()
+        onSave={saveProfile}         // ← new: async DB save, not setProfile
       />
 
       {activityModal && (

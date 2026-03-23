@@ -11,7 +11,7 @@ import { LOGO_URL } from '../constants';
 import { applicantService } from '../services/applicantService';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
-import { useAdminProfile } from './adminProfile';
+import { useProfile } from './ProfileContext';
 import type { PageRoute } from '../routes/routeTypes';
 
 interface AdminDashboardProps {
@@ -36,7 +36,7 @@ type ApplicantRecord = {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) => {
   const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
-  const { profile, saveProfile, adminGmail, authUserId } = useAdminProfile();
+  const { profile, saveProfile, adminGmail, authUserId } = useProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [redirectNotice, setRedirectNotice] = useState('');

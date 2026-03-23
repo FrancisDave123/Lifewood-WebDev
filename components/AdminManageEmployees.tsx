@@ -18,7 +18,7 @@ import {
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
-import { useAdminProfile } from './adminProfile';
+import { useProfile } from './ProfileContext';
 import {
   AttendanceRecord,
   AttendanceStatus,
@@ -191,7 +191,7 @@ const readEmployeeRecordsFromStorage = (): EmployeeRecord[] => {
 export const AdminManageEmployees: React.FC<AdminManageEmployeesProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
+  const { profile, adminGmail, saveProfile } = useProfile();
   const canEditCalendar =
     adminGmail.toLowerCase().includes('admin') || profile.role.toLowerCase().includes('admin');
   const [isSelectMode, setIsSelectMode] = useState(false);

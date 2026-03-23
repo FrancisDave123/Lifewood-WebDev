@@ -13,7 +13,7 @@ import {
 import { LOGO_URL } from '../constants';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminProfileModal } from './AdminProfileModal';
-import { useAdminProfile } from './adminProfile';
+import { useProfile } from './ProfileContext';
 import { generateApplicantsExcel } from '../services/generateApplicantsExcel';
 import type { PageRoute } from '../routes/routeTypes';
 
@@ -26,7 +26,7 @@ type ReportFormat = 'excel' | 'pdf' | 'word';
 export const AdminReports: React.FC<AdminReportsProps> = ({ navigateTo }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { profile, setProfile, adminGmail, saveProfile } = useAdminProfile();
+  const { profile, adminGmail, saveProfile } = useProfile();
   const [selectedFormats, setSelectedFormats] = useState<ReportFormat[]>(['excel']);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState('');

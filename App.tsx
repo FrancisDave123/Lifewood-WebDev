@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './routes/AppRoutes';
 import { supabase } from './services/supabaseClient';
 import { authService } from './services/authService';
+import { ProfileProvider } from './components/ProfileContext';
 
 const THEME_STORAGE_KEY = 'lifewood_theme';
 
@@ -73,16 +74,18 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
-      <AppRoutes
-        theme={theme}
-        isAuthLoading={isAuthLoading}
-        isAdminAuthenticated={isAdminAuthenticated}
-        setIsAdminAuthenticated={setIsAdminAuthenticated}
-        authRoleId={authRoleId}
-        setAuthRoleId={setAuthRoleId}
-        authRoleName={authRoleName}
-        setAuthRoleName={setAuthRoleName}
-      />
+      <ProfileProvider>
+        <AppRoutes
+          theme={theme}
+          isAuthLoading={isAuthLoading}
+          isAdminAuthenticated={isAdminAuthenticated}
+          setIsAdminAuthenticated={setIsAdminAuthenticated}
+          authRoleId={authRoleId}
+          setAuthRoleId={setAuthRoleId}
+          authRoleName={authRoleName}
+          setAuthRoleName={setAuthRoleName}
+        />
+      </ProfileProvider>
     </BrowserRouter>
   );
 };
