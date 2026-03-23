@@ -7,7 +7,6 @@ import {
   ChevronDown,
   LayoutDashboard,
   LineChart,
-  LogOut,
   Menu,
   NotebookPen,
   TrendingUp,
@@ -15,8 +14,7 @@ import {
   UserCircle2,
   Users
 } from 'lucide-react';
-import { LOGO_URL } from '../constants';
-import { AdminNotificationBell } from './AdminNotificationBell';
+import { AdminSidebar } from './AdminSidebar';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useProfile } from './ProfileContext';
 import type { PageRoute } from '../routes/routeTypes';
@@ -230,78 +228,77 @@ export const AdminEvaluation: React.FC<AdminEvaluationProps> = ({ navigateTo }) 
     setIsProfileOpen(true);
   };
 
+  const sidebarItems = [
+    {
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      onClick: () => {
+        setIsSidebarOpen(false);
+        navigateTo?.('admin-dashboard');
+      }
+    },
+    {
+      label: 'Analytics',
+      icon: LineChart,
+      onClick: () => {
+        setIsSidebarOpen(false);
+        navigateTo?.('admin-analytics');
+      }
+    },
+    {
+      label: 'Evaluation',
+      icon: NotebookPen,
+      active: true,
+      onClick: () => setIsSidebarOpen(false)
+    },
+    {
+      label: 'Reports',
+      icon: BookOpen,
+      onClick: () => {
+        setIsSidebarOpen(false);
+        navigateTo?.('admin-reports');
+      }
+    },
+    {
+      label: 'Manage Interns',
+      icon: Users,
+      onClick: () => {
+        setIsSidebarOpen(false);
+        navigateTo?.('admin-manage-interns');
+      }
+    },
+    {
+      label: 'Manage Applicants',
+      icon: ClipboardList,
+      onClick: () => {
+        setIsSidebarOpen(false);
+        navigateTo?.('admin-manage-applicants');
+      }
+    },
+    {
+      label: 'Manage Employees',
+      icon: UserCircle2,
+      onClick: () => {
+        setIsSidebarOpen(false);
+        navigateTo?.('admin-manage-employees');
+      }
+    }
+  ];
+
   return (
     <section className="min-h-screen bg-transparent lg:h-screen lg:overflow-hidden">
       <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row">
-        <aside
-          className={`fixed inset-y-0 left-0 z-[130] w-[290px] border-r border-lifewood-serpent/10 bg-lifewood-serpent text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:overflow-y-auto ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
-          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-            <button onClick={() => navigateTo?.('home')} className="group flex items-center gap-3 rounded-xl px-2 py-1 transition hover:bg-white/5">
-              <img src={LOGO_URL} alt="Lifewood" className="h-5 w-auto max-w-[120px] object-contain" />
-              <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-bold tracking-[0.2em] text-lifewood-yellow">ADMIN</span>
-            </button>
-            <AdminNotificationBell />
-          </div>
-
-          <div className="px-4 pt-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  {profile.avatarUrl ? (
-                    <img
-                      src={profile.avatarUrl}
-                      alt="Admin avatar"
-                      className="h-12 w-12 rounded-full border border-white/20 object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
-                      <UserCircle2 className="h-7 w-7" />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-white">
-                      {profile.firstName} {profile.lastName}
-                    </p>
-                    {['', 'Admin', 'Intern', 'Employee', 'Applicant'][profile.roleId] ?? 'Internal Access'}
-                  </div>
-                </div>
-                <button
-                  onClick={handleEditProfile}
-                  className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
-                >
-                  Edit
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-1 lg:gap-2">
-            <button onClick={() => { setIsSidebarOpen(false); navigateTo?.('admin-dashboard'); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"><LayoutDashboard className="h-4 w-4" />Dashboard</button>
-            <button onClick={() => { setIsSidebarOpen(false); navigateTo?.('admin-analytics'); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"><LineChart className="h-4 w-4" />Analytics</button>
-            <button onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 rounded-xl bg-lifewood-green px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-lifewood-green/30"><NotebookPen className="h-4 w-4" />Evaluation</button>
-            <button onClick={() => { setIsSidebarOpen(false); navigateTo?.('admin-reports'); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"><BookOpen className="h-4 w-4" />Reports</button>
-            <button onClick={() => { setIsSidebarOpen(false); navigateTo?.('admin-manage-interns'); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"><Users className="h-4 w-4" />Manage Interns</button>
-            <button onClick={() => { setIsSidebarOpen(false); navigateTo?.('admin-manage-applicants'); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"><ClipboardList className="h-4 w-4" />Manage Applicants</button>
-            <button onClick={() => { setIsSidebarOpen(false); navigateTo?.('admin-manage-employees'); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"><UserCircle2 className="h-4 w-4" />Manage Employees</button>
-          </div>
-
-          <div className="hidden px-4 pb-4 lg:block">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <button
-                onClick={() => navigateTo?.('signin')}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        {isSidebarOpen && <button type="button" aria-label="Close sidebar" onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 z-[120] bg-black/45 backdrop-blur-[1px] lg:hidden" />}
+        <AdminSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onEditProfile={handleEditProfile}
+          onSignOut={() => navigateTo?.('signin')}
+          onHome={() => navigateTo?.('home')}
+          profileName={`${profile.firstName} ${profile.lastName}`.trim()}
+          profileRole={profile.role || 'Internal Access'}
+          avatarSrc={profile.avatarUrl}
+          items={sidebarItems}
+        />
 
         <main className="relative flex-1 overflow-hidden p-4 md:p-6 animate-pop-out opacity-0 lg:h-screen lg:overflow-y-auto">
           <div
