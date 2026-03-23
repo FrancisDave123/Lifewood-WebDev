@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   BookOpen,
@@ -9,6 +9,7 @@ import {
   Mail,
   Menu,
   Loader2,
+  X,
   SlidersHorizontal,
   Trash2,
   UserCircle2
@@ -70,6 +71,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
   const [createdFrom, setCreatedFrom] = useState('');
   const [createdTo, setCreatedTo] = useState('');
   const [createdOn, setCreatedOn] = useState('');
@@ -145,10 +147,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       // Both formatPersonName and formatTitleCase
       .replace(/(^|[\s\-'])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
-  const filteredApplicants = useMemo(
-    () => applicants.filter((applicant) => `${applicant.firstName} ${applicant.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())),
-    [applicants, searchTerm]
-  );
+  const filteredApplicants = applicants;
 
   const areAllFilteredSelected =
     filteredApplicants.length > 0 && filteredApplicants.every((applicant) => selectedIds.includes(applicant.id));
@@ -240,6 +239,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     setLoadError('');
     try {
       const result = await applicantService.getApplicants(pageLimit, offset, {
+        search: appliedSearchTerm || undefined,
         created_from: createdFrom || undefined,
         created_to: createdTo || undefined,
         created_on: createdOn || undefined,
@@ -311,7 +311,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
       return;
     }
     void loadApplicants(0);
-  }, [createdFrom, createdTo, createdOn, designationFilter, newOnly, sortOrder, statusFilter]);
+  }, [appliedSearchTerm, createdFrom, createdTo, createdOn, designationFilter, newOnly, sortOrder, statusFilter]);
 
   const handleEditProfile = () => {
     setIsProfileOpen(true);
@@ -510,7 +510,37 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                 <Calendar className="h-5 w-5 text-lifewood-green" />
               </div>
               <div className="mb-4 flex flex-wrap items-center gap-2">
-                <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search by name..." className="min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none" />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setPageOffset(0);
+                        setAppliedSearchTerm(searchTerm.trim());
+                      }
+                    }}
+                    placeholder="Search by name..."
+                    className={`min-w-[220px] rounded-xl border border-lifewood-serpent/15 px-3 py-2 pr-9 text-sm text-lifewood-serpent focus:border-lifewood-green focus:outline-none ${searchTerm || appliedSearchTerm ? '' : ''}`}
+                  />
+                  {(searchTerm || appliedSearchTerm) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setAppliedSearchTerm('');
+                        setPageOffset(0);
+                      }}
+                      className="absolute right-2 top-1/2 inline-flex -translate-y-1/2 items-center justify-center rounded-md px-1 text-lifewood-serpent/45 transition hover:text-lifewood-serpent"
+                      aria-label="Clear search"
+                      title="Clear search"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   {isFilterOpen && <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)} />}
                   <div className="inline-flex items-center">

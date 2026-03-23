@@ -30,6 +30,7 @@ export const applicantService = {
     limit: number = 20,
     offset: number = 0,
     filters?: {
+      search?: string;
       created_from?: string;
       created_to?: string;
       created_on?: string;
@@ -63,6 +64,21 @@ export const applicantService = {
         const startOfDay = `${filters.created_on}T00:00:00`;
         const endOfDay = `${filters.created_on}T23:59:59`;
         query = query.gte('created_at', startOfDay).lte('created_at', endOfDay);
+      }
+
+      if (filters?.search?.trim()) {
+        const search = filters.search.trim().replace(/,/g, ' ');
+        query = query.or(
+          [
+            `first_name.ilike.%${search}%`,
+            `last_name.ilike.%${search}%`,
+            `middle_name.ilike.%${search}%`,
+            `email.ilike.%${search}%`,
+            `position_applied.ilike.%${search}%`,
+            `country.ilike.%${search}%`,
+            `current_address.ilike.%${search}%`
+          ].join(',')
+        );
       }
 
       if (filters?.designation_id) {

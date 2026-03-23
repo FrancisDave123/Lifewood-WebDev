@@ -34,6 +34,7 @@ export const messageService = {
     limit: number,
     offset: number,
     filters?: {
+      search?: string;
       created_from?: string;
       created_to?: string;
       created_on?: string;
@@ -65,6 +66,18 @@ export const messageService = {
       if (filters?.created_to) {
         query = query.lte('created_at', filters.created_to);
       }
+    }
+
+    if (filters?.search?.trim()) {
+      const search = filters.search.trim().replace(/,/g, ' ');
+      query = query.or(
+        [
+          `name.ilike.%${search}%`,
+          `email.ilike.%${search}%`,
+          `subject.ilike.%${search}%`,
+          `message.ilike.%${search}%`
+        ].join(',')
+      );
     }
 
     // Apply sorting
