@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
-import { authService } from '../services/authService';
 import { applicantService } from '../services/applicantService';
 import { storageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
+import { supabase } from '../services/supabaseClient';
 import { PageTitleBanner } from './PageTitleBanner';
 
 interface JoinUsProps {
@@ -77,13 +77,25 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
       navigateTo?.('admin-dashboard');
     };
 
-    if (hasWindow) {
-      const user = authService.getCurrentUser();
-      if (user && user.role_id === 1) {
-        redirectAdmin();
-        return;
-      }
-    }
+    const checkAdmin = async () => {
+      if (!hasWindow) return;
+      try {
+        const { data: authUserData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authUserData?.user) return;
+
+        const { data: account } = await supabase
+          .from('user_accounts')
+          .select('role_id')
+          .eq('auth_user_id', authUserData.user.id)
+          .single();
+
+        if (account && Number(account.role_id) === 1) {
+          redirectAdmin();
+        }
+      } catch {}
+    };
+
+    void checkAdmin();
   }, [navigateTo]);
 
   useEffect(() => {

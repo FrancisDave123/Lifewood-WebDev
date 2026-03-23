@@ -2,31 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './routes/AppRoutes';
 import { ADMIN_PROFILE_STORAGE_KEY, DEFAULT_ADMIN_PROFILE } from './components/adminProfile';
+import { supabase } from './services/supabaseClient';
 import { authService } from './services/authService';
 
-const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
-const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
-const ROLE_ID_STORAGE_KEY = 'lifewood_role_id';
-const ROLE_NAME_STORAGE_KEY = 'lifewood_role_name';
 const THEME_STORAGE_KEY = 'lifewood_theme';
 
 const App: React.FC = () => {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
-  });
-  const [authRoleId, setAuthRoleId] = useState<number | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem(ROLE_ID_STORAGE_KEY);
-    if (!stored) return null;
-    const parsed = Number(stored);
-    return Number.isFinite(parsed) ? parsed : null;
-  });
-  const [authRoleName, setAuthRoleName] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem(ROLE_NAME_STORAGE_KEY);
-    return stored ? stored : null;
-  });
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
+  const [authRoleId, setAuthRoleId] = useState<number | null>(null);
+  const [authRoleName, setAuthRoleName] = useState<string | null>(null);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -50,19 +35,24 @@ const App: React.FC = () => {
   useEffect(() => {
     let isActive = true;
 
-    const checkSession = () => {
-      const user = authService.getSession();
+    const loadRoleFromSession = async () => {
+      try {
+        if (!isActive) return;
+        const user = await authService.getCurrentUser();
 
-      if (!isActive) return;
+        if (!isActive) return;
+        if (!user) {
+          setIsAdminAuthenticated(false);
+          setAuthRoleId(null);
+          setAuthRoleName(null);
+          return;
+        }
 
-      if (user) {
-        setIsAdminAuthenticated(true);
-        localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-        localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, user.email);
+        setIsAdminAuthenticated(user.role_id === 1);
         setAuthRoleId(user.role_id);
-        localStorage.setItem(ROLE_ID_STORAGE_KEY, String(user.role_id));
         setAuthRoleName(user.role_name);
-        localStorage.setItem(ROLE_NAME_STORAGE_KEY, user.role_name || '');
+
+        // Keep profile cache in sync with role (UI-only); auth/role source of truth is Supabase now.
         try {
           const raw = localStorage.getItem(ADMIN_PROFILE_STORAGE_KEY);
           const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
@@ -73,21 +63,23 @@ const App: React.FC = () => {
           };
           localStorage.setItem(ADMIN_PROFILE_STORAGE_KEY, JSON.stringify(nextProfile));
         } catch {}
-        return;
+      } finally {
+        if (!isActive) return;
+        setIsAuthLoading(false);
       }
-
-      setIsAdminAuthenticated(false);
-      setAuthRoleId(null);
-      setAuthRoleName(null);
-      localStorage.removeItem(AUTH_STORAGE_KEY);
-      localStorage.removeItem(ROLE_ID_STORAGE_KEY);
-      localStorage.removeItem(ROLE_NAME_STORAGE_KEY);
     };
 
-    checkSession();
+    void loadRoleFromSession();
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(() => {
+      void loadRoleFromSession();
+    });
 
     return () => {
       isActive = false;
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -95,6 +87,7 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AppRoutes
         theme={theme}
+        isAuthLoading={isAuthLoading}
         isAdminAuthenticated={isAdminAuthenticated}
         setIsAdminAuthenticated={setIsAdminAuthenticated}
         authRoleId={authRoleId}

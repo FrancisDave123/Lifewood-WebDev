@@ -1,141 +1,76 @@
-import { compare } from 'bcryptjs';
 import { supabase } from './supabaseClient';
 
 export interface AuthUser {
+  // This is the Supabase Auth user id (`auth.users.id`), used by your `user_accounts.auth_user_id` FK/policy.
   id: string;
   email: string;
   role_id: number;
   role_name: string | null;
 }
 
-export interface AuthToken {
-  token: string;
-  expiresAt: number;
-}
+const extractRoleName = (rolesField: unknown): string | null => {
+  if (!rolesField) return null;
+  if (typeof rolesField === 'string') return rolesField;
+  if (Array.isArray(rolesField)) {
+    const first = rolesField[0] as any;
+    return typeof first?.name === 'string' ? first.name : null;
+  }
+  const obj = rolesField as any;
+  return typeof obj?.name === 'string' ? obj.name : null;
+};
 
-const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+const fetchRoleForAuthUser = async (authUserId: string): Promise<AuthUser | null> => {
+  const { data, error } = await supabase
+    .from('user_accounts')
+    .select('email, role_id, roles(name)')
+    // Your policy uses: (auth_user_id = auth.uid())
+    .eq('auth_user_id', authUserId)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    id: authUserId,
+    email: typeof data.email === 'string' ? data.email : '',
+    role_id: Number(data.role_id),
+    role_name: extractRoleName(data.roles)
+  };
+};
 
 export const authService = {
-  // Generate a simple JWT-like token (for demo - in production use proper JWT)
-  generateToken(): AuthToken {
-    const expiresAt = Date.now() + TOKEN_EXPIRY_MS;
-    // In production, use jsonwebtoken library to create proper JWT
-    const token = btoa(`${Date.now()}.${Math.random()}`);
-    return { token, expiresAt };
-  },
-
-  // Login with email and password
+  // Login via Supabase Auth (no custom/localStorage token)
   async login(email: string, password: string): Promise<AuthUser> {
-    try {
-      // Query user_accounts from Supabase
-      const { data: user, error } = await supabase
-        .from('user_accounts')
-        .select('id, email, password, role_id, roles(name)')
-        .eq('email', email.toLowerCase())
-        .single();
-
-      if (error || !user) {
-        throw new Error('Invalid credentials');
-      }
-
-      // Verify password using bcryptjs
-      const isPasswordValid = await compare(password, user.password || '');
-      if (!isPasswordValid) {
-        throw new Error('Invalid credentials');
-      }
-
-      const authUser: AuthUser = {
-        id: user.id,
-        email: user.email,
-        role_id: user.role_id,
-        role_name: user.roles && Array.isArray(user.roles) && user.roles.length > 0
-          ? (user.roles[0] as any)?.name || null
-          : null
-      };
-
-      // Generate token and store in localStorage
-      const { token, expiresAt } = this.generateToken();
-      this.saveSession(authUser, token, expiresAt);
-
-      return authUser;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message || 'Login failed');
-      }
-      throw error;
-    }
-  },
-
-  // Save session to localStorage
-  saveSession(user: AuthUser, token: string, expiresAt: number): void {
-    localStorage.setItem('lifewood_token', token);
-    localStorage.setItem('lifewood_token_expiry', String(expiresAt));
-    localStorage.setItem('lifewood_admin_authenticated', 'true');
-    localStorage.setItem('lifewood_admin_email', user.email);
-    localStorage.setItem('lifewood_role_id', String(user.role_id));
-    localStorage.setItem('lifewood_role_name', user.role_name || '');
-    localStorage.setItem('lifewood_admin_user_id', user.id);
-  },
-
-  // Get current session from localStorage
-  getSession(): AuthUser | null {
-    if (typeof window === 'undefined') return null;
-
-    const token = localStorage.getItem('lifewood_token');
-    const expiryStr = localStorage.getItem('lifewood_token_expiry');
-    const isAuthenticated = localStorage.getItem('lifewood_admin_authenticated');
-
-    if (!token || !expiryStr || isAuthenticated !== 'true') {
-      return null;
-    }
-
-    const expiresAt = Number(expiryStr);
-    if (Date.now() > expiresAt) {
-      this.logout();
-      return null;
-    }
-
-    const email = localStorage.getItem('lifewood_admin_email');
-    const roleIdStr = localStorage.getItem('lifewood_role_id');
-    const roleName = localStorage.getItem('lifewood_role_name');
-    const userId = localStorage.getItem('lifewood_admin_user_id');
-
-    if (!email || !roleIdStr || !userId) {
-      return null;
-    }
-
-    return {
-      id: userId,
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      role_id: Number(roleIdStr),
-      role_name: roleName
-    };
+      password
+    });
+
+    if (error || !data.user) {
+      throw new Error(error?.message || 'Invalid credentials');
+    }
+
+    const roleUser = await fetchRoleForAuthUser(data.user.id);
+    if (!roleUser) {
+      throw new Error('Your account is not registered for internal access.');
+    }
+
+    return roleUser;
   },
 
-  // Logout and clear session
-  logout(): void {
-    localStorage.removeItem('lifewood_token');
-    localStorage.removeItem('lifewood_token_expiry');
-    localStorage.removeItem('lifewood_admin_authenticated');
-    localStorage.removeItem('lifewood_admin_email');
-    localStorage.removeItem('lifewood_role_id');
-    localStorage.removeItem('lifewood_role_name');
-    localStorage.removeItem('lifewood_admin_user_id');
+  async logout(): Promise<void> {
+    await supabase.auth.signOut();
   },
 
-  // Check if user is authenticated
-  isAuthenticated(): boolean {
-    return this.getSession() !== null;
+  // Supabase-auth aware current user + role
+  async getCurrentUser(): Promise<AuthUser | null> {
+    const { data: authUserData, error } = await supabase.auth.getUser();
+    if (error || !authUserData?.user) return null;
+
+    return fetchRoleForAuthUser(authUserData.user.id);
   },
 
-  // Get current user
-  getCurrentUser(): AuthUser | null {
-    return this.getSession();
-  },
-
-  // Check if user is admin (role_id = 1)
-  isAdmin(): boolean {
-    const user = this.getSession();
+  async isAdmin(): Promise<boolean> {
+    const user = await this.getCurrentUser();
     return user !== null && user.role_id === 1;
   }
 };

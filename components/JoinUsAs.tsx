@@ -2,16 +2,14 @@ import React, { useEffect } from 'react';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
 import { PageTitleBanner } from './PageTitleBanner';
+import { supabase } from '../services/supabaseClient';
 
 interface JoinUsAsProps {
   navigateTo?: (page: PageRoute) => void;
 }
 
 export const JoinUsAs: React.FC<JoinUsAsProps> = ({ navigateTo }) => {
-  const ADMIN_AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
-  const ROLE_ID_STORAGE_KEY = 'lifewood_role_id';
   const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
-  const API_AUTH_SESSION_URL = '/api/auth/session';
 
   useEffect(() => {
     const redirectMessage = "You're signed in as an admin. Please sign out to apply.";
@@ -24,27 +22,25 @@ export const JoinUsAs: React.FC<JoinUsAsProps> = ({ navigateTo }) => {
       navigateTo?.('admin-dashboard');
     };
 
-    if (hasWindow) {
-      const isAdminAuth = localStorage.getItem(ADMIN_AUTH_STORAGE_KEY) === 'true';
-      const roleId = Number(localStorage.getItem(ROLE_ID_STORAGE_KEY));
-      if (isAdminAuth && roleId === 1) {
-        redirectAdmin();
-        return;
-      }
-    }
-
-    const checkSession = async () => {
+    const checkRole = async () => {
+      if (!hasWindow) return;
       try {
-        const response = await fetch(API_AUTH_SESSION_URL, { credentials: 'include' });
-        if (!response.ok) return;
-        const payload = await response.json();
-        if (payload?.data?.role_id === 1) {
+        const { data: authUserData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authUserData?.user) return;
+
+        const { data: account } = await supabase
+          .from('user_accounts')
+          .select('role_id')
+          .eq('auth_user_id', authUserData.user.id)
+          .single();
+
+        if (account && Number(account.role_id) === 1) {
           redirectAdmin();
         }
       } catch {}
     };
 
-    void checkSession();
+    void checkRole();
   }, [navigateTo]);
 
   return (

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { authService } from '../services/authService';
 
 export const ADMIN_PROFILE_STORAGE_KEY = 'admin_dashboard_profile';
 export const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
@@ -32,6 +31,17 @@ export const useAdminProfile = () => {
   const [profile, setProfile] = useState<AdminProfileData>(DEFAULT_ADMIN_PROFILE);
   const [adminGmail, setAdminGmail] = useState(DEFAULT_ADMIN_GMAIL);
 
+  const extractRoleName = (rolesField: unknown): string => {
+    if (!rolesField) return '';
+    if (typeof rolesField === 'string') return rolesField;
+    if (Array.isArray(rolesField)) {
+      const first = rolesField[0] as any;
+      return typeof first?.name === 'string' ? first.name : '';
+    }
+    const obj = rolesField as any;
+    return typeof obj?.name === 'string' ? obj.name : '';
+  };
+
   useEffect(() => {
     const savedProfile = localStorage.getItem(ADMIN_PROFILE_STORAGE_KEY);
     if (savedProfile) {
@@ -55,13 +65,14 @@ export const useAdminProfile = () => {
 
     const fetchProfile = async () => {
       try {
-        const user = authService.getCurrentUser();
-        if (!user || !isActive) return;
+        const { data: authUserData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authUserData?.user || !isActive) return;
 
         const { data, error } = await supabase
           .from('user_accounts')
-          .select('id, email, first_name, last_name, roles(name)')
-          .eq('id', user.id)
+          .select('email, first_name, last_name, roles(name)')
+          // Your policy/relationship uses `auth_user_id`
+          .eq('auth_user_id', authUserData.user.id)
           .single();
 
         if (error || !data || !isActive) return;
@@ -70,7 +81,7 @@ export const useAdminProfile = () => {
           ...prev,
           firstName: typeof data.first_name === 'string' ? data.first_name : '',
           lastName: typeof data.last_name === 'string' ? data.last_name : '',
-          role: user.role_name || ''
+          role: extractRoleName(data.roles)
         }));
 
         if (typeof data.email === 'string' && data.email.trim()) {

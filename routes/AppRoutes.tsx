@@ -35,8 +35,6 @@ import { AdminAccessDenied } from '../components/AdminAccessDenied';
 import { RoleDashboard } from '../components/RoleDashboard';
 import { PageRoute } from './routeTypes';
 
-const AUTH_STORAGE_KEY = 'lifewood_admin_authenticated';
-const ADMIN_EMAIL_STORAGE_KEY = 'lifewood_admin_email';
 const ADMIN_BG_VIDEO_URL = 'https://www.pexels.com/download/video/34645742/';
 
 const PAGE_PATHS: Record<PageRoute, string> = {
@@ -144,6 +142,7 @@ const AdminLayout: React.FC<{ children: ReactNode }> = ({ children }) => (
 
 interface AppRoutesProps {
   theme: 'light' | 'dark';
+  isAuthLoading: boolean;
   isAdminAuthenticated: boolean;
   setIsAdminAuthenticated: Dispatch<SetStateAction<boolean>>;
   authRoleId: number | null;
@@ -277,6 +276,7 @@ const HomeContent: React.FC<{ navigateTo: NavigateTo }> = ({ navigateTo }) => (
 
 export const AppRoutes: React.FC<AppRoutesProps> = ({
   theme,
+  isAuthLoading,
   isAdminAuthenticated,
   setIsAdminAuthenticated,
   authRoleId,
@@ -286,6 +286,48 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ✅ Real useCallback moved up here
+const navigateTo = useCallback<NavigateTo>((page) => {
+  const destination = PAGE_PATHS[page];
+  if (!destination) return;
+  const hasWindow = typeof window !== 'undefined';
+
+  if (page === 'signin') {
+    if (hasWindow) void authService.logout();
+    setIsAdminAuthenticated(false);
+    setAuthRoleId(null);
+    setAuthRoleName(null);
+    navigate(destination);
+    if (hasWindow) window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  if (ADMIN_PAGES.has(page)) {
+    if (authRoleId === null) {
+      setIsAdminAuthenticated(false);
+      navigate(PAGE_PATHS['signin']);
+      if (hasWindow) window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (authRoleId !== 1) {
+      navigate(PAGE_PATHS['admin-access-denied']);
+      return;
+    }
+    setIsAdminAuthenticated(true);
+  }
+
+  navigate(destination);
+  if (hasWindow) window.scrollTo({ top: 0, behavior: 'smooth' });
+}, [navigate, authRoleId, setIsAdminAuthenticated, setAuthRoleId, setAuthRoleName]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-lifewood-seaSalt">
+        Loading...
+      </div>
+    );
+  }
 
   const currentPage = getPageFromPath(location.pathname);
   const isAdminPage = ADMIN_PAGES.has(currentPage);
@@ -297,54 +339,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
     currentPage !== 'intern-dashboard' &&
     currentPage !== 'employee-dashboard' &&
     currentPage !== 'applicant-dashboard';
+    
 
-  const navigateTo = useCallback<NavigateTo>((page) => {
-    const destination = PAGE_PATHS[page];
-    if (!destination) return;
-    const hasWindow = typeof window !== 'undefined';
-
-    if (page === 'signin') {
-      if (hasWindow) {
-        authService.logout();
-      }
-      setIsAdminAuthenticated(false);
-      setAuthRoleId(null);
-      setAuthRoleName(null);
-      navigate(destination);
-      if (hasWindow) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      return;
-    }
-
-    if (ADMIN_PAGES.has(page)) {
-      const hasAuth = hasWindow && localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
-      if (!hasAuth) {
-        setIsAdminAuthenticated(false);
-        navigate(PAGE_PATHS['signin']);
-        if (hasWindow) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        return;
-      }
-      const isAdmin = (authRoleId ?? Number(localStorage.getItem('lifewood_role_id'))) === 1;
-      if (!isAdmin) {
-        navigate(PAGE_PATHS['admin-access-denied']);
-        return;
-      }
-      setIsAdminAuthenticated(true);
-    }
-
-    navigate(destination);
-    if (hasWindow) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [navigate, authRoleId, setIsAdminAuthenticated, setAuthRoleId, setAuthRoleName]);
-
-  const hasAuthInStorage = typeof window !== 'undefined' && localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
-  const storedRoleId = typeof window !== 'undefined' ? Number(localStorage.getItem('lifewood_role_id')) : NaN;
-  const isAuthenticated = isAdminAuthenticated || hasAuthInStorage;
-  const isAdminUser = (authRoleId ?? storedRoleId) === 1 && isAuthenticated;
+  const isAuthenticated = authRoleId !== null;
+  const isAdminUser = authRoleId === 1;
 
   const renderAdmin = (element: ReactNode) =>
     !isAuthenticated
@@ -354,9 +352,8 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         : <Navigate to={PAGE_PATHS['admin-access-denied']} replace />;
 
   const resolveRoleDashboard = () => {
-    const storedRoleName = typeof window !== 'undefined' ? localStorage.getItem('lifewood_role_name') : null;
-    if ((authRoleId ?? storedRoleId) === 1) return PAGE_PATHS['admin-dashboard'];
-    const roleLabel = (authRoleName || storedRoleName || '').toLowerCase();
+    if (authRoleId === 1) return PAGE_PATHS['admin-dashboard'];
+    const roleLabel = (authRoleName || '').toLowerCase();
     if (roleLabel.includes('intern')) return PAGE_PATHS['intern-dashboard'];
     if (roleLabel.includes('employee')) return PAGE_PATHS['employee-dashboard'];
     if (roleLabel.includes('applicant')) return PAGE_PATHS['applicant-dashboard'];
@@ -430,7 +427,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
               <SignIn
                 navigateTo={navigateTo}
                 onAuthSuccess={({ roleId, roleName }) => {
-                  setIsAdminAuthenticated(true);
+                  setIsAdminAuthenticated(roleId === 1);
                   setAuthRoleId(roleId);
                   setAuthRoleName(roleName);
                 }}
@@ -444,7 +441,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 navigateTo={navigateTo}
                 initialAuthMode="forgot"
                 onAuthSuccess={({ roleId, roleName }) => {
-                  setIsAdminAuthenticated(true);
+                  setIsAdminAuthenticated(roleId === 1);
                   setAuthRoleId(roleId);
                   setAuthRoleName(roleName);
                 }}
