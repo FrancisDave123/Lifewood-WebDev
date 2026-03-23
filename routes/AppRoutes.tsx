@@ -1,5 +1,6 @@
-import React, { Dispatch, ReactNode, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
+import React, { Dispatch, ReactNode, SetStateAction, useCallback, useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowUp } from 'lucide-react';
 import { authService } from '../services/authService';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
@@ -153,108 +154,27 @@ interface AppRoutesProps {
 
 type NavigateTo = (page: PageRoute) => void;
 
-const COMPACT_PAGE_TITLES: Partial<Record<PageRoute, { title: string; sourceId: string }>> = {
-  home: { title: 'HOME', sourceId: 'home-page-title' },
-  'ai-services': { title: 'AI DATA SERVICES', sourceId: 'ai-services-page-title' },
-  'ai-projects': { title: 'AI PROJECTS', sourceId: 'ai-projects-page-title' },
-  'contact-us': { title: 'CONTACT US', sourceId: 'contact-us-page-title' },
-  'about-us': { title: 'ABOUT US', sourceId: 'about-us-page-title' },
-  'philanthropy-impact': { title: 'PHILANTHROPY & IMPACT', sourceId: 'philanthropy-impact-page-title' },
-  offices: { title: 'OFFICES', sourceId: 'offices-page-title' },
-  careers: { title: 'CAREERS', sourceId: 'careers-page-title' },
-  'join-us-as': { title: 'JOIN US', sourceId: 'join-us-as-page-title' },
-  'join-us-as-employee': { title: 'APPLY AS EMPLOYEE', sourceId: 'join-us-employee-page-title' },
-  'join-us-as-intern': { title: 'APPLY AS INTERN', sourceId: 'join-us-intern-page-title' },
-  'type-a-data-servicing': { title: 'TYPE A DATA SERVICING', sourceId: 'type-a-page-title' },
-  'type-b-horizontal-llm-data': { title: 'TYPE B HORIZONTAL LLM DATA', sourceId: 'type-b-page-title' },
-  'type-c-vertical-llm-data': { title: 'TYPE C VERTICAL LLM DATA', sourceId: 'type-c-page-title' },
-  'type-d-aigc': { title: 'TYPE D AIGC', sourceId: 'type-d-page-title' },
-  'internal-news': { title: 'INTERNAL NEWS', sourceId: 'internal-news-page-title' },
-  'privacy-policy': { title: 'PRIVACY POLICY', sourceId: 'privacy-policy-page-title' },
-  'cookie-policy': { title: 'COOKIE POLICY', sourceId: 'cookie-policy-page-title' },
-  'terms-and-conditions': { title: 'TERMS AND CONDITIONS', sourceId: 'terms-conditions-page-title' }
-};
-
-const CompactPageTitle: React.FC<{ title: string; sourceId: string }> = ({ title, sourceId }) => {
+const ScrollToTopButton: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [isEntering, setIsEntering] = useState(false);
-  const [sourceOffset, setSourceOffset] = useState({ x: 0, y: 0 });
-  const isCompactRef = useRef(false);
-  const isVisibleRef = useRef(false);
-  const rafRef = useRef(0);
-
-  const handleBackToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   useEffect(() => {
-    const updateState = () => {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = window.requestAnimationFrame(() => {
-        const shouldCompact = window.scrollY > 110;
+    const handleScroll = () => setIsVisible(window.scrollY > 220);
 
-        if (shouldCompact && !isCompactRef.current) {
-          const source = document.getElementById(sourceId);
-          if (source) {
-            const rect = source.getBoundingClientRect();
-            const targetLeft = 24;
-            const targetTop = 96;
-            setSourceOffset({
-              x: rect.left - targetLeft,
-              y: rect.top - targetTop
-            });
-          }
-          isCompactRef.current = true;
-          isVisibleRef.current = true;
-          setIsVisible(true);
-          setIsEntering(true);
-          window.requestAnimationFrame(() => setIsEntering(false));
-        } else if (!shouldCompact && isCompactRef.current) {
-          isCompactRef.current = false;
-          isVisibleRef.current = false;
-          setIsVisible(false);
-          setIsEntering(false);
-        } else if (shouldCompact && !isVisibleRef.current) {
-          isVisibleRef.current = true;
-          setIsVisible(true);
-          setIsEntering(false);
-        }
-      });
-    };
-
-    updateState();
-    window.addEventListener('scroll', updateState, { passive: true });
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('scroll', updateState);
-    };
-  }, [sourceId]);
-
-  const currentTransform = !isVisible
-    ? `translate(${sourceOffset.x}px, ${sourceOffset.y}px) scale(1.6)`
-    : isEntering
-      ? `translate(${sourceOffset.x}px, ${sourceOffset.y}px) scale(1.6)`
-      : 'translate(0px, 0px) scale(1)';
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <button
       type="button"
-      onClick={handleBackToTop}
-      aria-label={`Back to top from ${title}`}
-      className="fixed left-6 top-24 z-[130] pointer-events-auto text-left transition-all duration-700 ease-out cursor-pointer"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: currentTransform
-      }}
+      aria-label="Scroll to top"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className={`fixed bottom-6 right-6 z-[130] inline-flex h-14 w-14 items-center justify-center rounded-full border border-lifewood-green/20 bg-white/90 text-lifewood-serpent shadow-[0_18px_45px_rgba(4,98,65,0.2)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-lifewood-green/60 hover:text-lifewood-green dark:border-white/10 dark:bg-[#08120d]/85 dark:text-white dark:hover:border-lifewood-yellow/60 dark:hover:text-lifewood-yellow ${
+        isVisible ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+      }`}
     >
-      <div
-        className="flex items-center gap-3 rounded-full glass border border-lifewood-green/25 px-4 py-2 shadow-xl motion-safe:animate-pulse-slow hover:border-lifewood-saffron/60 hover:shadow-2xl transition-all duration-300"
-      >
-        <div className="h-5 w-1.5 rounded-full bg-gradient-to-b from-lifewood-green to-lifewood-saffron" />
-        <span className="text-[11px] md:text-xs font-black tracking-[0.25em] uppercase text-lifewood-serpent dark:text-white">
-          {title}
-        </span>
-      </div>
+      <ArrowUp className="h-5 w-5" />
     </button>
   );
 };
@@ -383,13 +303,6 @@ const navigateTo = useCallback<NavigateTo>((page) => {
         />
       )}
 
-      {COMPACT_PAGE_TITLES[currentPage] && (
-        <CompactPageTitle
-          title={COMPACT_PAGE_TITLES[currentPage]!.title}
-          sourceId={COMPACT_PAGE_TITLES[currentPage]!.sourceId}
-        />
-      )}
-
       <main className="relative">
         <Routes>
           <Route path="/" element={<HomeContent navigateTo={navigateTo} />} />
@@ -483,6 +396,8 @@ const navigateTo = useCallback<NavigateTo>((page) => {
           <Footer navigateTo={navigateTo} />
         </div>
       )}
+
+      {showChrome && <ScrollToTopButton />}
 
       {/* Background Decorative Blobs */}
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-lifewood-green/5 dark:bg-lifewood-green/10 rounded-full blur-[120px] pointer-events-none z-0"></div>

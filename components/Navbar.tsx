@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NAV_ITEMS } from '../constants';
 import { Menu, X, ChevronDown, Sparkles, Layers, Database, Mic, Car } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
@@ -21,6 +21,36 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const navRouteMap: Record<string, PageRoute[]> = {
+    Home: ['home'],
+    'AI Initiatives': ['ai-services', 'ai-projects'],
+    'Our Company': ['about-us', 'offices'],
+    'What We Offer': [
+      'type-a-data-servicing',
+      'type-b-horizontal-llm-data',
+      'type-c-vertical-llm-data',
+      'type-d-aigc'
+    ],
+    'Philanthropy & Impact': ['philanthropy-impact'],
+    Careers: ['careers', 'join-us', 'join-us-as', 'join-us-as-employee', 'join-us-as-intern'],
+    'Contact Us': ['contact-us'],
+    'Internal News': ['internal-news']
+  };
+
+  const subItemRouteMap: Record<string, PageRoute> = {
+    '#services': 'ai-services',
+    '#project': 'ai-projects',
+    '#about': 'about-us',
+    '#offices': 'offices',
+    '#type-a-data-servicing': 'type-a-data-servicing',
+    '#type-b-horizontal-llm-data': 'type-b-horizontal-llm-data',
+    '#type-c-vertical-llm-data': 'type-c-vertical-llm-data',
+    '#type-d-aigc': 'type-d-aigc'
+  };
+
+  const isItemActive = (label: string) => (navRouteMap[label] || []).includes(currentPage);
+  const isSubItemActive = (href: string) => subItemRouteMap[href] === currentPage;
 
   const scrollToSection = (targetId: string) => {
     if (targetId === 'home') {
@@ -277,7 +307,11 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
                     spawnParticles(e.currentTarget);
                     handleNavClick(e, item);
                   }}
-                  className={`text-sm font-bold flex items-center gap-1.5 text-black dark:text-white hover:text-lifewood-green dark:hover:text-lifewood-yellow transition-colors relative overflow-visible ${
+                  className={`text-sm font-bold flex items-center gap-1.5 transition-colors relative overflow-visible ${
+                    isItemActive(item.label)
+                      ? 'text-lifewood-green dark:text-lifewood-yellow'
+                      : 'text-black dark:text-white hover:text-lifewood-green dark:hover:text-lifewood-yellow'
+                  } ${
                     item.subItems ? 'cursor-default' : ''
                   }`}
                 >
@@ -285,7 +319,9 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
                   {item.subItems && (
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
                   )}
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-lifewood-green dark:bg-lifewood-yellow transition-all duration-300 ${activeDropdown === item.label ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-lifewood-green dark:bg-lifewood-yellow transition-all duration-300 ${
+                    isItemActive(item.label) ? 'w-full' : activeDropdown === item.label ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`}></span>
                 </a>
 
                 {item.subItems && (
@@ -300,7 +336,11 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
                             spawnParticles(e.currentTarget);
                             handleNavClick(e, sub);
                           }}
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-black dark:text-white rounded-2xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all relative overflow-visible"
+                          className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-2xl transition-all relative overflow-visible ${
+                            isSubItemActive(sub.href)
+                              ? 'bg-lifewood-green/10 text-lifewood-green dark:bg-white/10 dark:text-lifewood-yellow'
+                              : 'text-black dark:text-white hover:bg-lifewood-green/10 hover:text-lifewood-green dark:hover:text-lifewood-yellow'
+                          }`}
                         >
                           <div className="w-8 h-8 rounded-xl bg-lifewood-green/5 flex items-center justify-center">
                             {sub.label.includes('Type A') ? <Database className="w-4 h-4" /> :
@@ -377,11 +417,19 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
                     <a
                       href={item.href}
                       onClick={(e) => handleNavClick(e, item)}
-                      className={`flex items-center justify-between px-4 py-4 text-base font-black text-lifewood-serpent transition-colors hover:text-lifewood-green dark:text-white dark:hover:text-lifewood-yellow ${
+                      className={`flex items-center justify-between px-4 py-4 text-base font-black transition-colors ${
+                        isItemActive(item.label)
+                          ? 'text-lifewood-green dark:text-lifewood-yellow'
+                          : 'text-lifewood-serpent hover:text-lifewood-green dark:text-white dark:hover:text-lifewood-yellow'
+                      } ${
                         item.subItems ? 'cursor-default' : ''
                       }`}
                     >
-                      <span>{item.label}</span>
+                      <span className={`relative inline-flex pb-1 ${
+                        isItemActive(item.label)
+                          ? 'after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:bg-current after:content-[\'\']'
+                          : ''
+                      }`}>{item.label}</span>
                       {item.subItems && <ChevronDown className="h-4 w-4 text-lifewood-serpent/35 dark:text-white/35" />}
                     </a>
 
@@ -394,7 +442,11 @@ export const Navbar: React.FC<NavbarProps> = ({ navigateTo, currentPage, isAdmin
                               href={sub.href}
                               data-is-sub="true"
                               onClick={(e) => handleNavClick(e, sub)}
-                              className="flex items-center gap-3 rounded-2xl border border-transparent bg-lifewood-seaSalt/70 px-3 py-3 text-sm font-semibold text-lifewood-serpent transition hover:border-lifewood-green/20 hover:bg-lifewood-green/5 hover:text-lifewood-green dark:bg-white/5 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
+                              className={`flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                                isSubItemActive(sub.href)
+                                  ? 'border-lifewood-green/30 bg-lifewood-green/10 text-lifewood-green dark:border-lifewood-yellow/30 dark:bg-white/10 dark:text-lifewood-yellow'
+                                  : 'border-transparent bg-lifewood-seaSalt/70 text-lifewood-serpent hover:border-lifewood-green/20 hover:bg-lifewood-green/5 hover:text-lifewood-green dark:bg-white/5 dark:text-white dark:hover:bg-white/10 dark:hover:text-white'
+                              }`}
                             >
                               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-lifewood-green shadow-sm dark:bg-black/20">
                                 {sub.label.includes('Type A') ? <Database className="h-4 w-4" /> :
