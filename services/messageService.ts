@@ -45,6 +45,12 @@ export const messageService = {
     has_more: boolean;
     offset: number;
   }> {
+    const todayIso = new Date().toISOString().split('T')[0];
+    const clampToToday = (value?: string) => {
+      if (!value) return value;
+      return value > todayIso ? todayIso : value;
+    };
+
     let query = supabase
       .from('messages')
       .select('*', { count: 'exact' })
@@ -53,17 +59,18 @@ export const messageService = {
 
     // Apply date filters
     if (filters?.created_on) {
-      const date = new Date(filters.created_on);
+      const createdOn = clampToToday(filters.created_on) || filters.created_on;
+      const date = new Date(createdOn);
       const start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
       const end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
       
       query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
     } else {
       if (filters?.created_from) {
-        query = query.gte('created_at', filters.created_from);
+        query = query.gte('created_at', clampToToday(filters.created_from) || filters.created_from);
       }
       if (filters?.created_to) {
-        query = query.lte('created_at', filters.created_to);
+        query = query.lte('created_at', clampToToday(filters.created_to) || filters.created_to);
       }
     }
 

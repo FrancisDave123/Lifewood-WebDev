@@ -80,6 +80,8 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   const [pageOffset, setPageOffset] = useState(0);
   const [pageLimit] = useState(20);
   const [hasMore, setHasMore] = useState(false);
+  const todayIso = new Date();
+  const maxFilterDate = `${todayIso.getFullYear()}-${String(todayIso.getMonth() + 1).padStart(2, '0')}-${String(todayIso.getDate()).padStart(2, '0')}`;
   const isFilterActive = Boolean(createdOn || createdFrom || createdTo);
   const isSortActive = sortOrder !== 'newest';
 
@@ -398,8 +400,8 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                   {isFilterOpen && (
                     <div className="absolute left-0 top-full z-20 mt-2 w-[320px] rounded-2xl border border-lifewood-serpent/15 bg-white p-4 shadow-[0_18px_40px_rgba(19,48,32,0.12)]">
                       <div className="space-y-3 text-xs text-lifewood-serpent/70">
-                        <div><p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">Created On</p><input type="date" value={createdOn} onChange={(e) => setCreatedOn(e.target.value)} className="mt-2 w-full rounded-lg border border-lifewood-serpent/10 px-3 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none" /></div>
-                        <div><p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">Date Range</p><div className="mt-2 flex items-center gap-2"><input type="date" value={createdFrom} onChange={(e) => setCreatedFrom(e.target.value)} className="w-full rounded-lg border border-lifewood-serpent/10 px-2 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none" /><span className="text-lifewood-serpent/40">to</span><input type="date" value={createdTo} onChange={(e) => setCreatedTo(e.target.value)} className="w-full rounded-lg border border-lifewood-serpent/10 px-2 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none" /></div></div>
+                        <div><p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">Created On</p><input type="date" max={maxFilterDate} value={createdOn} onChange={(e) => setCreatedOn(e.target.value)} className="mt-2 w-full rounded-lg border border-lifewood-serpent/10 px-3 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none" /></div>
+                        <div><p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/60">Date Range</p><div className="mt-2 flex items-center gap-2"><input type="date" max={maxFilterDate} value={createdFrom} onChange={(e) => setCreatedFrom(e.target.value)} className="w-full rounded-lg border border-lifewood-serpent/10 px-2 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none" /><span className="text-lifewood-serpent/40">to</span><input type="date" max={maxFilterDate} value={createdTo} onChange={(e) => setCreatedTo(e.target.value)} className="w-full rounded-lg border border-lifewood-serpent/10 px-2 py-2 text-xs text-lifewood-serpent focus:border-lifewood-green focus:outline-none" /></div></div>
                         <p className="text-[11px] text-lifewood-serpent/50">Specific date overrides the range.</p>
                       </div>
                     </div>

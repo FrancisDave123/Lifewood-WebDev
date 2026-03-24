@@ -41,6 +41,12 @@ export const applicantService = {
     }
   ) {
     try {
+      const todayIso = new Date().toISOString().split('T')[0];
+      const clampToToday = (value?: string) => {
+        if (!value) return value;
+        return value > todayIso ? todayIso : value;
+      };
+
       let query = supabase
         .from('applicants')
         .select(
@@ -53,16 +59,17 @@ export const applicantService = {
         .eq('is_deleted', 0);
 
       if (filters?.created_from) {
-        query = query.gte('created_at', filters.created_from);
+        query = query.gte('created_at', clampToToday(filters.created_from) || filters.created_from);
       }
 
       if (filters?.created_to) {
-        query = query.lte('created_at', filters.created_to);
+        query = query.lte('created_at', clampToToday(filters.created_to) || filters.created_to);
       }
 
       if (filters?.created_on) {
-        const startOfDay = `${filters.created_on}T00:00:00`;
-        const endOfDay = `${filters.created_on}T23:59:59`;
+        const createdOn = clampToToday(filters.created_on) || filters.created_on;
+        const startOfDay = `${createdOn}T00:00:00`;
+        const endOfDay = `${createdOn}T23:59:59`;
         query = query.gte('created_at', startOfDay).lte('created_at', endOfDay);
       }
 
