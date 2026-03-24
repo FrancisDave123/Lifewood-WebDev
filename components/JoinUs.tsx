@@ -171,6 +171,9 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
 
   const validateEmail = (value: string) => /\S+@\S+\.\S+/.test(value.trim());
   const sanitizeAge = (value: string) => value.replace(/\D/g, '').slice(0, 3);
+  const sanitizeName = (value: string) => value.replace(/[^A-Za-z\s]/g, '');
+  const sanitizePhone = (value: string) => value.replace(/[^0-9+\-() ]/g, '');
+  const hasOnlyLettersAndSpaces = (value: string) => /^[A-Za-z\s]+$/.test(value.trim());
 
   const validateStep = (currentStep: 1 | 2 | 3): boolean => {
     const newErrors: Record<string, string> = {};
@@ -178,6 +181,15 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
     if (currentStep === 1) {
       if (!form.firstName.trim()) newErrors.firstName = 'First name is required.';
       if (!form.lastName.trim()) newErrors.lastName = 'Last name is required.';
+      if (form.firstName.trim() && !hasOnlyLettersAndSpaces(form.firstName)) {
+        newErrors.firstName = 'First name must contain letters only.';
+      }
+      if (form.middleName.trim() && !hasOnlyLettersAndSpaces(form.middleName)) {
+        newErrors.middleName = 'Middle name must contain letters only.';
+      }
+      if (form.lastName.trim() && !hasOnlyLettersAndSpaces(form.lastName)) {
+        newErrors.lastName = 'Last name must contain letters only.';
+      }
       if (!form.gender) newErrors.gender = 'Please select a gender.';
       if (!form.age.trim()) newErrors.age = 'Age is required.';
       const ageNumber = Number(form.age);
@@ -190,6 +202,9 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
 
     if (currentStep === 2) {
       if (!form.phone.trim()) newErrors.phone = 'Phone number is required.';
+      if (form.phone.trim() && /[^0-9+\-() ]/.test(form.phone)) {
+        newErrors.phone = 'Phone number can only contain numbers, spaces, +, -, and parentheses.';
+      }
       if (!form.email.trim()) newErrors.email = 'Email is required.';
       if (form.email && !validateEmail(form.email)) {
         newErrors.email = 'Please enter a valid email address.';
@@ -488,7 +503,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                       <input
                         type="text"
                         value={form.firstName}
-                        onChange={(e) => updateField('firstName', e.target.value)}
+                        onChange={(e) => updateField('firstName', sanitizeName(e.target.value))}
                         className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
                         placeholder="Enter your first name"
                       />
@@ -503,10 +518,13 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                       <input
                         type="text"
                         value={form.middleName}
-                        onChange={(e) => updateField('middleName', e.target.value)}
+                        onChange={(e) => updateField('middleName', sanitizeName(e.target.value))}
                         className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
                         placeholder="Enter your middle name"
                       />
+                      {errors.middleName && (
+                        <p className="mt-1 text-xs text-red-600">{errors.middleName}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
@@ -515,7 +533,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                       <input
                         type="text"
                         value={form.lastName}
-                        onChange={(e) => updateField('lastName', e.target.value)}
+                        onChange={(e) => updateField('lastName', sanitizeName(e.target.value))}
                         className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
                         placeholder="Enter your last name"
                       />
@@ -578,8 +596,9 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                       </label>
                       <input
                         type="tel"
+                        inputMode="tel"
                         value={form.phone}
-                        onChange={(e) => updateField('phone', e.target.value)}
+                        onChange={(e) => updateField('phone', sanitizePhone(e.target.value))}
                         className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
                         placeholder="Enter your phone number"
                       />
