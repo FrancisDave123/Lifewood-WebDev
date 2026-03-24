@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { ArrowLeft, Sparkles, Shield, Eye, Globe, Info, Settings, Bell, MessageSquare } from 'lucide-react';
-import { PageTitleBanner } from './PageTitleBanner';
+import { LegalDocumentSidebar } from './LegalDocumentSidebar';
 
 interface CookiePolicyProps {
   navigateTo?: (page: any) => void;
 }
 
 export const CookiePolicy: React.FC<CookiePolicyProps> = ({ navigateTo }) => {
+  const headerTitleId = 'cookie-policy-main-title';
   const sections = [
     { id: 'what-are-cookies', title: '1. What Are Cookies?', icon: Info },
     { id: 'how-we-use', title: '2. How Lifewood Uses Cookies', icon: Eye },
@@ -37,18 +38,19 @@ export const CookiePolicy: React.FC<CookiePolicyProps> = ({ navigateTo }) => {
             Back to Home
           </button>
           
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass border border-lifewood-green/20 mb-6">
-            <Sparkles className="w-4 h-4 text-lifewood-green" />
+          <div className="mb-6 flex items-center gap-3 text-lifewood-green dark:text-lifewood-yellow">
+            <Sparkles className="h-5 w-5" />
             <span className="text-xs font-black uppercase tracking-[0.24em] text-lifewood-serpent/70 dark:text-white/70">
               Legal & Privacy
             </span>
           </div>
-          
-          <PageTitleBanner
-            id="cookie-policy-page-title"
-            title="Cookie Policy"
-            className="mb-6"
-          />
+
+          <div id={headerTitleId} className="mb-6 max-w-5xl">
+            <h1 className="text-5xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white md:text-7xl">
+              Cookie Policy
+            </h1>
+            <div className="mt-5 h-1.5 w-32 rounded-full bg-gradient-to-r from-lifewood-green via-lifewood-saffron to-lifewood-green" />
+          </div>
           <p className="text-xl text-lifewood-serpent/60 dark:text-white/60 max-w-3xl">
             At Lifewood Data Technology Ltd., we use cookies and similar tracking technologies to enhance your experience, analyze site usage, and personalize content. This Cookie Policy explains what cookies are, how we use them, and how you can manage your preferences.
           </p>
@@ -56,23 +58,7 @@ export const CookiePolicy: React.FC<CookiePolicyProps> = ({ navigateTo }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar Navigation */}
-          <div className="lg:col-span-4 sticky top-32 hidden lg:block self-start">
-            <div className="glass-card rounded-3xl p-6 border-white/20 shadow-xl max-h-[calc(100vh-160px)] overflow-y-auto custom-scrollbar">
-              <h3 className="text-lg font-bold mb-6 px-2">Sections</h3>
-              <nav className="space-y-1">
-                {sections.map((section) => (
-                  <a 
-                    key={section.id}
-                    href={`#${section.id}`}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all group text-sm font-medium text-lifewood-serpent/70 dark:text-white/70"
-                  >
-                    <section.icon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
-                    {section.title}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </div>
+          <LegalDocumentSidebar title="Cookie Policy" headerTargetId={headerTitleId} sections={sections} />
 
           {/* Content */}
           <div className="lg:col-span-8 space-y-16">

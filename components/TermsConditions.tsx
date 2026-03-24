@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { ArrowLeft, Sparkles, FileText, UserCheck, Edit, Shield, Lock, Globe, AlertCircle, Scale, MessageSquare } from 'lucide-react';
-import { PageTitleBanner } from './PageTitleBanner';
+import { LegalDocumentSidebar } from './LegalDocumentSidebar';
 
 interface TermsConditionsProps {
   navigateTo?: (page: any) => void;
 }
 
 export const TermsConditions: React.FC<TermsConditionsProps> = ({ navigateTo }) => {
+  const headerTitleId = 'terms-conditions-main-title';
   const sections = [
     { id: 'acceptance', title: '1. Acceptance of these Terms', icon: UserCheck },
     { id: 'who-we-are', title: '2. Who we are and how to contact us', icon: Globe },
@@ -48,18 +49,19 @@ export const TermsConditions: React.FC<TermsConditionsProps> = ({ navigateTo }) 
             Back to Home
           </button>
           
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass border border-lifewood-green/20 mb-6">
-            <FileText className="w-4 h-4 text-lifewood-green" />
+          <div className="mb-6 flex items-center gap-3 text-lifewood-green dark:text-lifewood-yellow">
+            <FileText className="h-5 w-5" />
             <span className="text-xs font-black uppercase tracking-[0.24em] text-lifewood-serpent/70 dark:text-white/70">
               Legal & Terms
             </span>
           </div>
-          
-          <PageTitleBanner
-            id="terms-conditions-page-title"
-            title="Terms and Conditions"
-            className="mb-6"
-          />
+
+          <div id={headerTitleId} className="mb-6 max-w-5xl">
+            <h1 className="text-5xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white md:text-7xl">
+              Terms and Conditions
+            </h1>
+            <div className="mt-5 h-1.5 w-32 rounded-full bg-gradient-to-r from-lifewood-green via-lifewood-saffron to-lifewood-green" />
+          </div>
           <p className="text-xl text-lifewood-serpent/60 dark:text-white/60 max-w-3xl">
             Please read these terms carefully before using our services. By accessing or using the Site, you agree to be bound by these Terms.
           </p>
@@ -67,23 +69,7 @@ export const TermsConditions: React.FC<TermsConditionsProps> = ({ navigateTo }) 
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar Navigation */}
-          <div className="lg:col-span-4 sticky top-32 hidden lg:block self-start">
-            <div className="glass-card rounded-3xl p-6 border-white/20 shadow-xl max-h-[calc(100vh-160px)] overflow-y-auto custom-scrollbar">
-              <h3 className="text-lg font-bold mb-6 px-2">Sections</h3>
-              <nav className="space-y-1">
-                {sections.map((section) => (
-                  <a 
-                    key={section.id}
-                    href={`#${section.id}`}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all group text-sm font-medium text-lifewood-serpent/70 dark:text-white/70"
-                  >
-                    <section.icon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
-                    {section.title}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </div>
+          <LegalDocumentSidebar title="Terms and Conditions" headerTargetId={headerTitleId} sections={sections} />
 
           {/* Content */}
           <div className="lg:col-span-8 space-y-16">

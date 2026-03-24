@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { ArrowLeft, Sparkles, Shield, Lock, Eye, FileText, Globe, UserCheck, Clock, Bell, Scale, MessageSquare } from 'lucide-react';
-import { PageTitleBanner } from './PageTitleBanner';
+import { LegalDocumentSidebar } from './LegalDocumentSidebar';
 
 interface PrivacyPolicyProps {
   navigateTo?: (page: any) => void;
 }
 
 export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ navigateTo }) => {
+  const headerTitleId = 'privacy-policy-main-title';
   const sections = [
     { id: 'definitions', title: '1. Definitions', icon: FileText },
     { id: 'collection', title: '2. Information Collection', icon: Eye },
@@ -46,18 +47,19 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ navigateTo }) => {
             Back to Home
           </button>
           
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass border border-lifewood-green/20 mb-6">
-            <Shield className="w-4 h-4 text-lifewood-green" />
+          <div className="mb-6 flex items-center gap-3 text-lifewood-green dark:text-lifewood-yellow">
+            <Shield className="h-5 w-5" />
             <span className="text-xs font-black uppercase tracking-[0.24em] text-lifewood-serpent/70 dark:text-white/70">
               Legal & Privacy
             </span>
           </div>
-          
-          <PageTitleBanner
-            id="privacy-policy-page-title"
-            title="Privacy Policy"
-            className="mb-6"
-          />
+
+          <div id={headerTitleId} className="mb-6 max-w-5xl">
+            <h1 className="text-5xl font-heading font-black tracking-tight text-lifewood-serpent dark:text-white md:text-7xl">
+              Privacy Policy
+            </h1>
+            <div className="mt-5 h-1.5 w-32 rounded-full bg-gradient-to-r from-lifewood-green via-lifewood-saffron to-lifewood-green" />
+          </div>
           <p className="text-xl text-lifewood-serpent/60 dark:text-white/60 max-w-3xl">
             This Privacy Policy has been duly approved and adopted by Lifewood Data Technology Limited and shall be effective from 3 November 2025.
           </p>
@@ -65,23 +67,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ navigateTo }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar Navigation */}
-          <div className="lg:col-span-4 sticky top-32 hidden lg:block self-start">
-            <div className="glass-card rounded-3xl p-6 border-white/20 shadow-xl max-h-[calc(100vh-160px)] overflow-y-auto custom-scrollbar">
-              <h3 className="text-lg font-bold mb-6 px-2">Sections</h3>
-              <nav className="space-y-1">
-                {sections.map((section) => (
-                  <a 
-                    key={section.id}
-                    href={`#${section.id}`}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-lifewood-green/10 hover:text-lifewood-green transition-all group text-sm font-medium text-lifewood-serpent/70 dark:text-white/70"
-                  >
-                    <section.icon className="w-4 h-4 opacity-50 group-hover:opacity-100" />
-                    {section.title}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </div>
+          <LegalDocumentSidebar title="Privacy Policy" headerTargetId={headerTitleId} sections={sections} />
 
           {/* Content */}
           <div className="lg:col-span-8 space-y-16">
