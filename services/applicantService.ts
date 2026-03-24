@@ -283,7 +283,7 @@ export const applicantService = {
     try {
       const { data, error } = await supabase
         .from('applicants')
-        .select('id')
+        .select('id, email, phone_number')
         .or(`email.eq.${email},phone_number.eq.${phoneNumber}`);
 
       if (error) throw error;

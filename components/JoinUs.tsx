@@ -234,6 +234,11 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
         );
 
         if (existing.duplicateEmail && existing.duplicatePhone) {
+          setErrors((prev) => ({
+            ...prev,
+            email: 'An applicant with this email already exists.',
+            phone: 'An applicant with this phone number already exists.'
+          }));
           throw new Error('An applicant with this phone number and email already exists.');
         }
         if (existing.duplicateEmail) {
