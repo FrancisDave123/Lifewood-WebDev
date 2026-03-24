@@ -5,7 +5,6 @@ import { applicantService } from '../services/applicantService';
 import { storageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
 import { supabase } from '../services/supabaseClient';
-import { PageTitleBanner } from './PageTitleBanner';
 
 interface JoinUsProps {
   navigateTo?: (page: PageRoute) => void;
@@ -380,22 +379,25 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
       <div className="container mx-auto px-6 max-w-5xl">
         <button
           type="button"
-          onClick={() => navigateTo?.('careers')}
+          onClick={() => navigateTo?.('join-us-as')}
           className="mb-6 inline-flex items-center text-xs font-semibold text-lifewood-serpent/70 hover:text-lifewood-serpent transition"
         >
-          &larr; Back to Careers
+          &larr; Back
         </button>
 
         <div className="mb-8 space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lifewood-serpent/60">
             Welcome to
           </p>
-          <PageTitleBanner
+          <div
             id={variant === 'intern' ? 'join-us-intern-page-title' : 'join-us-employee-page-title'}
-            title={`Apply as ${roleLabel}`}
             className="mb-2"
-            titleClassName="text-3xl md:text-4xl font-heading font-black text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
-          />
+          >
+            <h1 className="text-4xl md:text-5xl font-heading font-black uppercase tracking-tight text-lifewood-serpent dark:text-white">
+              Apply as {roleLabel}
+            </h1>
+            <div className="mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-lifewood-green via-lifewood-saffron to-lifewood-green" />
+          </div>
           <p className="text-sm md:text-base text-lifewood-serpent/70 dark:text-white/70 max-w-2xl">
             Join the world&apos;s leading provider of AI-powered data solutions. This application is currently in
             beta—features and functionality may evolve while we refine the experience.

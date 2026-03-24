@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import type { PageRoute } from '../routes/routeTypes';
-import { PageTitleBanner } from './PageTitleBanner';
 import { supabase } from '../services/supabaseClient';
 
 interface JoinUsAsProps {
@@ -58,12 +57,12 @@ export const JoinUsAs: React.FC<JoinUsAsProps> = ({ navigateTo }) => {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lifewood-serpent/60">
             Join Lifewood
           </p>
-          <PageTitleBanner
-            id="join-us-as-page-title"
-            title="Choose Your Application Path"
-            className="mb-2"
-            titleClassName="text-3xl md:text-4xl font-heading font-black text-lifewood-serpent dark:text-white uppercase whitespace-pre-line"
-          />
+          <div id="join-us-as-page-title" className="mb-2">
+            <h1 className="text-4xl md:text-5xl font-heading font-black uppercase tracking-tight text-lifewood-serpent dark:text-white">
+              Choose Your Application Path
+            </h1>
+            <div className="mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-lifewood-green via-lifewood-saffron to-lifewood-green" />
+          </div>
           <p className="text-sm md:text-base text-lifewood-serpent/70 dark:text-white/70 max-w-2xl">
             Select the role you want to apply for. You can update details in the multi-step form afterward.
           </p>
