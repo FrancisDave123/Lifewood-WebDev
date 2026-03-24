@@ -22,6 +22,10 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
   authUserId,
   onSave,
 }) => {
+  const today = new Date();
+  const maxBirthday = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split('T')[0];
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const pendingObjectUrlRef = useRef<string | null>(null);
@@ -135,6 +139,11 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
   const saveProfile = async () => {
     if (!draft.firstName.trim() || !draft.lastName.trim()) {
       showToast('First name and last name are required.', 'rejected');
+      return;
+    }
+
+    if (draft.birthday && draft.birthday > maxBirthday) {
+      showToast('Birthday cannot be in the future.', 'rejected');
       return;
     }
 
@@ -293,6 +302,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
                     <input
                       type="date"
                       value={draft.birthday}
+                      max={maxBirthday}
                       onChange={(e) => setDraft((p) => ({ ...p, birthday: e.target.value }))}
                       className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white focus:border-lifewood-green focus:outline-none"
                     />
