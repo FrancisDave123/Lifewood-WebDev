@@ -3,9 +3,8 @@ import {
   BookOpen,
   ClipboardList,
   LayoutDashboard,
-  Menu,
   Mail,
-  UserCircle2
+  Menu,
 } from 'lucide-react';
 import { applicantService } from '../services/applicantService';
 import { AdminSidebar } from './AdminSidebar';
@@ -19,9 +18,18 @@ interface AdminDashboardProps {
 }
 
 type ApplicantSummary = {
+  total: number;
   pending: number;
   hired: number;
   rejected: number;
+  interns: number;
+  employees: number;
+  hiredInterns: number;
+  hiredEmployees: number;
+  pendingInterns: number;
+  pendingEmployees: number;
+  rejectedInterns: number;
+  rejectedEmployees: number;
 };
 
 type ApplicantRecord = {
@@ -34,20 +42,35 @@ type ApplicantRecord = {
   createdAt: string;
 };
 
+type BreakdownStat = {
+  label: string;
+  value: number;
+  colorClassName: string;
+};
+
+const EMPTY_SUMMARY: ApplicantSummary = {
+  total: 0,
+  pending: 0,
+  hired: 0,
+  rejected: 0,
+  interns: 0,
+  employees: 0,
+  hiredInterns: 0,
+  hiredEmployees: 0,
+  pendingInterns: 0,
+  pendingEmployees: 0,
+  rejectedInterns: 0,
+  rejectedEmployees: 0,
+};
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) => {
   const ADMIN_REDIRECT_NOTICE_KEY = 'lifewood_admin_block_notice';
   const { profile, adminGmail, saveProfile } = useProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [redirectNotice, setRedirectNotice] = useState('');
-  const [summary, setSummary] = useState<ApplicantSummary>({
-    pending: 0,
-    hired: 0,
-    rejected: 0
-  });
+  const [summary, setSummary] = useState<ApplicantSummary>(EMPTY_SUMMARY);
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
-  const [designationSummary, setDesignationSummary] = useState({ interns: 0, employees: 0 });
-  const [isDesignationLoading, setIsDesignationLoading] = useState(true);
   const [recentApplicants, setRecentApplicants] = useState<ApplicantRecord[]>([]);
   const [isApplicantsLoading, setIsApplicantsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -57,7 +80,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/(^|[\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
 
   const formatTitleCase = (value?: string | null) => {
@@ -65,7 +88,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     return value
       .trim()
       .toLowerCase()
-      .replace(/(^|[\\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
+      .replace(/(^|[\s'-])([a-z])/g, (_match, boundary: string, letter: string) => boundary + letter.toUpperCase());
   };
 
   useEffect(() => {
@@ -90,11 +113,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     const status = statusName?.toLowerCase();
     if (status === 'hired') {
       return 'bg-[#046241] text-white';
-    } else if (status === 'rejected') {
-      return 'bg-red-500 text-white';
-    } else {
-      return 'bg-[#FFC370] text-lifewood-serpent';
     }
+    if (status === 'rejected') {
+      return 'bg-red-500 text-white';
+    }
+    return 'bg-[#FFC370] text-lifewood-serpent';
   };
 
   const formatAppliedDate = (isoDate: string) => {
@@ -107,39 +130,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   const loadSummary = async () => {
     setIsSummaryLoading(true);
     try {
-      const summary = await applicantService.getApplicantSummary();
-      setSummary({
-        pending: summary['pending'] || 0,
-        hired: summary['hired'] || 0,
-        rejected: summary['rejected'] || 0
-      });
+      const result = await applicantService.getApplicants(10000, 0, { sort: 'newest' });
+      const nextSummary = { ...EMPTY_SUMMARY };
+
+      for (const applicant of result.applicants || []) {
+        const designation = String(applicant.designations?.designation_name ?? '').trim().toLowerCase();
+        const status = String(applicant.applicant_statuses?.status_name ?? '').trim().toLowerCase();
+
+        nextSummary.total += 1;
+
+        if (designation === 'intern') {
+          nextSummary.interns += 1;
+        } else if (designation === 'employee') {
+          nextSummary.employees += 1;
+        }
+
+        if (status === 'pending') {
+          nextSummary.pending += 1;
+          if (designation === 'intern') nextSummary.pendingInterns += 1;
+          if (designation === 'employee') nextSummary.pendingEmployees += 1;
+        } else if (status === 'hired') {
+          nextSummary.hired += 1;
+          if (designation === 'intern') nextSummary.hiredInterns += 1;
+          if (designation === 'employee') nextSummary.hiredEmployees += 1;
+        } else if (status === 'rejected') {
+          nextSummary.rejected += 1;
+          if (designation === 'intern') nextSummary.rejectedInterns += 1;
+          if (designation === 'employee') nextSummary.rejectedEmployees += 1;
+        }
+      }
+
+      setSummary(nextSummary);
     } catch (error) {
-      setSummary({ pending: 0, hired: 0, rejected: 0 });
+      setSummary(EMPTY_SUMMARY);
       setLoadError(error instanceof Error ? error.message : 'Unable to load applicant summary.');
     } finally {
       setIsSummaryLoading(false);
-    }
-  };
-
-  const loadDesignationSummary = async () => {
-    setIsDesignationLoading(true);
-    try {
-      const { data, error } = await (await import('../services/supabaseClient')).supabase
-        .from('applicants')
-        .select('designation_id, designations(designation_name)');
-      if (error) throw error;
-      let interns = 0;
-      let employees = 0;
-      for (const row of data || []) {
-        const name = (row as any).designations?.designation_name?.toLowerCase();
-        if (name === 'intern') interns++;
-        else if (name === 'employee') employees++;
-      }
-      setDesignationSummary({ interns, employees });
-    } catch {
-      setDesignationSummary({ interns: 0, employees: 0 });
-    } finally {
-      setIsDesignationLoading(false);
     }
   };
 
@@ -154,7 +180,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
         positionApplied: String(record.position_applied ?? ''),
         statusName: record.applicant_statuses?.status_name ? String(record.applicant_statuses.status_name) : null,
         designationName: record.designations?.designation_name ? String(record.designations.designation_name) : null,
-        createdAt: String(record.created_at ?? '')
+        createdAt: String(record.created_at ?? ''),
       })) as ApplicantRecord[];
       setRecentApplicants(normalized);
     } catch (error) {
@@ -167,7 +193,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   useEffect(() => {
     void loadSummary();
     void loadRecentApplicants();
-    void loadDesignationSummary();
   }, []);
 
   const sidebarItems = [
@@ -175,7 +200,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
       label: 'Dashboard',
       icon: LayoutDashboard,
       active: true,
-      onClick: () => setIsSidebarOpen(false)
+      onClick: () => setIsSidebarOpen(false),
     },
     {
       label: 'Applicants',
@@ -183,7 +208,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
       onClick: () => {
         setIsSidebarOpen(false);
         navigateTo?.('admin-manage-applicants');
-      }
+      },
     },
     {
       label: 'Inquiries',
@@ -191,7 +216,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
       onClick: () => {
         setIsSidebarOpen(false);
         navigateTo?.('admin-manage-inquiries');
-      }
+      },
     },
     {
       label: 'Reports',
@@ -199,8 +224,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
       onClick: () => {
         setIsSidebarOpen(false);
         navigateTo?.('admin-reports');
-      }
-    }
+      },
+    },
+  ];
+
+  const displayValue = (value: number) => (isSummaryLoading ? '—' : value);
+  const getPercent = (value: number, total: number) => (total > 0 ? Math.round((value / total) * 100) : 0);
+
+  const typeBreakdown: BreakdownStat[] = [
+    { label: 'Interns', value: summary.interns, colorClassName: 'bg-lifewood-green' },
+    { label: 'Employees', value: summary.employees, colorClassName: 'bg-[#FFC370]' },
+  ];
+
+  const statusBreakdown = [
+    {
+      label: 'Hired',
+      total: summary.hired,
+      stats: [
+        { label: 'Interns', value: summary.hiredInterns, colorClassName: 'bg-[#046241]' },
+        { label: 'Employees', value: summary.hiredEmployees, colorClassName: 'bg-[#4ade80]' },
+      ] as BreakdownStat[],
+    },
+    {
+      label: 'Pending',
+      total: summary.pending,
+      stats: [
+        { label: 'Interns', value: summary.pendingInterns, colorClassName: 'bg-[#c48a22]' },
+        { label: 'Employees', value: summary.pendingEmployees, colorClassName: 'bg-[#FFC370]' },
+      ] as BreakdownStat[],
+    },
+    {
+      label: 'Rejected',
+      total: summary.rejected,
+      stats: [
+        { label: 'Interns', value: summary.rejectedInterns, colorClassName: 'bg-[#991b1b]' },
+        { label: 'Employees', value: summary.rejectedEmployees, colorClassName: 'bg-[#f87171]' },
+      ] as BreakdownStat[],
+    },
   ];
 
   return (
@@ -275,26 +335,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                 <p className="mt-3 text-xs font-semibold text-red-600">{loadError}</p>
               )}
 
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
+              <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl bg-[#133020] p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #5a4600 100%)' }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Total Applicants</p>
+                  <p className="mt-2 text-3xl font-black text-[#FFE4B5]">{displayValue(summary.total)}</p>
+                </div>
                 <div className="rounded-2xl bg-[#133020] p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #3d2a00 100%)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Pending</p>
-                  <p className="mt-2 text-3xl font-black text-[#FFC370]">
-                    {isSummaryLoading ? '—' : summary.pending}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Pending Applicants</p>
+                  <p className="mt-2 text-3xl font-black text-[#FFC370]">{displayValue(summary.pending)}</p>
                 </div>
                 <div className="rounded-2xl bg-[#133020] p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #064d32 100%)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Hired</p>
-                  <p className="mt-2 text-3xl font-black text-[#4ade80]">
-                    {isSummaryLoading ? '—' : summary.hired}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Hired Applicants</p>
+                  <p className="mt-2 text-3xl font-black text-[#4ade80]">{displayValue(summary.hired)}</p>
                 </div>
                 <div className="rounded-2xl bg-[#133020] p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #4a1010 100%)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Rejected</p>
-                  <p className="mt-2 text-3xl font-black text-red-400">
-                    {isSummaryLoading ? '—' : summary.rejected}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Rejected Applicants</p>
+                  <p className="mt-2 text-3xl font-black text-red-400">{displayValue(summary.rejected)}</p>
                 </div>
               </div>
+
               {isSummaryLoading && (
                 <div className="mt-4 flex items-center gap-3 text-sm font-semibold text-lifewood-serpent/70">
                   <span className="h-6 w-6 animate-spin rounded-full border-4 border-lifewood-serpent/20 border-t-lifewood-green" />
@@ -302,18 +361,72 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                 </div>
               )}
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #1e4a30 100%)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Intern Applicants</p>
-                  <p className="mt-2 text-3xl font-black text-white">
-                    {isDesignationLoading ? '—' : designationSummary.interns}
-                  </p>
+              <div className="mt-6 grid gap-4 xl:grid-cols-[1.05fr_1.35fr]">
+                <div className="rounded-3xl border border-lifewood-serpent/10 bg-[linear-gradient(180deg,#f8fbf6_0%,#eef6ef_100%)] p-5">
+                  <div className="flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-lifewood-green">Applicant Types</p>
+                      <h3 className="mt-1 text-lg font-bold text-lifewood-serpent">Intern vs Employee</h3>
+                    </div>
+                    <p className="text-xs font-semibold text-lifewood-serpent/55">Share of all applicants</p>
+                  </div>
+
+                  <div className="mt-5 space-y-4">
+                    {typeBreakdown.map((item) => (
+                      <div key={item.label} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm font-semibold text-lifewood-serpent">
+                          <span>{item.label}</span>
+                          <span>
+                            {displayValue(item.value)} {!isSummaryLoading && <span className="text-lifewood-serpent/50">({getPercent(item.value, summary.total)}%)</span>}
+                          </span>
+                        </div>
+                        <div className="h-4 overflow-hidden rounded-full bg-lifewood-serpent/10">
+                          <div
+                            className={`h-full rounded-full ${item.colorClassName} transition-all duration-500`}
+                            style={{ width: `${isSummaryLoading ? 0 : getPercent(item.value, summary.total)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, #133020 60%, #1e4a30 100%)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">Employee Applicants</p>
-                  <p className="mt-2 text-3xl font-black text-white">
-                    {isDesignationLoading ? '—' : designationSummary.employees}
-                  </p>
+
+                <div className="rounded-3xl border border-lifewood-serpent/10 bg-[linear-gradient(180deg,#fffaf0_0%,#f7f4eb_100%)] p-5">
+                  <div className="flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-lifewood-green">Status Graph</p>
+                      <h3 className="mt-1 text-lg font-bold text-lifewood-serpent">Status by Designation</h3>
+                    </div>
+                    <p className="text-xs font-semibold text-lifewood-serpent/55">Interns and employees per status</p>
+                  </div>
+
+                  <div className="mt-5 space-y-5">
+                    {statusBreakdown.map((group) => (
+                      <div key={group.label} className="space-y-3 rounded-2xl border border-lifewood-serpent/8 bg-white/70 p-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-bold text-lifewood-serpent">{group.label}</p>
+                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/45">
+                            Total {displayValue(group.total)}
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          {group.stats.map((stat) => (
+                            <div key={`${group.label}-${stat.label}`} className="grid gap-2 sm:grid-cols-[92px_minmax(0,1fr)_64px] sm:items-center">
+                              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/55">{stat.label}</p>
+                              <div className="h-3 overflow-hidden rounded-full bg-lifewood-serpent/10">
+                                <div
+                                  className={`h-full rounded-full ${stat.colorClassName} transition-all duration-500`}
+                                  style={{ width: `${isSummaryLoading ? 0 : getPercent(stat.value, Math.max(group.total, 1))}%` }}
+                                />
+                              </div>
+                              <p className="text-right text-sm font-bold text-lifewood-serpent">{displayValue(stat.value)}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -342,7 +455,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               )}
               <div className="space-y-3">
                 {recentApplicants.map((applicant) => (
-                  <div key={applicant.id} className="flex flex-col gap-2 rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4 md:flex-row md:items-center md:justify-between">
+                  <div
+                    key={applicant.id}
+                    className="flex flex-col gap-2 rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/60 p-4 md:flex-row md:items-center md:justify-between"
+                  >
                     <div>
                       <p className="text-sm font-semibold text-lifewood-serpent">
                         {applicant.firstName} {applicant.lastName}
@@ -353,7 +469,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-lifewood-serpent/60">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusColorClasses(applicant.statusName)} min-w-[80px] text-center`}>
+                      <span className={`min-w-[80px] rounded-full px-2.5 py-1 text-center text-xs font-semibold ${getStatusColorClasses(applicant.statusName)}`}>
                         {formatStatusLabel(applicant.statusName)}
                       </span>
                       <span>Applied {formatAppliedDate(applicant.createdAt)}</span>
