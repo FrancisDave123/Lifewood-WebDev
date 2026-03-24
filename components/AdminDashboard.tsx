@@ -7,6 +7,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { applicantService } from '../services/applicantService';
+import { messageService } from '../services/messageService';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminProfileModal } from './AdminProfileModal';
 import { useProfile } from './ProfileContext';
@@ -48,6 +49,11 @@ type BreakdownStat = {
   colorClassName: string;
 };
 
+type InquirySummary = {
+  total: number;
+  unread: number;
+};
+
 const EMPTY_SUMMARY: ApplicantSummary = {
   total: 0,
   pending: 0,
@@ -71,6 +77,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
   const [redirectNotice, setRedirectNotice] = useState('');
   const [summary, setSummary] = useState<ApplicantSummary>(EMPTY_SUMMARY);
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+  const [inquirySummary, setInquirySummary] = useState<InquirySummary>({ total: 0, unread: 0 });
+  const [isInquirySummaryLoading, setIsInquirySummaryLoading] = useState(true);
   const [recentApplicants, setRecentApplicants] = useState<ApplicantRecord[]>([]);
   const [isApplicantsLoading, setIsApplicantsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -190,8 +198,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
     }
   };
 
+  const loadInquirySummary = async () => {
+    setIsInquirySummaryLoading(true);
+    try {
+      const result = await messageService.getMessageSummary();
+      setInquirySummary({
+        total: result.total || 0,
+        unread: result.unread || 0,
+      });
+    } catch (error) {
+      setInquirySummary({ total: 0, unread: 0 });
+      setLoadError((current) => current || (error instanceof Error ? error.message : 'Unable to load inquiries summary.'));
+    } finally {
+      setIsInquirySummaryLoading(false);
+    }
+  };
+
   useEffect(() => {
     void loadSummary();
+    void loadInquirySummary();
     void loadRecentApplicants();
   }, []);
 
@@ -362,32 +387,71 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
               )}
 
               <div className="mt-6 grid gap-4 xl:grid-cols-[1.05fr_1.35fr]">
-                <div className="rounded-3xl border border-lifewood-serpent/10 bg-[linear-gradient(180deg,#f8fbf6_0%,#eef6ef_100%)] p-5">
-                  <div className="flex items-end justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-lifewood-green">Applicant Types</p>
-                      <h3 className="mt-1 text-lg font-bold text-lifewood-serpent">Intern vs Employee</h3>
+                <div className="space-y-4">
+                  <div className="rounded-3xl border border-lifewood-serpent/10 bg-[linear-gradient(180deg,#f8fbf6_0%,#eef6ef_100%)] p-5">
+                    <div className="flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-lifewood-green">Applicant Types</p>
+                        <h3 className="mt-1 text-lg font-bold text-lifewood-serpent">Intern vs Employee</h3>
+                      </div>
+                      <p className="text-xs font-semibold text-lifewood-serpent/55">Share of all applicants</p>
                     </div>
-                    <p className="text-xs font-semibold text-lifewood-serpent/55">Share of all applicants</p>
+
+                    <div className="mt-5 space-y-4">
+                      {typeBreakdown.map((item) => (
+                        <div key={item.label} className="space-y-2">
+                          <div className="flex items-center justify-between text-sm font-semibold text-lifewood-serpent">
+                            <span>{item.label}</span>
+                            <span>
+                              {displayValue(item.value)} {!isSummaryLoading && <span className="text-lifewood-serpent/50">({getPercent(item.value, summary.total)}%)</span>}
+                            </span>
+                          </div>
+                          <div className="h-4 overflow-hidden rounded-full bg-lifewood-serpent/10">
+                            <div
+                              className={`h-full rounded-full ${item.colorClassName} transition-all duration-500`}
+                              style={{ width: `${isSummaryLoading ? 0 : getPercent(item.value, summary.total)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="mt-5 space-y-4">
-                    {typeBreakdown.map((item) => (
-                      <div key={item.label} className="space-y-2">
-                        <div className="flex items-center justify-between text-sm font-semibold text-lifewood-serpent">
-                          <span>{item.label}</span>
-                          <span>
-                            {displayValue(item.value)} {!isSummaryLoading && <span className="text-lifewood-serpent/50">({getPercent(item.value, summary.total)}%)</span>}
-                          </span>
-                        </div>
-                        <div className="h-4 overflow-hidden rounded-full bg-lifewood-serpent/10">
+                  <div className="rounded-3xl border border-lifewood-serpent/10 bg-[linear-gradient(180deg,#f9fbff_0%,#edf4fb_100%)] p-5">
+                    <div className="flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-lifewood-green">Inquiry Summary</p>
+                        <h3 className="mt-1 text-lg font-bold text-lifewood-serpent">Contact Inbox</h3>
+                      </div>
+                      <p className="text-xs font-semibold text-lifewood-serpent/55">Based on unread and total inquiries</p>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-lifewood-serpent/10 bg-white/80 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/50">New Inquiries</p>
+                        <p className="mt-2 text-3xl font-black text-lifewood-green">
+                          {isInquirySummaryLoading ? '—' : inquirySummary.unread}
+                        </p>
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-lifewood-serpent/10">
                           <div
-                            className={`h-full rounded-full ${item.colorClassName} transition-all duration-500`}
-                            style={{ width: `${isSummaryLoading ? 0 : getPercent(item.value, summary.total)}%` }}
+                            className="h-full rounded-full bg-lifewood-green transition-all duration-500"
+                            style={{
+                              width: `${isInquirySummaryLoading ? 0 : getPercent(inquirySummary.unread, Math.max(inquirySummary.total, 1))}%`,
+                            }}
                           />
                         </div>
                       </div>
-                    ))}
+
+                      <div className="rounded-2xl border border-lifewood-serpent/10 bg-white/80 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-lifewood-serpent/50">Total Inquiries</p>
+                        <p className="mt-2 text-3xl font-black text-lifewood-serpent">
+                          {isInquirySummaryLoading ? '—' : inquirySummary.total}
+                        </p>
+                        <p className="mt-3 text-xs font-semibold text-lifewood-serpent/55">
+                          {isInquirySummaryLoading ? 'Loading inbox summary...' : `${getPercent(inquirySummary.unread, Math.max(inquirySummary.total, 1))}% currently unread`}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
