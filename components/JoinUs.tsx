@@ -13,6 +13,32 @@ interface JoinUsProps {
 
 type GenderOption = 'Male' | 'Female' | 'Prefer not to say';
 
+const COUNTRY_OPTIONS = [
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia',
+  'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium',
+  'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria',
+  'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada', 'Central African Republic', 'Chad',
+  'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', "Cote d'Ivoire", 'Croatia', 'Cuba', 'Cyprus',
+  'Czech Republic', 'Democratic Republic of the Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
+  'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji',
+  'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala',
+  'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran',
+  'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
+  'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein',
+  'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands',
+  'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco',
+  'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger',
+  'Nigeria', 'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama',
+  'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
+  'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino',
+  'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore',
+  'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain',
+  'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania',
+  'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan',
+  'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay',
+  'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
+] as const;
+
 interface FormData {
   firstName: string;
   lastName: string;
@@ -24,7 +50,6 @@ interface FormData {
   position: string;
   otherPosition: string;
   country: string;
-  otherCountry: string;
   address: string;
   school: string;
   cvFile: File | null;
@@ -41,7 +66,6 @@ const INITIAL_FORM: FormData = {
   position: '',
   otherPosition: '',
   country: '',
-  otherCountry: '',
   address: '',
   school: '',
   cvFile: null
@@ -146,6 +170,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
   };
 
   const validateEmail = (value: string) => /\S+@\S+\.\S+/.test(value.trim());
+  const sanitizeAge = (value: string) => value.replace(/\D/g, '').slice(0, 3);
 
   const validateStep = (currentStep: 1 | 2 | 3): boolean => {
     const newErrors: Record<string, string> = {};
@@ -156,8 +181,10 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
       if (!form.gender) newErrors.gender = 'Please select a gender.';
       if (!form.age.trim()) newErrors.age = 'Age is required.';
       const ageNumber = Number(form.age);
-      if (!Number.isFinite(ageNumber) || ageNumber <= 0) {
-        newErrors.age = 'Please enter a valid age.';
+      if (!/^\d+$/.test(form.age)) {
+        newErrors.age = 'Age must contain numbers only.';
+      } else if (!Number.isFinite(ageNumber) || ageNumber < 18) {
+        newErrors.age = 'Applicants must be at least 18 years old.';
       }
     }
 
@@ -172,9 +199,6 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
         newErrors.otherPosition = 'Please specify the position you are applying for.';
       }
       if (!form.country.trim()) newErrors.country = 'Please select a country.';
-      if (form.country === 'Other' && !form.otherCountry.trim()) {
-        newErrors.otherCountry = 'Please specify your country.';
-      }
       if (!form.address.trim()) newErrors.address = 'Current address is required.';
       if (includeSchool && !form.school.trim()) newErrors.school = 'School is required.';
     }
@@ -221,7 +245,6 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
     setSubmitError(null);
 
     const positionApplied = form.position === 'Other' ? form.otherPosition : form.position;
-    const country = form.country === 'Other' ? form.otherCountry : form.country;
     const designationName = variant === 'intern' ? 'intern' : 'employee';
 
     const submit = async () => {
@@ -293,7 +316,7 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
           phone_number: form.phone.trim(),
           email: form.email.trim(),
           position_applied: positionApplied.trim(),
-          country: country.trim(),
+          country: form.country.trim(),
           current_address: form.address.trim(),
           school_id: schoolId,
           designation_id: designation.id,
@@ -528,10 +551,12 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                         Age <span className="text-red-600">*</span>
                       </label>
                       <input
-                        type="number"
-                        min={1}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={3}
                         value={form.age}
-                        onChange={(e) => updateField('age', e.target.value)}
+                        onChange={(e) => updateField('age', sanitizeAge(e.target.value))}
                         className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
                         placeholder="Enter your age"
                       />
@@ -629,32 +654,14 @@ export const JoinUs: React.FC<JoinUsProps> = ({ navigateTo, variant = 'employee'
                         className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
                       >
                         <option value="">Select country</option>
-                        <option value="Philippines">Philippines</option>
-                        <option value="Australia">Australia</option>
-                        <option value="United States">United States</option>
-                        <option value="Canada">Canada</option>
-                        <option value="United Kingdom">United Kingdom</option>
-                        <option value="Other">Other</option>
+                        {COUNTRY_OPTIONS.map((country) => (
+                          <option key={country} value={country}>
+                            {country}
+                          </option>
+                        ))}
                       </select>
                       {errors.country && (
                         <p className="mt-1 text-xs text-red-600">{errors.country}</p>
-                      )}
-                      {form.country === 'Other' && (
-                        <div className="mt-3">
-                          <label className="block text-xs font-semibold text-lifewood-serpent/80 mb-1">
-                            Specify Other Country <span className="text-red-600">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={form.otherCountry}
-                            onChange={(e) => updateField('otherCountry', e.target.value)}
-                            className="w-full rounded-lg border border-lifewood-serpent/20 bg-white/80 py-2 px-3 text-sm text-lifewood-serpent placeholder-lifewood-serpent/35 focus:outline-none focus:ring-2 focus:ring-lifewood-green/30 focus:border-lifewood-green/70"
-                            placeholder="Enter your country"
-                          />
-                          {errors.otherCountry && (
-                            <p className="mt-1 text-xs text-red-600">{errors.otherCountry}</p>
-                          )}
-                        </div>
                       )}
                     </div>
                   </div>
