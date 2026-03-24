@@ -49,8 +49,7 @@ export const messageService = {
       .from('messages')
       .select('*', { count: 'exact' })
       .eq('is_deleted', 0)
-      .eq('admin_response', false)
-      .order('created_at', { ascending: false });
+      .eq('admin_response', false);
 
     // Apply date filters
     if (filters?.created_on) {
@@ -102,6 +101,8 @@ export const messageService = {
           query = query.order('subject', { ascending: false }).order('created_at', { ascending: false });
           break;
       }
+    } else {
+      query = query.order('created_at', { ascending: false });
     }
 
     const { data, error, count } = await query.range(offset, offset + limit - 1);
