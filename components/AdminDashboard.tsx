@@ -348,12 +348,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                     Live counts based on the applicants database.
                   </p>
                 </div>
-                <button
-                  onClick={() => navigateTo?.('admin-manage-applicants')}
-                  className="inline-flex items-center gap-2 rounded-xl bg-lifewood-green px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-lifewood-green/90"
-                >
-                  View Applicants
-                </button>
               </div>
 
               {loadError && (
@@ -394,7 +388,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                         <p className="text-xs font-bold uppercase tracking-[0.15em] text-lifewood-green">Applicant Types</p>
                         <h3 className="mt-1 text-lg font-bold text-lifewood-serpent">Intern vs Employee</h3>
                       </div>
-                      <p className="text-xs font-semibold text-lifewood-serpent/55">Share of all applicants</p>
+                      <div className="flex flex-col items-end gap-2">
+                        <p className="text-xs font-semibold text-lifewood-serpent/55">Share of all applicants</p>
+                        <button
+                          type="button"
+                          onClick={() => navigateTo?.('admin-manage-applicants')}
+                          className="inline-flex items-center rounded-xl bg-lifewood-green px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-lifewood-green/90"
+                        >
+                          View Applicants
+                        </button>
+                      </div>
                     </div>
 
                     <div className="mt-5 space-y-4">
@@ -423,7 +426,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) =>
                         <p className="text-xs font-bold uppercase tracking-[0.15em] text-lifewood-green">Inquiry Summary</p>
                         <h3 className="mt-1 text-lg font-bold text-lifewood-serpent">Contact Inbox</h3>
                       </div>
-                      <p className="text-xs font-semibold text-lifewood-serpent/55">Based on unread and total inquiries</p>
+                      <div className="flex flex-col items-end gap-2">
+                        <p className="text-xs font-semibold text-lifewood-serpent/55">Based on unread and total inquiries</p>
+                        <button
+                          type="button"
+                          onClick={() => navigateTo?.('admin-manage-inquiries')}
+                          className="inline-flex items-center rounded-xl bg-lifewood-serpent px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-lifewood-serpent/90"
+                        >
+                          View Inquiries
+                        </button>
+                      </div>
                     </div>
 
                     <div className="mt-5 grid gap-4 sm:grid-cols-2">
