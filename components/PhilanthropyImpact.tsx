@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
@@ -82,8 +82,12 @@ const MagnetCard: React.FC<MagnetCardProps> = ({ title, description }) => {
 
 const LanyardImage: React.FC<LanyardImageProps> = ({ src, alt, strapTint, overlayClassName }) => {
   const [swing, setSwing] = useState({ rotate: 0, x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging) return;
+
     const bounds = event.currentTarget.getBoundingClientRect();
     const px = (event.clientX - bounds.left) / bounds.width - 0.5;
     const py = (event.clientY - bounds.top) / bounds.height - 0.5;
@@ -95,7 +99,29 @@ const LanyardImage: React.FC<LanyardImageProps> = ({ src, alt, strapTint, overla
     });
   };
 
-  const resetSwing = () => setSwing({ rotate: 0, x: 0, y: 0 });
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStartRef.current = { x: event.clientX, y: event.clientY };
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+
+    const deltaX = event.clientX - dragStartRef.current.x;
+    const deltaY = event.clientY - dragStartRef.current.y;
+
+    setSwing({
+      rotate: Math.max(-16, Math.min(16, deltaX * -0.18)),
+      x: Math.max(-28, Math.min(28, deltaX * -0.45)),
+      y: Math.max(-6, Math.min(26, deltaY * 0.4))
+    });
+  };
+
+  const resetSwing = () => {
+    setIsDragging(false);
+    setSwing({ rotate: 0, x: 0, y: 0 });
+  };
 
   return (
     <div className="relative flex justify-center pt-10 md:pt-12">
@@ -104,12 +130,17 @@ const LanyardImage: React.FC<LanyardImageProps> = ({ src, alt, strapTint, overla
         className={`absolute top-3 left-1/2 z-10 h-12 md:h-14 w-[3px] -translate-x-1/2 rounded-full bg-gradient-to-b ${strapTint} shadow-[0_6px_18px_rgba(0,0,0,0.12)]`}
       />
       <div
-        className="relative w-full max-w-[24rem] origin-top transition-transform duration-300 ease-out will-change-transform"
+        className={`relative w-full max-w-[24rem] origin-top will-change-transform ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={{
-          transform: `translate3d(${swing.x}px, ${swing.y}px, 0) rotate(${swing.rotate}deg)`
+          transform: `translate3d(${swing.x}px, ${swing.y}px, 0) rotate(${swing.rotate}deg)`,
+          transition: isDragging ? 'none' : 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1)'
         }}
         onMouseMove={handleMouseMove}
         onMouseLeave={resetSwing}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={resetSwing}
+        onPointerCancel={resetSwing}
       >
         <div className="absolute inset-x-[12%] -top-3 z-20 h-6 rounded-full border border-white/40 bg-white/65 shadow-[0_12px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm dark:bg-white/10" />
         <div className="relative overflow-hidden rounded-[1.6rem] border border-white/35 bg-white/70 p-3 shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)] backdrop-blur-md">
@@ -118,6 +149,7 @@ const LanyardImage: React.FC<LanyardImageProps> = ({ src, alt, strapTint, overla
               src={src}
               alt={alt}
               className="w-full h-[220px] md:h-[280px] object-cover transition-transform duration-500 ease-out hover:scale-[1.03]"
+              draggable={false}
             />
             <div className={overlayClassName}></div>
           </div>
