@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   ArrowRight, 
   Database, 
@@ -28,9 +28,11 @@ interface ProjectAccordionItem {
   icon: React.ReactNode;
   highlight: string;
   stats: string[];
+  image: string;
 }
 
 export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const projectItems: ProjectAccordionItem[] = [
     {
       id: '2.1',
@@ -38,7 +40,8 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
       description: 'Using AI, we optimize the acquisition of image and text from multiple sources. Techniques include onsite scanning, drone photography, negotiation with archives and the formation of alliances with corporations, religious organizations and governments.',
       icon: <Database className="w-5 h-5" />,
       highlight: 'High-volume capture pipelines',
-      stats: ['Image + text', 'Archive workflows', 'Source partnerships']
+      stats: ['Image + text', 'Archive workflows', 'Source partnerships'],
+      image: 'https://framerusercontent.com/images/RIqv6T7aFrp5Q9X85Zqy55KQ8x4.png?scale-down-to=1024&width=1856&height=2464'
     },
     {
       id: '2.2',
@@ -46,7 +49,8 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
       description: 'From simple data to deep learning, our data solutions are highly flexible and can enable a wide variety of ML systems, no matter how complex the model.',
       icon: <Cpu className="w-5 h-5" />,
       highlight: 'Flexible model-ready data',
-      stats: ['Training sets', 'Deep learning', 'Workflow tuning']
+      stats: ['Training sets', 'Deep learning', 'Workflow tuning'],
+      image: 'https://framerusercontent.com/images/G5K30afUvHfBC3i1tImiTDBVjg.png?scale-down-to=1024&width=1856&height=2464'
     },
     {
       id: '2.3',
@@ -54,7 +58,8 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
       description: 'Our expertise in precision data labelling lays the groundwork for AI, so that it can process and adapt to the complexities of real-world conditions. We have implemented a diverse mapping methodology, that employs a wide range of data types, including 2D and 3D models, and combinations of both, to create a fully visualized cognitive driving system.\n\nMillions of images, videos and mapping data were annotated, effectively transitioning this technology from theoretical models to real-world applications - a significant leap forward for autonomous transport.\n\nLifewood remains at the forefront of this technology, pioneering the evolution of safe, efficient autonomous driving solutions.',
       icon: <Car className="w-5 h-5" />,
       highlight: '2D / 3D driving annotation',
-      stats: ['Millions annotated', 'Road scenes', 'Safety-first']
+      stats: ['Millions annotated', 'Road scenes', 'Safety-first'],
+      image: 'https://framerusercontent.com/images/pNWVDlqhjIHcfYKBIPfIJUVFR8.png?scale-down-to=1024&width=1856&height=2464'
     },
     {
       id: '2.4',
@@ -62,7 +67,8 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
       description: 'AI-enabled customer service is now the quickest and most effective route for institutions to deliver personalized, proactive experiences that drive customer engagement. AI powered services can increase customer engagement, multiplying cross-sell and upsell opportunities. Guided by our experts AI customer service can transform customer relationships creating an improved cycle of service, satisfaction and increased customer engagement.',
       icon: <MessageSquare className="w-5 h-5" />,
       highlight: 'Personalized service systems',
-      stats: ['Proactive support', 'Engagement loops', 'Upsell paths']
+      stats: ['Proactive support', 'Engagement loops', 'Upsell paths'],
+      image: 'https://framerusercontent.com/images/KF1DnFiT3WVto4UxrJGMQbWNZY.png?scale-down-to=1024&width=1856&height=2464'
     },
     {
       id: '2.5',
@@ -70,7 +76,8 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
       description: 'We have partnered with some of the world\'s most advanced companies in NLP development. With a managed workforce that spans the globe, we offer solutions in over 50 language capabilities and can assess various dialects and accents for both text and audio data. We specialize in collecting and transcribing recordings from native speakers. This has involved tens of thousands of conversations, a scale made possible by our expertise in adapting industrial processes and our integration with AI.',
       icon: <Languages className="w-5 h-5" />,
       highlight: '50+ languages and dialects',
-      stats: ['Native speakers', 'Text + audio', 'Global workforce']
+      stats: ['Native speakers', 'Text + audio', 'Global workforce'],
+      image: 'https://framerusercontent.com/images/RLhJxXs7PhKcWxLmeYiVRqEtPxY.png?scale-down-to=1024&width=1856&height=2464'
     },
     {
       id: '2.6',
@@ -78,7 +85,8 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
       description: 'Training AI to see and understand the world requires a high volume of quality training data. Lifewood provides total data solutions for your CV development from collection to annotation to classification and more, for video and image datasets enabling machines to interpret visual information. We have experience in a wide variety of applications including autonomous vehicles, farm monitoring, face recognition and more.',
       icon: <Scan className="w-5 h-5" />,
       highlight: 'Visual intelligence at scale',
-      stats: ['Video + images', 'Classification', 'Real-world use']
+      stats: ['Video + images', 'Classification', 'Real-world use'],
+      image: 'https://www.shutterstock.com/image-photo/futuristic-digital-eye-icon-overlaying-600nw-2393871219.jpg'
     },
     {
       id: '2.7',
@@ -86,9 +94,27 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
       description: 'Powered by AI, Lifewood processes genealogical material at speed and scale, to conserve and illuminate family histories, national archives, corporate lists and records of all types. Lifewood has more than 18 years of experience capturing, scanning and processing genealogical data. In fact, Lifewood started with genealogy data as its core business, so that over the years we have accumulated vast knowledge in diverse types of genealogy indexing.\n\nWe have worked with all the major genealogy companies and have extensive experience in transcribing and indexing genealogical content in a wide variety of formats, including tabular, pre-printed forms and paragraph-style records.\n\nWorking across borders, with offices on every continent, our ability with multi-language projects has built an extensive capability spanning more than 50 languages and associated dialects. Now, powered by AI and the latest inter-office communication systems, we are transforming ever more efficient ways to service our clients, while keeping humanity at the centre of our activity.\n\nGenealogical material that we have experience with includes:\n\n- Census\n- Vital - BMD\n- Church and Parish Registers\n- Passenger Lists\n- Naturalisation\n- Military Records\n- Legal Records\n- Yearbooks',
       icon: <GitFork className="w-5 h-5" />,
       highlight: 'Preservation and indexing',
-      stats: ['18+ years', '50+ languages', 'Archive scale']
+      stats: ['18+ years', '50+ languages', 'Archive scale'],
+      image: 'https://framerusercontent.com/images/ad17haYjwUpqxpqARkBZaMKSqmM.png?scale-down-to=1024&width=1856&height=2464'
     }
   ];
+
+  useEffect(() => {
+    projectItems.forEach((item) => {
+      const image = new Image();
+      image.src = item.image;
+    });
+  }, [projectItems]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setActiveSlideIndex((current) => (current + 1) % projectItems.length);
+    }, 3200);
+
+    return () => window.clearInterval(intervalId);
+  }, [projectItems]);
+
+  const activeProject = projectItems[activeSlideIndex] ?? projectItems[0];
 
   return (
     <div className="pt-32 pb-20 animate-pop-out opacity-0">
@@ -126,11 +152,18 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
         <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-12 xl:gap-16 items-start">
           <div className="lg:sticky lg:top-32 space-y-6">
             <div className="relative overflow-hidden rounded-[2.5rem] shadow-[0_35px_90px_-35px_rgba(0,0,0,0.45)] border border-white/40 dark:border-white/10 group">
-              <img
-                src="https://framerusercontent.com/images/RIqv6T7aFrp5Q9X85Zqy55KQ8x4.png?scale-down-to=1024&width=1856&height=2464"
-                className="h-[540px] w-full object-cover transition-transform duration-[4s] group-hover:scale-110"
-                alt="Workspace"
-              />
+              <div className="relative h-[540px] w-full">
+                {projectItems.map((item, index) => (
+                  <img
+                    key={item.id}
+                    src={item.image}
+                    className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-700 ${
+                      index === activeSlideIndex ? 'scale-100 opacity-100' : 'scale-[1.02] opacity-0'
+                    } group-hover:scale-110`}
+                    alt={item.title}
+                  />
+                ))}
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
                 <div className="max-w-sm rounded-[1.75rem] border border-white/15 bg-black/40 backdrop-blur-md p-5 text-white">
@@ -138,6 +171,20 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
                   <p className="text-sm md:text-base leading-relaxed text-white/85">
                     A visual snapshot of Lifewood&apos;s AI project landscape — capture, model enablement, mobility, service, NLP, vision, and archival intelligence.
                   </p>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  {projectItems.map((item, index) => (
+                    <button
+                      key={`slide-dot-${item.id}`}
+                      type="button"
+                      aria-label={`Show AI projects slide ${index + 1}`}
+                      aria-pressed={index === activeSlideIndex}
+                      onClick={() => setActiveSlideIndex(index)}
+                      className={`h-2.5 rounded-full transition-all duration-300 ${
+                        index === activeSlideIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/70'
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
