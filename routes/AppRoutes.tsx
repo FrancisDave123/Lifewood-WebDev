@@ -215,7 +215,7 @@ const AdminRouteGuard: React.FC<AdminRouteGuardProps> = ({
   }
 
   if (accessState === 'unauthenticated') {
-    return <Navigate to={PAGE_PATHS['signin']} replace />;
+    return <Navigate to={PAGE_PATHS.signin} replace state={{ sessionExpired: true }} />;
   }
 
   if (accessState === 'forbidden') {
@@ -297,7 +297,7 @@ const navigateTo = useCallback<NavigateTo>((page) => {
   if (ADMIN_PAGES.has(page)) {
     if (authRoleId === null) {
       setIsAdminAuthenticated(false);
-      navigate(PAGE_PATHS['signin']);
+      navigate(PAGE_PATHS.signin, { state: { sessionExpired: true } });
       if (hasWindow) window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -312,15 +312,9 @@ const navigateTo = useCallback<NavigateTo>((page) => {
   if (hasWindow) window.scrollTo({ top: 0, behavior: 'smooth' });
 }, [navigate, authRoleId, setIsAdminAuthenticated, setAuthRoleId, setAuthRoleName]);
 
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-lifewood-seaSalt">
-        Loading...
-      </div>
-    );
-  }
-
   const currentPage = getPageFromPath(location.pathname);
+  const showSessionExpiredModal =
+    currentPage === 'signin' && Boolean((location.state as { sessionExpired?: boolean } | null)?.sessionExpired);
   const isAdminPage = ADMIN_PAGES.has(currentPage);
   const isAuthPage = currentPage === 'signin' || currentPage === 'forgot-password';
   const showChrome =
@@ -330,7 +324,14 @@ const navigateTo = useCallback<NavigateTo>((page) => {
     currentPage !== 'intern-dashboard' &&
     currentPage !== 'employee-dashboard' &&
     currentPage !== 'applicant-dashboard';
-    
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-lifewood-seaSalt">
+        Loading...
+      </div>
+    );
+  }
 
   const isAdminUser = authRoleId === 1;
   const isAuthenticated = authRoleId !== null;
@@ -414,6 +415,11 @@ const navigateTo = useCallback<NavigateTo>((page) => {
             element={(
               <SignIn
                 navigateTo={navigateTo}
+                showSessionExpiredModal={showSessionExpiredModal}
+                onSessionExpiredAcknowledge={() => {
+                  void authService.logout();
+                  navigate(PAGE_PATHS.signin, { replace: true });
+                }}
                 onAuthSuccess={({ roleId, roleName }) => {
                   setIsAdminAuthenticated(roleId === 1);
                   setAuthRoleId(roleId);

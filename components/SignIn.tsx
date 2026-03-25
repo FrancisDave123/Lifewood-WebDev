@@ -9,9 +9,17 @@ interface SignInProps {
   navigateTo?: (page: PageRoute) => void;
   initialAuthMode?: 'signin' | 'forgot';
   onAuthSuccess?: (payload: { email: string; roleId: number | null; roleName: string | null }) => void;
+  showSessionExpiredModal?: boolean;
+  onSessionExpiredAcknowledge?: () => void;
 }
 
-export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 'signin', onAuthSuccess }) => {
+export const SignIn: React.FC<SignInProps> = ({
+  navigateTo,
+  initialAuthMode = 'signin',
+  onAuthSuccess,
+  showSessionExpiredModal = false,
+  onSessionExpiredAcknowledge
+}) => {
   const AUTH_LOGO_URL = 'https://framerusercontent.com/images/BZSiFYgRc4wDUAuEybhJbZsIBQY.png?width=1519&height=429';
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -339,6 +347,34 @@ export const SignIn: React.FC<SignInProps> = ({ navigateTo, initialAuthMode = 's
           </div>
         </div>
       </div>
+
+      {showSessionExpiredModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="session-expired-title"
+            className="w-full max-w-md rounded-[28px] border border-white/15 bg-lifewood-serpent p-6 text-white shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
+          >
+            <div className="inline-flex rounded-full border border-lifewood-yellow/25 bg-lifewood-yellow/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-lifewood-yellow">
+              Admin Session
+            </div>
+            <h2 id="session-expired-title" className="mt-4 text-2xl font-black">
+              Session expired
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
+              Your session is no longer valid. Please sign in again.
+            </p>
+            <button
+              type="button"
+              onClick={onSessionExpiredAcknowledge}
+              className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-lifewood-green px-4 py-3 text-sm font-semibold text-white transition hover:bg-lifewood-green/90"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
