@@ -31,6 +31,13 @@ interface MagnetCardProps {
   description: string;
 }
 
+interface LanyardImageProps {
+  src: string;
+  alt: string;
+  strapTint: string;
+  overlayClassName: string;
+}
+
 const MagnetCard: React.FC<MagnetCardProps> = ({ title, description }) => {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
@@ -68,6 +75,53 @@ const MagnetCard: React.FC<MagnetCardProps> = ({ title, description }) => {
         <p className="text-sm md:text-base leading-relaxed text-lifewood-serpent/65 dark:text-white/65">
           {description}
         </p>
+      </div>
+    </div>
+  );
+};
+
+const LanyardImage: React.FC<LanyardImageProps> = ({ src, alt, strapTint, overlayClassName }) => {
+  const [swing, setSwing] = useState({ rotate: 0, x: 0, y: 0 });
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const px = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const py = (event.clientY - bounds.top) / bounds.height - 0.5;
+
+    setSwing({
+      rotate: Math.max(-7, Math.min(7, px * 14)),
+      x: Math.max(-8, Math.min(8, px * 16)),
+      y: Math.max(-4, Math.min(10, py * 14))
+    });
+  };
+
+  const resetSwing = () => setSwing({ rotate: 0, x: 0, y: 0 });
+
+  return (
+    <div className="relative flex justify-center pt-10 md:pt-12">
+      <div className="absolute top-0 left-1/2 z-20 h-4 w-4 -translate-x-1/2 rounded-full border border-white/60 bg-lifewood-seaSalt shadow-[0_6px_18px_rgba(0,0,0,0.12)] dark:bg-[#d7dfdb]" />
+      <div
+        className={`absolute top-3 left-1/2 z-10 h-12 md:h-14 w-[3px] -translate-x-1/2 rounded-full bg-gradient-to-b ${strapTint} shadow-[0_6px_18px_rgba(0,0,0,0.12)]`}
+      />
+      <div
+        className="relative w-full max-w-[24rem] origin-top transition-transform duration-300 ease-out will-change-transform"
+        style={{
+          transform: `translate3d(${swing.x}px, ${swing.y}px, 0) rotate(${swing.rotate}deg)`
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={resetSwing}
+      >
+        <div className="absolute inset-x-[12%] -top-3 z-20 h-6 rounded-full border border-white/40 bg-white/65 shadow-[0_12px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm dark:bg-white/10" />
+        <div className="relative overflow-hidden rounded-[1.6rem] border border-white/35 bg-white/70 p-3 shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)] backdrop-blur-md">
+          <div className="relative overflow-hidden rounded-[1.15rem]">
+            <img
+              src={src}
+              alt={alt}
+              className="w-full h-[220px] md:h-[280px] object-cover transition-transform duration-500 ease-out hover:scale-[1.03]"
+            />
+            <div className={overlayClassName}></div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -223,14 +277,12 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
                     These partnerships help us move beyond one-time support by connecting investment with delivery capacity, local employment, and region-specific development priorities.
                   </p>
                 </div>
-                <div className="relative overflow-hidden rounded-xl">
-                  <img
-                    src="https://framerusercontent.com/images/H6g74f7ON0rYqleh3DuDC7wLLn4.png?width=1004&height=591"
-                    alt="Partnership"
-                    className="w-full h-[220px] md:h-[280px] object-cover group-hover:scale-[1.06] transition-transform duration-[1800ms]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent"></div>
-                </div>
+                <LanyardImage
+                  src="https://framerusercontent.com/images/H6g74f7ON0rYqleh3DuDC7wLLn4.png?width=1004&height=591"
+                  alt="Partnership"
+                  strapTint="from-lifewood-green/75 via-lifewood-green/45 to-white/70"
+                  overlayClassName="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent pointer-events-none"
+                />
               </div>
             </motion.article>
 
@@ -243,14 +295,12 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
             >
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 via-transparent to-lifewood-saffron/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div className="relative overflow-hidden rounded-xl">
-                  <img
-                    src="https://framerusercontent.com/images/06PBWoX2dQvZzJ4GCFpMLVH9ZA.jpg?scale-down-to=1024&width=3458&height=5187"
-                    alt="Application"
-                    className="w-full h-[220px] md:h-[280px] object-cover group-hover:scale-[1.06] transition-transform duration-[1800ms]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                </div>
+                <LanyardImage
+                  src="https://framerusercontent.com/images/06PBWoX2dQvZzJ4GCFpMLVH9ZA.jpg?scale-down-to=1024&width=3458&height=5187"
+                  alt="Application"
+                  strapTint="from-lifewood-saffron/80 via-lifewood-saffron/45 to-white/70"
+                  overlayClassName="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"
+                />
                 <div className="text-left md:text-right">
                   <h4 className="text-2xl md:text-3xl font-heading font-semibold text-lifewood-serpent dark:text-white mb-5">
                     Application
@@ -285,14 +335,12 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
                     The goal is long-term resilience: stronger teams, more inclusive economic participation, and leadership pathways that allow communities to sustain growth from within.
                   </p>
                 </div>
-                <div className="relative overflow-hidden rounded-xl">
-                  <img
-                    src="https://framerusercontent.com/images/YuQdLXDoPq70vyVGWddKObRr4.png?width=599&height=394"
-                    alt="Expanding"
-                    className="w-full h-[220px] md:h-[280px] object-cover group-hover:scale-[1.06] transition-transform duration-[1800ms]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                </div>
+                <LanyardImage
+                  src="https://framerusercontent.com/images/YuQdLXDoPq70vyVGWddKObRr4.png?width=599&height=394"
+                  alt="Expanding"
+                  strapTint="from-lifewood-green/80 via-lifewood-serpent/45 to-white/70"
+                  overlayClassName="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"
+                />
               </div>
             </motion.article>
           </div>
