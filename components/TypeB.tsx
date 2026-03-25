@@ -13,7 +13,7 @@ const features = [
   {
     id: '01',
     title: 'Target',
-    description: 'Capture and transcribe recordings from native speakers from 23 different countries. Voice content involves 6 project types and 9 data domains. A total of 25,400 valid hours durations.',
+    description: 'Captured and transcribed native-speaker recordings from 23 countries across 6 project types and 9 data domains.',
     image: 'https://framerusercontent.com/images/2GAiSbiawE1R7sXuFDwNLfEovRM.jpg?width=711&height=400',
     label: 'Target',
     icon: <Target className="w-6 h-6" />
@@ -21,7 +21,7 @@ const features = [
   {
     id: '02',
     title: 'Solutions',
-    description: '30,000+ native speaking human resources from more than 30 countries were mobilized.    Use our flexible industrial processes and continuously optimize them.    Use PBI to track the progress of daily collection and transcription in real time, analyze and improve the results in real time.',
+    description: 'Mobilized 30,000+ native speakers across 30+ countries with optimized workflows and real-time progress tracking.',
     image: 'https://framerusercontent.com/images/AtSZKyVin3X5lENphObnH6Puw.jpg?lossless=1&width=612&height=408',
     label: 'Solutions',
     icon: <Zap className="w-6 h-6" />
@@ -29,7 +29,7 @@ const features = [
   {
     id: '03',
     title: 'Results',
-    description: '5 months to complete the voice collection and annotation of 25,400 valid hours on time and with quality.',
+    description: 'Completed 25,400 valid hours of voice collection and annotation in 5 months with quality and on-time delivery.',
     image: 'https://framerusercontent.com/images/prEubFztlVx6VnuokfOrkAs.jpg?width=612&height=353',
     label: 'Results',
     icon: <Shield className="w-6 h-6" />
@@ -207,15 +207,15 @@ export const TypeB: React.FC<TypeBProps> = ({ theme = 'light', navigateTo }) => 
             </h2>
           </motion.div>
           
-          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-20">
-            <div className="lg:w-1/3 flex flex-col justify-center order-2 lg:order-1 min-h-[450px]">
+          <div className="flex flex-col lg:flex-row items-start lg:items-stretch gap-8 lg:gap-20">
+            <div className="lg:w-1/3 flex flex-col justify-center order-2 lg:order-1 min-h-[450px] lg:h-[550px]">
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={activeIdx}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="glass p-10 md:p-14 rounded-[3rem] border border-white/30 dark:border-white/10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_90px_-35px_rgba(255,179,71,0.35)]"
+                  className="glass p-10 md:p-14 rounded-[3rem] border border-white/30 dark:border-white/10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_90px_-35px_rgba(255,179,71,0.35)] lg:h-full lg:flex lg:flex-col"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-lifewood-saffron/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                   <div className="w-14 h-14 rounded-2xl bg-lifewood-saffron/10 flex items-center justify-center mb-8 text-lifewood-saffron shadow-inner">
@@ -224,7 +224,7 @@ export const TypeB: React.FC<TypeBProps> = ({ theme = 'light', navigateTo }) => 
                   <h3 className="text-4xl font-black mb-6 text-lifewood-serpent dark:text-white tracking-tight">
                     {features[activeIdx].title}
                   </h3>
-                  <p className="text-xl text-lifewood-serpent/70 dark:text-white/70 leading-relaxed font-medium">
+                  <p className="text-xl text-lifewood-serpent/70 dark:text-white/70 leading-relaxed font-medium lg:flex-1">
                     {features[activeIdx].description}
                   </p>
                 </motion.div>

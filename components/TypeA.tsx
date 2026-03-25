@@ -13,7 +13,7 @@ const features = [
   {
     id: '01',
     title: 'Objective',
-    description: 'Scan document for preservation, extract data and structure into database.',
+    description: 'Scan documents for preservation, then extract and structure the data into a database.',
     image: 'https://framerusercontent.com/images/1edPwLJhGXCUhlh38ixQSMOTFA.png?width=1024&height=1024',
     label: 'Objective',
     icon: <Target className="w-6 h-6" />
@@ -21,7 +21,7 @@ const features = [
   {
     id: '02',
     title: 'Key Features',
-    description: 'Features include Auto Crop, Auto De-skew, Blur Detection, Foreign Object Detection, and AI Data Extraction.',
+    description: 'Includes auto-crop, de-skew, blur detection, foreign object detection, and AI-powered data extraction.',
     image: 'https://framerusercontent.com/images/m7OC7BU1eSVf04CkU0jmNPRkf8.png?width=1024&height=1024',
     label: 'Key Features',
     icon: <Zap className="w-6 h-6" />
@@ -29,7 +29,7 @@ const features = [
   {
     id: '03',
     title: 'Results',
-    description: 'Accurate and precise data is ensured through validation and quality assurance. The system is efficient and scalable, enabling fast and adaptable data extraction. It supports multiple languages and formats, allowing the handling of diverse documents. Advanced features include auto-crop, de-skew, blur, and object detection. With AI integration, the solution provides structured data for AI tools and delivers clear, visual, and easy-to-understand results.',
+    description: 'Delivers validated, scalable, multilingual data extraction with structured outputs and clear, easy-to-review results.',
     image: 'https://framerusercontent.com/images/iI5MBUQ9ctQdcDHjCLNvD4j4kxc.png?width=1024&height=1024',
     label: 'Results',
     icon: <Shield className="w-6 h-6" />
@@ -222,17 +222,17 @@ export const TypeA: React.FC<TypeAProps> = ({ theme = 'light', navigateTo }) => 
             </h2>
           </motion.div>
           
-          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-20">
+          <div className="flex flex-col lg:flex-row items-start lg:items-stretch gap-8 lg:gap-20">
             {/* Left: Content & Mobile Nav */}
-            <div className="lg:w-1/3 flex flex-col justify-center order-2 lg:order-1 min-h-[450px]">
-              <div className="space-y-8">
+            <div className="lg:w-1/3 flex flex-col justify-center order-2 lg:order-1 min-h-[450px] lg:h-[550px]">
+              <div className="space-y-8 lg:h-full">
                 <AnimatePresence mode="wait">
                   <motion.div 
                     key={activeIdx}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="glass p-10 md:p-14 rounded-[3rem] border border-white/30 dark:border-white/10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_90px_-35px_rgba(4,98,65,0.35)]"
+                    className="glass p-10 md:p-14 rounded-[3rem] border border-white/30 dark:border-white/10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_90px_-35px_rgba(4,98,65,0.35)] lg:h-full lg:flex lg:flex-col"
                   >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-lifewood-green/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                     <div className="w-14 h-14 rounded-2xl bg-lifewood-green/10 flex items-center justify-center mb-8 text-lifewood-green shadow-inner">
@@ -241,7 +241,7 @@ export const TypeA: React.FC<TypeAProps> = ({ theme = 'light', navigateTo }) => 
                     <h3 className="text-4xl font-black mb-6 text-lifewood-serpent dark:text-white tracking-tight">
                       {features[activeIdx].title}
                     </h3>
-                    <p className="text-xl text-lifewood-serpent/70 dark:text-white/70 leading-relaxed font-medium">
+                    <p className="text-xl text-lifewood-serpent/70 dark:text-white/70 leading-relaxed font-medium lg:flex-1">
                       {features[activeIdx].description}
                     </p>
                   </motion.div>

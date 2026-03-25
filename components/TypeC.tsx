@@ -13,7 +13,7 @@ const features = [
   {
     id: '01',
     title: 'Target',
-    description: 'Annotate vehicles, pedestrians, and road objects with 2D & 3D techniques to enable accurate object detection for autonomous driving. Self-driving cars rely on precise visual training to detect, classify, and respond safely in real-world conditions.',
+    description: 'Annotated vehicles, pedestrians, and road objects in 2D and 3D to support accurate autonomous driving detection.',
     image: 'https://framerusercontent.com/images/GhKqWw4urSIcFZGZ3kWTXG7c.png?scale-down-to=1024&width=1536&height=1024',
     label: 'Target',
     icon: <Target className="w-6 h-6" />
@@ -21,7 +21,7 @@ const features = [
   {
     id: '02',
     title: 'Solutions',
-    description: 'Dedicated Process Engineering team for analysis and optimization AI-enhanced workflow with multi-level quality checks Scalable global delivery through crowdsourced workforce management.',
+    description: 'Combined process engineering, AI-enhanced workflows, and multi-level quality checks for scalable global delivery.',
     image: 'https://framerusercontent.com/images/9KyWAYBvYkUbASCckXa16Fgc.jpg?scale-down-to=1024&width=4032&height=3024',
     label: 'Solutions',
     icon: <Zap className="w-6 h-6" />
@@ -29,7 +29,7 @@ const features = [
   {
     id: '03',
     title: 'Results',
-    description: 'Achieved 25% production in Month 1 with 95% accuracy (Target: 90%) and 50% production in Month 2 with 99% accuracy (Target: 95%). Maintained an overall accuracy of 99% with on-time delivery. Successfully expanded operations to Malaysia with 100 annotators and Indonesia with 150 annotators.',
+    description: 'Reached 99% overall accuracy, improved production rapidly, and scaled operations across Malaysia and Indonesia.',
     image: 'https://framerusercontent.com/images/mqqWNbBnY0EOUvSMgGlDain8M.jpg?width=1004&height=591',
     label: 'Results',
     icon: <Shield className="w-6 h-6" />
@@ -208,15 +208,15 @@ export const TypeC: React.FC<TypeCProps> = ({ theme = 'light', navigateTo }) => 
             </h2>
           </motion.div>
           
-          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-20">
-            <div className="lg:w-1/3 flex flex-col justify-center order-2 lg:order-1 min-h-[450px]">
+          <div className="flex flex-col lg:flex-row items-start lg:items-stretch gap-8 lg:gap-20">
+            <div className="lg:w-1/3 flex flex-col justify-center order-2 lg:order-1 min-h-[450px] lg:h-[550px]">
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={activeIdx}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.1 }}
-                  className="glass p-10 md:p-14 rounded-[3rem] border border-white/30 dark:border-white/10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_90px_-35px_rgba(4,98,65,0.35)]"
+                  className="glass p-10 md:p-14 rounded-[3rem] border border-white/30 dark:border-white/10 shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_90px_-35px_rgba(4,98,65,0.35)] lg:h-full lg:flex lg:flex-col"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-lifewood-green/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                   <div className="w-14 h-14 rounded-2xl bg-lifewood-green/10 flex items-center justify-center mb-8 text-lifewood-green shadow-inner">
@@ -225,7 +225,7 @@ export const TypeC: React.FC<TypeCProps> = ({ theme = 'light', navigateTo }) => 
                   <h3 className="text-4xl font-black mb-6 text-lifewood-serpent dark:text-white tracking-tight">
                     {features[activeIdx].title}
                   </h3>
-                  <p className="text-xl text-lifewood-serpent/70 dark:text-white/70 leading-relaxed font-medium">
+                  <p className="text-xl text-lifewood-serpent/70 dark:text-white/70 leading-relaxed font-medium lg:flex-1">
                     {features[activeIdx].description}
                   </p>
                 </motion.div>
