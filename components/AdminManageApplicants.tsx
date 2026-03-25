@@ -233,7 +233,13 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
     if (!isoDate) return '—';
     const parsed = new Date(isoDate);
     if (Number.isNaN(parsed.getTime())) return '—';
-    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return parsed.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
   };
 
   const loadApplicants = async (offset = pageOffset) => {
@@ -670,7 +676,7 @@ export const AdminManageApplicants: React.FC<AdminManageApplicantsProps> = ({ na
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Country</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{modalApplicant.country}</p></div>
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Status</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{formatStatusLabel(modalApplicant.statusName)}</p></div>
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">New Applicant</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{modalApplicant.newApplicantStatus ? 'Yes' : 'No'}</p></div>
-                      <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Applied Date</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{formatAppliedDate(modalApplicant.createdAt)}</p></div>
+                      <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Applied Date & Time</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{formatAppliedDate(modalApplicant.createdAt)}</p></div>
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3 sm:col-span-2"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Current Address</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{formatTitleCase(modalApplicant.currentAddress)}</p></div>
                     </div>
                   </div>
