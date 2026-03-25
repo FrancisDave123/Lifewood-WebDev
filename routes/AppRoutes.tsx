@@ -28,7 +28,11 @@ import { TermsConditions } from '../components/TermsConditions';
 import { SignIn } from '../components/SignIn';
 import { JoinUs } from '../components/JoinUs';
 import { JoinUsAs } from '../components/JoinUsAs';
+import { AdminAnalytics } from '../components/AdminAnalytics';
 import { AdminDashboard } from '../components/AdminDashboard';
+import { AdminEvaluation } from '../components/AdminEvaluation';
+import { AdminManageEmployees } from '../components/AdminManageEmployees';
+import { AdminManageInterns } from '../components/AdminManageInterns';
 import { AdminReports } from '../components/AdminReports';
 import { AdminManageApplicants } from '../components/AdminManageApplicants';
 import { AdminManageInquiries } from '../components/AdminManageInquiries';
@@ -154,6 +158,73 @@ interface AppRoutesProps {
 
 type NavigateTo = (page: PageRoute) => void;
 
+interface AdminRouteGuardProps {
+  children: ReactNode;
+  isAuthLoading: boolean;
+  setIsAdminAuthenticated: Dispatch<SetStateAction<boolean>>;
+  setAuthRoleId: Dispatch<SetStateAction<number | null>>;
+  setAuthRoleName: Dispatch<SetStateAction<string | null>>;
+}
+
+const AdminRouteGuard: React.FC<AdminRouteGuardProps> = ({
+  children,
+  isAuthLoading,
+  setIsAdminAuthenticated,
+  setAuthRoleId,
+  setAuthRoleName
+}) => {
+  const location = useLocation();
+  const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'unauthenticated' | 'forbidden'>('checking');
+
+  useEffect(() => {
+    let isActive = true;
+
+    const validateAdminAccess = async () => {
+      setAccessState('checking');
+
+      const user = await authService.getCurrentUser();
+      if (!isActive) return;
+
+      if (!user) {
+        setIsAdminAuthenticated(false);
+        setAuthRoleId(null);
+        setAuthRoleName(null);
+        setAccessState('unauthenticated');
+        return;
+      }
+
+      setIsAdminAuthenticated(user.role_id === 1);
+      setAuthRoleId(user.role_id);
+      setAuthRoleName(user.role_name);
+      setAccessState(user.role_id === 1 ? 'allowed' : 'forbidden');
+    };
+
+    void validateAdminAccess();
+
+    return () => {
+      isActive = false;
+    };
+  }, [location.pathname, setAuthRoleId, setAuthRoleName, setIsAdminAuthenticated]);
+
+  if (isAuthLoading || accessState === 'checking') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-lifewood-seaSalt">
+        Loading...
+      </div>
+    );
+  }
+
+  if (accessState === 'unauthenticated') {
+    return <Navigate to={PAGE_PATHS['signin']} replace />;
+  }
+
+  if (accessState === 'forbidden') {
+    return <Navigate to={PAGE_PATHS['admin-access-denied']} replace />;
+  }
+
+  return <AdminLayout>{children}</AdminLayout>;
+};
+
 const ScrollToTopButton: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -261,15 +332,19 @@ const navigateTo = useCallback<NavigateTo>((page) => {
     currentPage !== 'applicant-dashboard';
     
 
-  const isAuthenticated = authRoleId !== null;
   const isAdminUser = authRoleId === 1;
+  const isAuthenticated = authRoleId !== null;
 
-  const renderAdmin = (element: ReactNode) =>
-    !isAuthenticated
-      ? <Navigate to={PAGE_PATHS['signin']} replace />
-      : isAdminUser
-        ? <AdminLayout>{element}</AdminLayout>
-        : <Navigate to={PAGE_PATHS['admin-access-denied']} replace />;
+  const renderAdmin = (element: ReactNode) => (
+    <AdminRouteGuard
+      isAuthLoading={isAuthLoading}
+      setIsAdminAuthenticated={setIsAdminAuthenticated}
+      setAuthRoleId={setAuthRoleId}
+      setAuthRoleName={setAuthRoleName}
+    >
+      {element}
+    </AdminRouteGuard>
+  );
 
   const resolveRoleDashboard = () => {
     if (authRoleId === 1) return PAGE_PATHS['admin-dashboard'];
@@ -374,10 +449,20 @@ const navigateTo = useCallback<NavigateTo>((page) => {
             )}
           />
           <Route path="/admin-dashboard" element={renderAdmin(<AdminDashboard navigateTo={navigateTo} />)} />
+          <Route path="/admin-analytics" element={renderAdmin(<AdminAnalytics navigateTo={navigateTo} />)} />
+          <Route path="/admin-evaluation" element={renderAdmin(<AdminEvaluation navigateTo={navigateTo} />)} />
           <Route path="/admin-reports" element={renderAdmin(<AdminReports navigateTo={navigateTo} />)} />
+          <Route
+            path="/admin-manage-interns"
+            element={renderAdmin(<AdminManageInterns navigateTo={navigateTo} />)}
+          />
           <Route
             path="/admin-manage-applicants"
             element={renderAdmin(<AdminManageApplicants navigateTo={navigateTo} />)}
+          />
+          <Route
+            path="/admin-manage-employees"
+            element={renderAdmin(<AdminManageEmployees navigateTo={navigateTo} />)}
           />
           <Route
             path="/admin-manage-inquiries"
