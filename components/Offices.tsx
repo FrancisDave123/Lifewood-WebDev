@@ -42,7 +42,7 @@ export const Offices: React.FC<OfficesProps> = ({ theme = 'light' }) => {
             <PageHeroHeader
               id="offices-page-title"
               eyebrow="Global footprint"
-              title="Largest Global Data Collection\nResources Distribution"
+              title={'Largest Global Data Collection\nResources Distribution'}
               titleClassName={`text-4xl md:text-6xl font-heading font-black leading-[0.95] tracking-tight ${headingColor} uppercase whitespace-pre-line`}
               description="Explore where our teams operate, how our global collection network is organized, and the scale of our worldwide delivery presence."
             />
