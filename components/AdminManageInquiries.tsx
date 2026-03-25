@@ -73,6 +73,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [modalMessage, setModalMessage] = useState<MessageRecord | null>(null);
+  const [previewMessage, setPreviewMessage] = useState<MessageRecord | null>(null);
   const [replyDraft, setReplyDraft] = useState<ReplyDraft | null>(null);
   const [isReplySending, setIsReplySending] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ mode: 'single' | 'selected'; id?: string; name?: string } | null>(null);
@@ -494,32 +495,83 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
               </div>
 
               <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-                  <div className="space-y-4">
+                <div className="space-y-4">
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Name</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{modalMessage.name}</p></div>
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Email</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent break-all">{modalMessage.email}</p></div>
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Subject</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{modalMessage.subject}</p></div>
                       <div className="rounded-xl bg-lifewood-seaSalt/60 p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Date and Time</p><p className="mt-1 text-sm font-semibold text-lifewood-serpent">{formatMessageDate(modalMessage.created_at)} at {formatMessageTime(modalMessage.created_at)}</p></div>
                     </div>
-                    <div className="rounded-xl bg-lifewood-seaSalt/60 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Message</p>
-                      <p className="mt-2 text-sm font-semibold text-lifewood-serpent whitespace-pre-wrap">{modalMessage.message}</p>
+                    <div className="space-y-4 lg:sticky lg:top-0 lg:self-start">
+                      <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
+                        <p className="text-sm font-semibold text-lifewood-serpent">Actions</p>
+                        <p className="mt-1 text-xs text-lifewood-serpent/60">Manage this inquiry.</p>
+                        <div className="mt-3 flex flex-col gap-2">
+                          <button type="button" onClick={openReplyModal} className="rounded-xl bg-lifewood-green px-3 py-2 text-xs font-semibold text-white hover:bg-lifewood-green/90">Reply</button>
+                          <button type="button" onClick={() => setConfirmDelete({ mode: 'single', id: modalMessage.id, name: modalMessage.name })} className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600">Delete Inquiry</button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
-                      <p className="text-sm font-semibold text-lifewood-serpent">Actions</p>
-                      <p className="mt-1 text-xs text-lifewood-serpent/60">Manage this inquiry.</p>
-                      <div className="mt-3 flex flex-col gap-2">
-                        <button type="button" onClick={openReplyModal} className="rounded-xl bg-lifewood-green px-3 py-2 text-xs font-semibold text-white hover:bg-lifewood-green/90">Reply</button>
-                        <button type="button" onClick={() => setConfirmDelete({ mode: 'single', id: modalMessage.id, name: modalMessage.name })} className="rounded-xl bg-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-red-600">Delete Inquiry</button>
-                      </div>
+                  <div className="rounded-xl bg-lifewood-seaSalt/60 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Message</p>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewMessage(modalMessage)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-lifewood-serpent/15 bg-white px-3 py-1.5 text-[11px] font-semibold text-lifewood-serpent transition hover:border-lifewood-green hover:text-lifewood-green"
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        Full Preview
+                      </button>
+                    </div>
+                    <div className="mt-2 max-h-[320px] overflow-y-auto rounded-lg bg-white/70 p-3">
+                      <p className="text-sm font-semibold text-lifewood-serpent whitespace-pre-wrap">{modalMessage.message}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {previewMessage && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="fixed inset-0 z-[182] flex items-center justify-center bg-black/55 p-4" onClick={() => setPreviewMessage(null)}>
+            <motion.div initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 14, scale: 0.97 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-lifewood-serpent/10 bg-white shadow-[0_24px_70px_rgba(19,48,32,0.25)]" onClick={(e) => e.stopPropagation()}>
+              <div className="flex shrink-0 items-center justify-between bg-lifewood-serpent px-5 py-4 text-white">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Full Message Preview</p>
+                  <h3 className="mt-0.5 text-base font-bold">{previewMessage.subject}</h3>
+                  <p className="mt-1 text-xs text-white/70">{previewMessage.name}</p>
+                </div>
+                <button type="button" onClick={() => setPreviewMessage(null)} className="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20">
+                  Close
+                </button>
+              </div>
+              <div className="grid gap-4 border-b border-lifewood-serpent/10 bg-lifewood-seaSalt/35 px-5 py-4 text-sm text-lifewood-serpent md:grid-cols-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Sender</p>
+                  <p className="mt-1 font-semibold">{previewMessage.name}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Email</p>
+                  <p className="mt-1 break-all font-semibold">{previewMessage.email}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Received</p>
+                  <p className="mt-1 font-semibold">{formatMessageDate(previewMessage.created_at)} at {formatMessageTime(previewMessage.created_at)}</p>
+                </div>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                <article className="mx-auto max-w-3xl rounded-2xl bg-lifewood-seaSalt/45 p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Message</p>
+                  <p className="mt-3 whitespace-pre-wrap text-base leading-8 text-lifewood-serpent">{previewMessage.message}</p>
+                </article>
+              </div>
             </motion.div>
           </motion.div>
         )}
