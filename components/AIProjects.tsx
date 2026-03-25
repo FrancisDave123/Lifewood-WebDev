@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   ArrowRight, 
   Database, 
@@ -33,6 +33,7 @@ interface ProjectAccordionItem {
 
 export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const projectCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const projectItems: ProjectAccordionItem[] = [
     {
       id: '2.1',
@@ -115,6 +116,12 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
   }, [projectItems]);
 
   const activeProject = projectItems[activeSlideIndex] ?? projectItems[0];
+  const scrollToActiveProject = () => {
+    const element = projectCardRefs.current[activeProject.id];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   return (
     <div className="pt-32 pb-20 animate-pop-out opacity-0">
@@ -166,12 +173,19 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                <div className="max-w-sm rounded-[1.75rem] border border-white/15 bg-black/40 backdrop-blur-md p-5 text-white">
-                  <p className="text-[10px] uppercase tracking-[0.35em] text-white/60 mb-2">Projects Lens</p>
+                <button
+                  type="button"
+                  onClick={scrollToActiveProject}
+                  className="max-w-sm rounded-[1.75rem] border border-white/15 bg-black/40 backdrop-blur-md p-5 text-left text-white transition-all duration-300 hover:border-white/30 hover:bg-black/50"
+                >
+                  <p className="text-[10px] uppercase tracking-[0.35em] text-white/60 mb-2">Current Project</p>
+                  <h3 className="text-xl md:text-2xl font-heading font-black text-white mb-2">
+                    {activeProject.title}
+                  </h3>
                   <p className="text-sm md:text-base leading-relaxed text-white/85">
                     A visual snapshot of Lifewood&apos;s AI project landscape — capture, model enablement, mobility, service, NLP, vision, and archival intelligence.
                   </p>
-                </div>
+                </button>
                 <div className="mt-4 flex items-center gap-2">
                   {projectItems.map((item, index) => (
                     <button
@@ -214,16 +228,16 @@ export const AIProjects: React.FC<AIProjectsProps> = ({ navigateTo }) => {
             {projectItems.map((item, index) => (
               <div
                 key={item.id}
+                ref={(element) => {
+                  projectCardRefs.current[item.id] = element;
+                }}
                 className="group relative overflow-hidden rounded-[2rem] border border-lifewood-serpent/10 bg-white/80 dark:bg-white/5 p-6 md:p-7 shadow-[0_18px_50px_-30px_rgba(4,98,65,0.25)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_70px_-28px_rgba(4,98,65,0.38)]"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-lifewood-green/0 via-lifewood-saffron/0 to-lifewood-green/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 grid gap-5 md:grid-cols-[auto_1fr] md:items-start">
-                  <div className="flex items-center gap-4 md:flex-col md:items-start md:gap-3">
+                  <div className="flex items-center gap-4">
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lifewood-serpent/5 dark:bg-white/10 text-lifewood-green transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
                       {item.icon}
-                    </div>
-                    <div className="rounded-full border border-lifewood-serpent/10 bg-white/85 dark:bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-lifewood-serpent/60 dark:text-white/60">
-                      {String(index + 1).padStart(2, '0')}
                     </div>
                   </div>
 
