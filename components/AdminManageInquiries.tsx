@@ -580,7 +580,7 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
       <AnimatePresence>
         {replyDraft && modalMessage && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} className="fixed inset-0 z-[185] flex items-center justify-center bg-black/50 p-4" onClick={closeReplyModal}>
-            <motion.div initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.98 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} className="w-full max-w-3xl overflow-hidden rounded-3xl border border-lifewood-serpent/10 bg-white shadow-[0_24px_70px_rgba(19,48,32,0.25)]" onClick={(e) => e.stopPropagation()}>
+            <motion.div initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.98 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} className="flex max-h-[min(90vh,820px)] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-lifewood-serpent/10 bg-white shadow-[0_24px_70px_rgba(19,48,32,0.25)]" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between bg-lifewood-green px-5 py-4 text-white">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Reply</p>
@@ -591,8 +591,9 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                 </button>
               </div>
 
-              <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="min-h-0 flex-1 overflow-y-auto p-5">
                 <div className="space-y-4">
+                  <div className="min-h-0 space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl bg-lifewood-seaSalt/60 p-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-lifewood-serpent/50">Name</p>
@@ -632,28 +633,40 @@ export const AdminManageInquiries: React.FC<AdminManageInquiriesProps> = ({ navi
                       />
                     </div>
                   </div>
-                </div>
+                  </div>
 
-                <div className="space-y-4">
                   <div className="rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/40 p-4">
                     <p className="text-sm font-semibold text-lifewood-serpent">Reply target</p>
-                    <p className="mt-1 text-xs text-lifewood-serpent/60">This reply will be stored as an admin response and linked to:</p>
-                    <p className="mt-2 break-all rounded-xl bg-white px-3 py-2 text-sm font-semibold text-lifewood-serpent">{replyDraft.target.email}</p>
-                  </div>
-                  <div className="rounded-2xl border border-lifewood-serpent/10 bg-white p-4">
-                    <p className="text-sm font-semibold text-lifewood-serpent">Original inquiry</p>
-                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-lifewood-serpent/50">From</p>
-                    <p className="mt-1 break-all text-sm text-lifewood-serpent">{replyDraft.target.name} &lt;{replyDraft.target.email}&gt;</p>
-                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-lifewood-serpent/50">Subject</p>
-                    <p className="mt-1 text-sm text-lifewood-serpent">{replyDraft.target.subject}</p>
-                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-lifewood-serpent/50">Message</p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-lifewood-serpent/80">{replyDraft.target.message}</p>
-                  </div>
-                  <div className="flex items-center justify-end gap-2">
-                    <button type="button" onClick={closeReplyModal} disabled={isReplySending} className={`rounded-xl border border-lifewood-serpent/15 px-4 py-2 text-xs font-semibold ${isReplySending ? 'cursor-not-allowed text-lifewood-serpent/40' : 'text-lifewood-serpent'}`}>Cancel</button>
-                    <button type="button" onClick={sendReply} disabled={isReplySending} className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold ${isReplySending ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'}`}>{isReplySending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}{isReplySending ? 'Sending...' : 'Send Reply'}</button>
+                    <p className="mt-1 text-xs leading-5 text-lifewood-serpent/60">This reply will be stored as an admin response and linked to:</p>
+                    <p className="mt-3 break-all rounded-xl bg-white px-3 py-3 text-sm font-semibold text-lifewood-serpent shadow-sm">{replyDraft.target.email}</p>
                   </div>
                 </div>
+
+                <div className="mt-4 rounded-2xl border border-lifewood-serpent/10 bg-white p-5">
+                  <p className="text-base font-semibold text-lifewood-serpent">Original inquiry</p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl bg-lifewood-seaSalt/45 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-lifewood-serpent/50">From</p>
+                      <p className="mt-2 break-all text-sm leading-6 text-lifewood-serpent">{replyDraft.target.name} &lt;{replyDraft.target.email}&gt;</p>
+                    </div>
+                    <div className="rounded-xl bg-lifewood-seaSalt/45 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-lifewood-serpent/50">Subject</p>
+                      <p className="mt-2 text-sm leading-6 text-lifewood-serpent">{replyDraft.target.subject}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-lifewood-serpent/50">Message</p>
+                    <div className="mt-2 max-h-64 overflow-y-auto rounded-2xl border border-lifewood-serpent/10 bg-lifewood-seaSalt/45 px-4 py-3">
+                      <p className="whitespace-pre-wrap break-words text-sm leading-7 text-lifewood-serpent/80">{replyDraft.target.message}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-lifewood-serpent/10 bg-white px-5 py-4">
+                <button type="button" onClick={closeReplyModal} disabled={isReplySending} className={`rounded-xl border border-lifewood-serpent/15 px-4 py-2 text-xs font-semibold ${isReplySending ? 'cursor-not-allowed text-lifewood-serpent/40' : 'text-lifewood-serpent'}`}>Cancel</button>
+                <button type="button" onClick={sendReply} disabled={isReplySending} className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold ${isReplySending ? 'cursor-not-allowed bg-lifewood-serpent/15 text-lifewood-serpent/50' : 'bg-lifewood-green text-white hover:bg-lifewood-green/90'}`}>{isReplySending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}{isReplySending ? 'Sending...' : 'Send Reply'}</button>
               </div>
             </motion.div>
           </motion.div>
