@@ -58,12 +58,12 @@ const MagnetCard: React.FC<MagnetCardProps> = ({ title, description }) => {
 
   return (
     <div
-      className="rounded-[1.75rem] border border-white/30 bg-white/60 dark:bg-white/5 p-6 shadow-lg backdrop-blur-md transition-shadow duration-500 hover:shadow-xl"
+      className="h-full min-h-[15rem] rounded-[1.75rem] border border-white/30 bg-white/60 dark:bg-white/5 p-6 shadow-lg backdrop-blur-md transition-shadow duration-500 hover:shadow-xl"
       onMouseMove={handleMouseMove}
       onMouseLeave={resetOffset}
     >
       <div
-        className="h-full rounded-[1.35rem] transition-transform duration-300 ease-out will-change-transform"
+        className="flex h-full flex-col rounded-[1.35rem] transition-transform duration-300 ease-out will-change-transform"
         style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
       >
         <p className="text-[10px] font-black uppercase tracking-[0.32em] text-lifewood-green mb-3">
@@ -266,7 +266,7 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
             </p>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-3 mb-10 animate-pop-out opacity-0" style={{ animationDelay: '470ms' }}>
+          <div className="grid gap-5 md:grid-cols-3 md:auto-rows-fr mb-10 animate-pop-out opacity-0" style={{ animationDelay: '470ms' }}>
             {impactHighlights.map((item, index) => (
               <motion.div
                 key={item.title}
@@ -274,7 +274,7 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.55, delay: index * 0.06 }}
                 viewport={{ once: true, amount: 0.35 }}
-                className="transition-all duration-500 hover:-translate-y-1"
+                className="h-full transition-all duration-500 hover:-translate-y-1"
               >
                 <MagnetCard title={item.title} description={item.description} />
               </motion.div>
