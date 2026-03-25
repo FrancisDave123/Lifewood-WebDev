@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { PageRoute } from '../routes/routeTypes';
@@ -7,6 +7,71 @@ import { PageHeroHeader } from './PageHeroHeader';
 interface PhilanthropyImpactProps {
   navigateTo?: (page: PageRoute) => void;
 }
+
+const impactHighlights = [
+  {
+    title: 'Education Access',
+    description:
+      'We support programs that widen access to learning, digital literacy, and practical skills development in communities with limited resources.'
+  },
+  {
+    title: 'Sustainable Livelihoods',
+    description:
+      'Our work is designed to create durable income opportunities through training, fair participation, and pathways into long-term employment.'
+  },
+  {
+    title: 'Local Capacity Building',
+    description:
+      'We help communities strengthen local leadership, operational capability, and delivery models that can continue growing over time.'
+  }
+];
+
+interface MagnetCardProps {
+  title: string;
+  description: string;
+}
+
+const MagnetCard: React.FC<MagnetCardProps> = ({ title, description }) => {
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const centerX = bounds.left + bounds.width / 2;
+    const centerY = bounds.top + bounds.height / 2;
+    const offsetX = (event.clientX - centerX) / 14;
+    const offsetY = (event.clientY - centerY) / 14;
+
+    setOffset({
+      x: Math.max(-10, Math.min(10, offsetX)),
+      y: Math.max(-10, Math.min(10, offsetY))
+    });
+  };
+
+  const resetOffset = () => setOffset({ x: 0, y: 0 });
+
+  return (
+    <div
+      className="rounded-[1.75rem] border border-white/30 bg-white/60 dark:bg-white/5 p-6 shadow-lg backdrop-blur-md transition-shadow duration-500 hover:shadow-xl"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={resetOffset}
+    >
+      <div
+        className="h-full rounded-[1.35rem] transition-transform duration-300 ease-out will-change-transform"
+        style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
+      >
+        <p className="text-[10px] font-black uppercase tracking-[0.32em] text-lifewood-green mb-3">
+          Focus Area
+        </p>
+        <h4 className="text-xl font-heading font-semibold text-lifewood-serpent dark:text-white mb-3">
+          {title}
+        </h4>
+        <p className="text-sm md:text-base leading-relaxed text-lifewood-serpent/65 dark:text-white/65">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigateTo }) => {
   const frameUrl = 'https://lifewoodworldwidemap.vercel.app/';
@@ -115,6 +180,21 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
             </p>
           </div>
 
+          <div className="grid gap-5 md:grid-cols-3 mb-10 animate-pop-out opacity-0" style={{ animationDelay: '470ms' }}>
+            {impactHighlights.map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.55, delay: index * 0.06 }}
+                viewport={{ once: true, amount: 0.35 }}
+                className="transition-all duration-500 hover:-translate-y-1"
+              >
+                <MagnetCard title={item.title} description={item.description} />
+              </motion.div>
+            ))}
+          </div>
+
           <div className="relative pb-12 md:pb-16 animate-pop-out opacity-0 overflow-hidden rounded-[2rem]" style={{ animationDelay: '520ms' }}>
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute -top-20 -left-16 w-56 h-56 rounded-full bg-lifewood-green/10 blur-[80px] animate-float-slow"></div>
@@ -138,6 +218,9 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
                   <h4 className="text-2xl md:text-3xl font-heading font-semibold text-lifewood-serpent dark:text-white mb-5">Partnership</h4>
                   <p className="text-base md:text-lg text-lifewood-serpent/60 dark:text-white/60 leading-relaxed">
                     In partnership with our philanthropic partners, Lifewood has expanded operations in South Africa, Nigeria, Republic of the Congo, Democratic Republic of the Congo, Ghana, Madagascar, Benin, Uganda, Kenya, Ivory Coast, Egypt, Ethiopia, Niger, Tanzania, Tunisia, Zambia, Zimbabwe, Togo, Cameroon and many others.
+                  </p>
+                  <p className="mt-4 text-sm md:text-base text-lifewood-serpent/60 dark:text-white/60 leading-relaxed">
+                    These partnerships help us move beyond one-time support by connecting investment with delivery capacity, local employment, and region-specific development priorities.
                   </p>
                 </div>
                 <div className="relative overflow-hidden rounded-xl">
@@ -175,6 +258,9 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
                   <p className="text-base md:text-lg text-lifewood-serpent/60 dark:text-white/60 leading-relaxed">
                     This requires the application of our methods and experience for the development of people in under resourced economies.
                   </p>
+                  <p className="mt-4 text-sm md:text-base text-lifewood-serpent/60 dark:text-white/60 leading-relaxed">
+                    We adapt our operating model to local conditions so programs can strengthen skills, improve participation, and turn capability-building into measurable community benefit.
+                  </p>
                 </div>
               </div>
             </motion.article>
@@ -194,6 +280,9 @@ export const PhilanthropyImpact: React.FC<PhilanthropyImpactProps> = ({ navigate
                   </h4>
                   <p className="text-base md:text-lg text-lifewood-serpent/60 dark:text-white/60 leading-relaxed">
                     We are expanding access to training, establishing equiatable wage structures and career and leadership progression to create sustainable change, by equipping individuals to take the lead and grow the business for themselves for the long term benefit of everyone.
+                  </p>
+                  <p className="mt-4 text-sm md:text-base text-lifewood-serpent/60 dark:text-white/60 leading-relaxed">
+                    The goal is long-term resilience: stronger teams, more inclusive economic participation, and leadership pathways that allow communities to sustain growth from within.
                   </p>
                 </div>
                 <div className="relative overflow-hidden rounded-xl">
